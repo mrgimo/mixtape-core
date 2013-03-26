@@ -1,5 +1,6 @@
 # Folders #
 target/
+_databases/
 
 *.class
 
