@@ -2,12 +2,12 @@ package ch.hsr.mixtape.features;
 
 public class RMS {
 
-	public double extractFeature(double[] samples) {
+	public double extractFeature(double[] window) {
 		double sum = 0.0;
-		for (int samp = 0; samp < samples.length; samp++)
-			sum += samples[samp] * samples[samp];
+		for (int samp = 0; samp < window.length; samp++)
+			sum += window[samp] * window[samp];
 
-		return Math.sqrt(sum / samples.length);
+		return Math.sqrt(sum / window.length);
 	}
 
 }
