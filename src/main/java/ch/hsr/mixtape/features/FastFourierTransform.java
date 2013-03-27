@@ -8,7 +8,7 @@ public class FastFourierTransform {
 	public FastFourierTransform(double[] window) {
 		int size = ensureIsPowerOfN(window.length, 2);
 		realNumbers = new double[size];
-		System.arraycopy(window, 0, realNumbers, 0, size);
+		System.arraycopy(window, 0, realNumbers, 0, window.length);
 
 		imaginaryNumbers = new double[size];
 
@@ -50,10 +50,14 @@ public class FastFourierTransform {
 				int right = 0;
 				for (int left = spectra_count; left < size; left += step_size) {
 					right = left + max_spectra_for_stage;
-					double temp_real = real_correction * realNumbers[right] - imag_correction * imaginaryNumbers[right];
-					double temp_imag = real_correction * imaginaryNumbers[right] + imag_correction * realNumbers[right];
+					double temp_real = real_correction * realNumbers[right]
+							- imag_correction * imaginaryNumbers[right];
+					double temp_imag = real_correction
+							* imaginaryNumbers[right] + imag_correction
+							* realNumbers[right];
 					realNumbers[right] = realNumbers[left] - temp_real;
-					imaginaryNumbers[right] = imaginaryNumbers[left] - temp_imag;
+					imaginaryNumbers[right] = imaginaryNumbers[left]
+							- temp_imag;
 					realNumbers[left] += temp_real;
 					imaginaryNumbers[left] += temp_imag;
 				}
@@ -62,6 +66,18 @@ public class FastFourierTransform {
 		}
 	}
 
+	/**
+	 * If the given x is a power of the given n, then x is returned. If not,
+	 * then the next value above the given x that is a power of n is returned.
+	 * 
+	 * <p>
+	 * <b>IMPORTANT:</b> Both x and n must be greater than zero.
+	 * 
+	 * @param x
+	 *            The value to ensure is a power of n.
+	 * @param n
+	 *            The power to base x's validation on.
+	 */
 	private int ensureIsPowerOfN(int x, int n) {
 		double log_value = logBaseN((double) x, (double) n);
 		int log_int = (int) log_value;
@@ -71,10 +87,32 @@ public class FastFourierTransform {
 		return valid_size;
 	}
 
+	/**
+	 * Returns the logarithm of the specified base of the given number.
+	 * 
+	 * <p>
+	 * <b>IMPORTANT:</b> Both x and n must be greater than zero.
+	 * 
+	 * @param x
+	 *            The value to find the log of.
+	 * @param n
+	 *            The base of the logarithm.
+	 */
 	private double logBaseN(double x, double n) {
 		return (Math.log10(x) / Math.log10(n));
 	}
 
+	/**
+	 * Returns the given a raised to the power of the given b.
+	 * 
+	 * <p>
+	 * <b>IMPORTANT:</b> b must be greater than zero.
+	 * 
+	 * @param a
+	 *            The base.
+	 * @param b
+	 *            The exponent.
+	 */
 	private int pow(int a, int b) {
 		int result = a;
 		for (int i = 1; i < b; i++)
