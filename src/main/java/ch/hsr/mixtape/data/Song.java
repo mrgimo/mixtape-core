@@ -10,4 +10,8 @@ public class Song {
 		return features;
 	}
 
+	public double distanceTo(Song song) {
+		return 0;
+	}
+
 }

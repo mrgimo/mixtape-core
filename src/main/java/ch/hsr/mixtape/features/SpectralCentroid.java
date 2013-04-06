@@ -7,8 +7,8 @@ public class SpectralCentroid {
 		double weightedTotal = 0.0;
 
 		for (int i = 0; i < powerSpectrum.length; i++) {
-			weightedTotal += i * powerSpectrum[i];
-			total += powerSpectrum[i];
+			weightedTotal += i * Math.sqrt(powerSpectrum[i]); // take sqrt for better scaling with increased power
+			total += Math.sqrt(powerSpectrum[i]);
 		}
 
 		if (total != 0.0) {

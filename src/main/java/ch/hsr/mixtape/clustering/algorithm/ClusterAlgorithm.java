@@ -7,7 +7,7 @@ import ch.hsr.mixtape.data.Song;
 
 public interface ClusterAlgorithm {
 	
-	public ArrayList<Cluster>cluster(ArrayList<Song> clusteredSongs);
+	ArrayList<Cluster> cluster(ArrayList<Song> songs);
 		
 
 }
