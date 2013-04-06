@@ -1,4 +1,4 @@
-package mixtapeCore;
+package ch.hsr.mixtape.features;
 
 import java.util.ArrayList;
 import java.util.Arrays;
