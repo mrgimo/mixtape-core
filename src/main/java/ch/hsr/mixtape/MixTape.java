@@ -2,22 +2,22 @@ package ch.hsr.mixtape;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import ch.hsr.mixtape.audio.AudioChannel;
 import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.features.controller.FeatureController;
 import ch.hsr.mixtape.library.LibraryController;
 
 public class MixTape {
+	private static final int THREAD_COUNT = 4;
 	private static final String PATH = "songs/";
 
 	public static void main(String[] args) {
-		ArrayList<Song> songs = generateAudioData();
-
-		FeatureController featureController = new FeatureController();
-		featureController.extractFeatures(songs);
-
-//		printFeatureVectors(songs);
+		ArrayList<Song> songs = extractAudioData();
 
 		LibraryController libraryController = new LibraryController();
 		libraryController.addSongsToLibrary(songs);
@@ -26,27 +26,46 @@ public class MixTape {
 		libraryController.printClusters();
 	}
 
-	private static ArrayList<Song> generateAudioData() {
-		SampleLoader sampleLoader = new SampleLoader();
-
-		ArrayList<Song> songs = new ArrayList<Song>();
+	private static ArrayList<Song> extractAudioData() {
 
 		File audioDirectory = new File(PATH);
 		File[] audioFiles = audioDirectory.listFiles();
+		
+		ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT);
+	    ArrayList<Song> songs = new ArrayList<Song>();
+	    Collection<Future<?>> futures = new LinkedList<Future<?>>();
 
 		for (int i = 0; i < audioFiles.length; i++) {
 			if (isMusicFile(audioFiles[i])) {
-				System.out.println("extracting data from "
-						+ audioFiles[i].getName() + "...");
-
-				double[] audioData = sampleLoader.getSamples(AudioChannel
-						.load(audioFiles[i]));
-
-				Song song = new Song(audioFiles[i].getName(), audioData);
+				
+				Song song = new Song(audioFiles[i]);
 				songs.add(song);
+				
+				AudioExtractor audioExtractor = new AudioExtractor(song);
+				
+				futures.add(executorService.submit(audioExtractor));
+			}
+		}
+		for (Future<?> future:futures) {
+			try {
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
+		executorService.shutdown();
+		return songs;
+	}
 
-				System.out.println("done !");
-				System.out.println();
+	private static ArrayList<Song> getSongsFromTasks(
+			ArrayList<Future<Song>> sampleLoadingTasks) {
+		ArrayList<Song> songs = new ArrayList<Song>();
+		
+		for (Future<Song> sampleLoadingTask : sampleLoadingTasks) {
+			try {
+				songs.add(sampleLoadingTask.get());
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
 			}
 		}
 		return songs;
@@ -55,17 +74,4 @@ public class MixTape {
 	private static boolean isMusicFile(File musicFile) {
 		return !musicFile.isDirectory() && musicFile.getName().endsWith(".mp3");
 	}
-
-	private static void printFeatureVectors(ArrayList<Song> songs) {
-	
-		for (Song song : songs) {
-			System.out.println("RMS: " + song.getFeatureVector().RMS);
-			System.out.println("ZC: " + song.getFeatureVector().ZC);
-		}
-		
-		System.out.println();
-		System.out.println();
-	
-	}
-
 }

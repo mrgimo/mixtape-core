@@ -25,10 +25,11 @@ public class LibraryController {
 	}
 
 	public void printClusters() {
+		System.out.println();
 		for (Cluster cluster : library.getClusters()) {
 			System.out.println("Cluster: " + cluster.getName());
 			for (Song song : cluster.getSongs()) {
-				System.out.println(song.getName() + "\nRMS: " + song.getFeatureVector().RMS + "\nZC: " + song.getFeatureVector().ZC);
+				System.out.println(song.getName() + "\nRMS: " + song.getFeatureVector().getFeatureValues()[0] + "\nZC: " + song.getFeatureVector().getFeatureValues()[1]);
 				System.out.println();
 			}
 			System.out.println();

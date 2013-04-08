@@ -1,8 +1,21 @@
 package ch.hsr.mixtape.data;
 
-public interface Feature {
+public class Feature <T extends Number> {
 	
-	public double doubleValue();
-	public int intValue();
+	private String name;
+	private T value;
+
+	public Feature(String name, T value) {
+		this.name = name;
+		this.value = value;
+	}
+	
+	public double doubleValue() {
+		return (double) value.doubleValue();
+	}
+	
+	public String getName() {
+		return name;
+	}
 
 }
