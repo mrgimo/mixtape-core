@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Cluster {
 	
-	private ArrayList<Song> clusteredSongs;
+	private ArrayList<Song> clusteredSongs = new ArrayList<Song>();
 	private String name = "Default";
 	
 	public Cluster(ArrayList<Song> clusteredSongs){

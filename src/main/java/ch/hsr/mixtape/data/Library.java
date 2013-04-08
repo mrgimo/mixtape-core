@@ -6,6 +6,11 @@ public class Library {
 
 
 	private ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+	private Cluster defaultCluster = new Cluster();
+	
+	public Library() {
+		clusters.add(defaultCluster);
+	}
 
 	public int getClusterCount() {
 		return clusters.size();
@@ -25,5 +30,9 @@ public class Library {
 	
 	public ArrayList<Cluster> getClusters() {
 		return clusters;
+	}
+
+	public void add(ArrayList<Song> songs) {
+		defaultCluster.add(songs);
 	}
 }

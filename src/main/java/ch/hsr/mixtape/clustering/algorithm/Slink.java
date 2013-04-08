@@ -8,7 +8,7 @@ import ch.hsr.mixtape.data.Song;
 public class Slink implements ClusterAlgorithm {
 
 	private static final double INFINITY = Double.POSITIVE_INFINITY;
-	private static final int CLUSTER_COUNT = 5;
+	private static final int CLUSTER_COUNT = 4;
 
 	private double[][] distanceMatrix;
 	private int[] nearestCluster;
