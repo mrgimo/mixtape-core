@@ -3,7 +3,7 @@ package ch.hsr.mixtape.data;
 import java.io.File;
 
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
-import ch.hsr.mixtape.distancefunction.NormalizedCompressionDistance;
+import ch.hsr.mixtape.distancefunction.Euclidean;
 
 
 public class Song {
@@ -12,7 +12,7 @@ public class Song {
 	private File audioFile;
 	private double[] samples;
 
-	DistanceFunction distanceFunction = new NormalizedCompressionDistance();
+	DistanceFunction distanceFunction = new Euclidean();
 
 	private FeatureVector featureVector = new FeatureVector();
 
