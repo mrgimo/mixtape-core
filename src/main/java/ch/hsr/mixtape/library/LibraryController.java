@@ -11,15 +11,16 @@ import ch.hsr.mixtape.data.Library;
 import ch.hsr.mixtape.data.Song;
 
 public class LibraryController {
-	
+
 	private ClusterAlgorithm clusterAlgorithm = new Slink();
 	private Library library = new Library();
-	
+
 	public void organizeLibrary() {
-		ArrayList<Cluster> clusters  = clusterAlgorithm.cluster(library.getAllSongs());
+		ArrayList<Cluster> clusters = clusterAlgorithm.cluster(library
+				.getAllSongs());
 		library.setClusters(clusters);
 	}
-	
+
 	public void addSongsToLibrary(ArrayList<Song> songs) {
 		library.add(songs);
 	}
@@ -29,12 +30,22 @@ public class LibraryController {
 		for (Cluster cluster : library.getClusters()) {
 			System.out.println("Cluster: " + cluster.getName());
 			for (Song song : cluster.getSongs()) {
-				System.out.println(song.getName() + "\nRMS: " + song.getFeatureVector().getFeatureValues()[0] + "\nZC: " + song.getFeatureVector().getFeatureValues()[1]);
+				System.out.println(song.getName() 
+//						+ "\nRMS: "
+//						+ song.getFeatureVector().getFeatureValues()[0]
+//						+ "\nZC: "
+//						+ song.getFeatureVector().getFeatureValues()[1] + "\n"
+//						+ song.getFeatureVector().getFeatureValues()[2] + "\n"
+//						+ song.getFeatureVector().getFeatureValues()[3] + "\n"
+//						+ song.getFeatureVector().getFeatureValues()[4] + "\n"
+//						+ song.getFeatureVector().getFeatureValues()[5] + "\n"
+//						+ song.getFeatureVector().getFeatureValues()[6] + "\n"
+				);
 				System.out.println();
 			}
 			System.out.println();
 			System.out.println();
 		}
-		
+
 	}
 }

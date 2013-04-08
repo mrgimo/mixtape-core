@@ -10,10 +10,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import ch.hsr.mixtape.data.Song;
+import ch.hsr.mixtape.extraction.AudioExtractor;
 import ch.hsr.mixtape.library.LibraryController;
 
 public class MixTape {
-	private static final int THREAD_COUNT = 4;
+	private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors();
 	private static final String PATH = "songs/";
 
 	public static void main(String[] args) {
@@ -27,6 +28,7 @@ public class MixTape {
 	}
 
 	private static ArrayList<Song> extractAudioData() {
+		System.out.println("Available Processors: " + THREAD_COUNT);
 
 		File audioDirectory = new File(PATH);
 		File[] audioFiles = audioDirectory.listFiles();
@@ -54,20 +56,6 @@ public class MixTape {
 			}
 		}
 		executorService.shutdown();
-		return songs;
-	}
-
-	private static ArrayList<Song> getSongsFromTasks(
-			ArrayList<Future<Song>> sampleLoadingTasks) {
-		ArrayList<Song> songs = new ArrayList<Song>();
-		
-		for (Future<Song> sampleLoadingTask : sampleLoadingTasks) {
-			try {
-				songs.add(sampleLoadingTask.get());
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-			}
-		}
 		return songs;
 	}
 

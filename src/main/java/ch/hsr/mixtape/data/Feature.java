@@ -1,7 +1,12 @@
 package ch.hsr.mixtape.data;
 
-public class Feature <T extends Number> {
-	
+/*
+ * worschinlich besser als interface und implementationa mit definiarta datatypa und 
+ * eigeni implementation zum nach double z convertiara( doubleValue() ) ?!
+ */
+
+public class Feature<T extends Number> {
+
 	private String name;
 	private T value;
 
@@ -9,11 +14,11 @@ public class Feature <T extends Number> {
 		this.name = name;
 		this.value = value;
 	}
-	
+
 	public double doubleValue() {
 		return (double) value.doubleValue();
 	}
-	
+
 	public String getName() {
 		return name;
 	}
