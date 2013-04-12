@@ -4,15 +4,18 @@ public class SpectralSpread {
 
 	public double extractFeature(double[] powerSpectrum, double spectralCentroid) {
 
-		double totalSpread = 0;
+		double totalSpread = 0.0;
 		double totalPower = summatePower(powerSpectrum);
-
-		for (int i = 0; i < powerSpectrum.length; i++) {
-			double spectralDeviation = i - spectralCentroid;
-			totalSpread += Math
-					.sqrt((spectralDeviation * spectralDeviation)
-							* powerSpectrum[i] / totalPower);
+		
+		if(totalPower != 0.0){
+			for (int i = 0; i < powerSpectrum.length; i++) {
+				double spectralDeviation = i - spectralCentroid;
+				totalSpread += Math
+						.sqrt((spectralDeviation * spectralDeviation)
+								* powerSpectrum[i] / totalPower);
+			}
 		}
+
 
 		return totalSpread / powerSpectrum.length;
 	}

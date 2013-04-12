@@ -1,85 +1,95 @@
 package ch.hsr.mixtape.extraction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.features.FastFourierTransform;
 import ch.hsr.mixtape.features.PowerSpectrum;
-import ch.hsr.mixtape.features.RMS;
 import ch.hsr.mixtape.features.SpectralCentroid;
 import ch.hsr.mixtape.features.SpectralKurtosis;
 import ch.hsr.mixtape.features.SpectralRolloffPoint;
 import ch.hsr.mixtape.features.SpectralSkewness;
 import ch.hsr.mixtape.features.SpectralSpread;
-import ch.hsr.mixtape.features.ZeroCrossings;
 
 public class FeatureExtractor {
-	
 
-	public ArrayList<Feature<?>>  extractFeatures(double[] samples) {
-		ArrayList<Feature<?>> features = new ArrayList<Feature<?>>();
-		
-		features.add(extractRMS(samples));
-		features.add(extractZC(samples));
+	private static final int WINDOW_SIZE = 1024;
+
+	public ArrayList<Feature> extractFeatures(double[] samples) {
+		ArrayList<Feature> features = new ArrayList<Feature>();
+
 		features.addAll(extractSpectralFeatures(samples));
 		return features;
 	}
 
-	private ArrayList<Feature<?>> extractSpectralFeatures(double[] samples) {
-		ArrayList<Feature<?>> spectralFeatures = new ArrayList<Feature<?>>();
-		
-		FastFourierTransform fft = new FastFourierTransform(samples);
-		double[] powerSpectrum = extractPowerSpectrum(fft);
-		
+	private ArrayList<Feature> extractSpectralFeatures(double[] samples) {
+		ArrayList<Feature> spectralFeatures = new ArrayList<Feature>();
+
+		int windowCount = samples.length % WINDOW_SIZE == 0 ? samples.length
+				/ WINDOW_SIZE : samples.length / WINDOW_SIZE + 1;
+
+		Feature scFeature = new Feature("spectral centroid",
+				windowCount);
+		Feature spFeature = new Feature("spectral spread",
+				windowCount);
+		Feature skFeature = new Feature("spectral kurtosis",
+				windowCount);
+		Feature sropFeature = new Feature(
+				"spectral rolloff point", windowCount);
+		Feature ssFeature = new Feature("spectral skewness",
+				windowCount);
+
+		PowerSpectrum ps = new PowerSpectrum();
 		SpectralCentroid sc = new SpectralCentroid();
-		double spectralCentroidValue = sc.extractFeature(samples, powerSpectrum);
-		Feature<Double> spectralCentroidFeature = new Feature<Double>("spectral centroid", spectralCentroidValue);
-		spectralFeatures.add(spectralCentroidFeature);
-		
 		SpectralSpread sp = new SpectralSpread();
-		double spectralSpreadValue = sp.extractFeature(powerSpectrum, spectralCentroidValue);
-		Feature<Double> spectralSpreadFeature = new Feature<Double>("spectral spread", spectralSpreadValue);
-		spectralFeatures.add(spectralSpreadFeature);
-		
 		SpectralKurtosis sk = new SpectralKurtosis();
-		double spectralKurtosisValue = sk.extracFeature(powerSpectrum, spectralCentroidValue, spectralSpreadValue);
-		Feature<Double> spectralKurtosisFeature = new Feature<Double>("spectral kurtosis", spectralKurtosisValue);
-		spectralFeatures.add(spectralKurtosisFeature);
-		
 		SpectralRolloffPoint srop = new SpectralRolloffPoint();
-		double spectralRollofPointValue = srop.extractFeature(powerSpectrum);
-		Feature<Double> spectralRolloffPointFeature = new Feature<Double>("spectral rolloff point", spectralRollofPointValue);
-		spectralFeatures.add(spectralRolloffPointFeature);
-		
 		SpectralSkewness ss = new SpectralSkewness();
-		double spectralSkewnessValue = ss.extractFeature(powerSpectrum, spectralCentroidValue, spectralSpreadValue);
-		Feature<Double> spectralSkewnessFeature = new Feature<Double>("spectral skewness", spectralSkewnessValue);
-		spectralFeatures.add(spectralSkewnessFeature);
-		
+
+		for (int windowStartIndex = 0; windowStartIndex < samples.length; windowStartIndex += WINDOW_SIZE) {
+
+			int windowEndIndex = nextWindowEndIndex(samples, windowStartIndex);
+
+			double[] currentWindow = Arrays.copyOfRange(samples, windowStartIndex,windowEndIndex);
+
+			FastFourierTransform fft = new FastFourierTransform(currentWindow);
+
+			double[] powerSpectrum = ps.extractFeature(
+					fft.getRealValues(), fft.getImaginaryValues());
+
+			double spectralCentroidValue = sc.extractFeature(currentWindow,
+					powerSpectrum);
+			scFeature.addWindowValue(spectralCentroidValue);
+
+			double spectralSpreadValue = sp.extractFeature(powerSpectrum,
+					spectralCentroidValue);
+			spFeature.addWindowValue(spectralSpreadValue);
+
+			double spectralKurtosisValue = sk.extracFeature(powerSpectrum,
+					spectralCentroidValue, spectralSpreadValue);
+			skFeature.addWindowValue(spectralKurtosisValue);
+
+			double spectralRollofPointValue = srop
+					.extractFeature(powerSpectrum);
+			sropFeature.addWindowValue(spectralRollofPointValue);
+
+			double spectralSkewnessValue = ss.extractFeature(powerSpectrum,
+					spectralCentroidValue, spectralSpreadValue);
+			ssFeature.addWindowValue(spectralSkewnessValue);
+		}
+
+		spectralFeatures.add(ssFeature);
+		// spectralFeatures.add(sropFeature);
+		spectralFeatures.add(skFeature);
+		spectralFeatures.add(spFeature);
+		spectralFeatures.add(scFeature);
+
 		return spectralFeatures;
 	}
 
-	private double[] extractPowerSpectrum(FastFourierTransform fft) {
-		PowerSpectrum powerSpectrum = new PowerSpectrum();
-		return powerSpectrum.extractFeature(fft.getRealValues(), fft.getImaginaryValues());
+	private int nextWindowEndIndex(double[] samples, int i) {
+		return i + WINDOW_SIZE < samples.length ? i + WINDOW_SIZE
+				: samples.length;
 	}
-
-	private Feature<Long> extractZC(double[] samples) {
-		
-		ZeroCrossings zc = new ZeroCrossings();
-		long zcValue = zc.extractFeature(samples);
-		Feature<Long> zcFeature = new Feature<Long>("zc", zcValue);
-		return zcFeature;
-	}
-
-	private Feature<Double> extractRMS(double[] samples) {
-		
-		RMS rms = new RMS();
-	
-		double rmsValue = rms.extractFeature(samples);
-		Feature<Double> rmsFeature = new Feature<Double>("rms", rmsValue);
-		return rmsFeature;
-	}
-	
-
 }

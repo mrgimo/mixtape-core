@@ -3,8 +3,12 @@ package ch.hsr.mixtape.distancefunction;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.zip.Deflater;
+
+import ch.hsr.mixtape.data.FeatureVector;
+import ch.hsr.mixtape.data.Feature;
 
 public class NormalizedCompressionDistance implements DistanceFunction {
 
@@ -12,15 +16,42 @@ public class NormalizedCompressionDistance implements DistanceFunction {
 	private static final int BUFFER_SIZE = 1028;
 
 	@Override
-	public double computeDistance(double[] featureVector1,
-			double[] featureVector2) {
-		byte[] compressedVector1 = compress(featureVector1);
-		byte[] compressedVector2 = compress(featureVector2);
+	public double computeDistance(FeatureVector featureVector1,
+			FeatureVector featureVector2) {
+		double[] distanceVector = new double[featureVector1.getDimension()];
 		
-		double[] combinedVectors = Arrays.copyOf(featureVector1, featureVector1.length + featureVector2.length);
-		System.arraycopy(featureVector2, 0, combinedVectors, featureVector1.length, featureVector2.length);
+		ArrayList<Feature> featuresV1 = featureVector1.getFeatures();
+		ArrayList<Feature> featuresV2 = featureVector2.getFeatures();
 		
-		byte[] compressedCombinedVectors = compress(combinedVectors);
+		for (int i = 0; i < featureVector1.getDimension(); i++) {
+			distanceVector[i] = computeDistance(featuresV1.get(i).windowValues(), featuresV2.get(i).windowValues());
+			System.out.println("NCD Feature  " + i + " " + distanceVector[i]);
+		}
+		return euclidenVectorLength(distanceVector);
+	}
+
+
+	private double euclidenVectorLength(double[] distanceVector) {
+		
+		double length = 0.0;
+		
+		for (int i = 0; i < distanceVector.length; i++) {
+			length += distanceVector[i];
+		}
+		return Math.sqrt(length);
+	}
+
+
+	public double computeDistance(double[] featureValuesV1,
+			double[] featureValuesV2) {
+		byte[] compressedVector1 = compress(featureValuesV1);
+		byte[] compressedVector2 = compress(featureValuesV2);
+		
+		
+		double[] combinedValues = Arrays.copyOf(featureValuesV1, featureValuesV1.length + featureValuesV2.length);
+		System.arraycopy(featureValuesV2, 0, combinedValues, featureValuesV1.length, featureValuesV2.length);
+		
+		byte[] compressedCombinedVectors = compress(combinedValues);
 		
 		return computeNCD(compressedVector1.length, compressedVector2.length, compressedCombinedVectors.length);
 	}
@@ -50,8 +81,8 @@ public class NormalizedCompressionDistance implements DistanceFunction {
 		byte[] byteValues = new byte[MEMORYSIZE_DOUBLE * vectorValues.length];
 		ByteBuffer byteConverter = ByteBuffer.wrap(byteValues);
 		
-		for (int i = 0; i < vectorValues.length; i++) {
-			byteConverter.putDouble(vectorValues[i]);
+		for (double value : vectorValues) {
+			byteConverter.putDouble(value);
 		}
 		return byteValues;
 	}

@@ -14,7 +14,7 @@ import ch.hsr.mixtape.extraction.AudioExtractor;
 import ch.hsr.mixtape.library.LibraryController;
 
 public class MixTape {
-	private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors();
+	private static final int THREAD_COUNT = 2;
 	private static final String PATH = "songs/";
 
 	public static void main(String[] args) {

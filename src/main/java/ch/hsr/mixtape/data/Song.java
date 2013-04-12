@@ -4,22 +4,17 @@ import java.io.File;
 
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
 import ch.hsr.mixtape.distancefunction.Euclidean;
+import ch.hsr.mixtape.distancefunction.NormalizedCompressionDistance;
 
 
 public class Song {
 
 	private String name;
 	private File audioFile;
-	private double[] samples;
 
-	DistanceFunction distanceFunction = new Euclidean();
+	DistanceFunction distanceFunction = new NormalizedCompressionDistance();
 
 	private FeatureVector featureVector = new FeatureVector();
-
-	public Song(String name, double[] samples) {
-		this.name = name;
-		this.samples = samples;
-	}
 
 	public Song(File audoFile) {
 		audioFile = audoFile;
@@ -28,10 +23,6 @@ public class Song {
 
 	public String getName() {
 		return name;
-	}
-
-	public double[] getSamples() {
-		return samples;
 	}
 
 	public void setFeatureVector(FeatureVector featureVector) {
@@ -43,9 +34,7 @@ public class Song {
 	}
 
 	public double distanceTo(Song song) {
-		double d = distanceFunction.computeDistance(featureVector.getFeatureValues(), song.getFeatureVector().getFeatureValues());
-		System.out.println(d);
-		return d;
+		return distanceFunction.computeDistance(featureVector, song.getFeatureVector());
 	}
 
 	public File getAudioFile() {

@@ -27,8 +27,11 @@ public class SpectralKurtosis {
 	}
 
 	private double avgKurtosis(double avgFourthOrderMoment) {
-		return avgFourthOrderMoment
-				/ (spectralSpread * spectralSpread * spectralSpread * spectralSpread);
+		double fourthOrderspectralSpread = (spectralSpread * spectralSpread
+				* spectralSpread * spectralSpread);
+		if (fourthOrderspectralSpread != 0.0)
+			return avgFourthOrderMoment / fourthOrderspectralSpread;
+		return 0.0;
 	}
 
 	private double summateFourthOrderMoments() {
@@ -36,12 +39,14 @@ public class SpectralKurtosis {
 		double totalPower = summatePower(powerSpectrum);
 		double sum = 0.0;
 
-		for (int i = 0; i < powerSpectrum.length; i++) {
-			double centroidDeviation = i - spectralCentroid;
-			double thirdOrderMoment = (centroidDeviation * centroidDeviation
-					* centroidDeviation * centroidDeviation)
-					* powerSpectrum[i] / totalPower;
-			sum += thirdOrderMoment;
+		if (totalPower != 0.0) {
+			for (int i = 0; i < powerSpectrum.length; i++) {
+				double centroidDeviation = i - spectralCentroid;
+				double thirdOrderMoment = (centroidDeviation
+						* centroidDeviation * centroidDeviation * centroidDeviation)
+						* powerSpectrum[i] / totalPower;
+				sum += thirdOrderMoment;
+			}
 		}
 		return sum;
 	}

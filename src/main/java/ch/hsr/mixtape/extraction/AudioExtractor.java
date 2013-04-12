@@ -24,31 +24,30 @@ public class AudioExtractor implements Runnable {
 
 	@Override
 	public void run() {
-		extractFeatures();
+		System.out.println("Extracting Data from " + song.getAudioFile().getName());
+		double[] samples = extractSamples();
+		extractFeatures(samples);
+		System.out.println(song.getAudioFile().getName() + " done");
 	}
 
-	private void extractFeatures() {
-		double[] samples = getSamples(AudioChannel.load(song.getAudioFile()));
+	private void extractFeatures(double[] samples) {
 		FeatureExtractor featureController = new FeatureExtractor();
-		ArrayList<Feature<?>> extractedFeatures = featureController.extractFeatures(samples);
+		ArrayList<Feature> extractedFeatures = featureController.extractFeatures(samples);
 
 		generateFeatureVector(extractedFeatures);
 	}
 
-	private void generateFeatureVector(ArrayList<Feature<?>> extractedFeatures) {
+	private void generateFeatureVector(ArrayList<Feature> extractedFeatures) {
 		FeatureVector featureVector = new FeatureVector();
 		featureVector.setFeatures(extractedFeatures);
 		song.setFeatureVector(featureVector);
 	}
 
-	public double[] getSamples(AudioChannel channel) {
+	public double[] extractSamples() {
 		try {
-			
-			System.out.println("extracting data from "
-					+ song.getAudioFile().getName() + "...");
-			
-			double[] samples = tryRead(channel);
-			System.out.println(song.getAudioFile().getName() + ": done!");
+			AudioChannel audioChannel = AudioChannel.load(song.getAudioFile());
+
+			double[] samples = tryRead(audioChannel);
 			return samples;
 		} catch (IOException exception) {
 			throw new RuntimeException(exception);
