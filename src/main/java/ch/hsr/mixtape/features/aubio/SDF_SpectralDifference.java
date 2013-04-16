@@ -1,7 +1,14 @@
 package ch.hsr.mixtape.features.aubio;
 
 /**
- * Spectral difference method onset detection function.
+ * Spectral difference method onset detection function. This function is a
+ * measure of the Euclidean distance between the magnitude spectra of two
+ * adjacent frames [1].
+ * 
+ * <p>
+ * [1] Comparing mid-level representations for audio based beat tracking, Davies
+ * & Plumbley, 2005
+ * </p>
  * 
  * <p>
  * <b>The method in this class was extracted from aubio's `specdesc.c`.</b>

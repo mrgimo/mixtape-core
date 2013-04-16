@@ -1,8 +1,12 @@
 package ch.hsr.mixtape.features.aubio;
 
 /**
- * Modified Kullback Liebler onset detection function note we use
- * ln(1+Xn/(Xn-1+0.0001)) to avoid negative (1.+) and infinite values (+1.e-10)
+ * Modified Kullback Liebler onset detection function.
+ * 
+ * <p>
+ * NOTE: we use ln(1+Xn/(Xn-1+0.0001)) to avoid negative (1.+) and infinite
+ * values (+1.e-10)
+ * </p>
  * 
  * <p>
  * <b>The method in this class was extracted from aubio's `specdesc.c`.</b>
