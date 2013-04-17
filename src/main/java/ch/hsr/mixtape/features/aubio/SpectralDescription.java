@@ -12,12 +12,12 @@ package ch.hsr.mixtape.features.aubio;
  */
 public class SpectralDescription {
 
-	SpectralDescriptionType onset_type;
+	SpectralDescriptionType onsetType;
 
 	/**
 	 * Pointer to aubio_specdesc_<type> function.
 	 */
-	SpectralDescriptionFunction funcpointer;
+	SpectralDescriptionFunction functionPointer;
 
 	/**
 	 * Minimum norm threshold for phase and specdiff.
@@ -27,7 +27,7 @@ public class SpectralDescription {
 	/**
 	 * Previous norm vector.
 	 */
-	double[] oldmag;
+	double[] oldMagnitude;
 
 	/**
 	 * Current onset detection measure vector.
@@ -73,18 +73,18 @@ public class SpectralDescription {
 		switch (onsetType) {
 		/* for both energy and hfc, only fftgrain.norm is required */
 		case ENERGY:
-			funcpointer = new SDF_Energy();
+			functionPointer = new SDF_Energy();
 			break;
 		case HIGH_FREQUENCY_CONTENT:
-			funcpointer = new SDF_HighestFrequencyContent();
+			functionPointer = new SDF_HighestFrequencyContent();
 			break;
 		/* the other approaches will need some more memory spaces */
 		case COMPLEX_DOMAIN:
-			oldmag = new double[rsize];
+			oldMagnitude = new double[rsize];
 			dev1 = new double[rsize];
 			theta1 = new double[rsize];
 			theta2 = new double[rsize];
-			funcpointer = new SDF_ComplexDomain();
+			functionPointer = new SDF_ComplexDomain();
 			break;
 		case PHASE_FAST:
 			dev1 = new double[rsize];
@@ -92,26 +92,26 @@ public class SpectralDescription {
 			theta2 = new double[rsize];
 			histogram = new Histogram(0.0, Math.PI, 10);
 			threshold = 0.1;
-			funcpointer = new SDF_PhaseFast();
+			functionPointer = new SDF_PhaseFast();
 			break;
 		case SPECTRAL_DIFFERENCE:
-			oldmag = new double[rsize];
+			oldMagnitude = new double[rsize];
 			dev1 = new double[rsize];
 			histogram = new Histogram(0.0, Math.PI, 10);
 			threshold = 0.1;
-			funcpointer = new SDF_SpectralDifference();
+			functionPointer = new SDF_SpectralDifference();
 			break;
 		case KULLBACK_LIEBLER:
-			oldmag = new double[rsize];
-			funcpointer = new SDF_KullbackLiebler();
+			oldMagnitude = new double[rsize];
+			functionPointer = new SDF_KullbackLiebler();
 			break;
 		case MODIFIED_KULLBACK_LIEBLER:
-			oldmag = new double[rsize];
-			funcpointer = new SDF_ModifiedKullbackLiebler();
+			oldMagnitude = new double[rsize];
+			functionPointer = new SDF_ModifiedKullbackLiebler();
 			break;
 		case SPECTRAL_FLUX:
-			oldmag = new double[rsize];
-			funcpointer = new SDF_SpectralFlux();
+			oldMagnitude = new double[rsize];
+			functionPointer = new SDF_SpectralFlux();
 			break;
 		default:
 			break;
@@ -128,7 +128,7 @@ public class SpectralDescription {
 	 */
 	public double[] call(double[][] fftgrain) {
 		// TODO: refactor to return just a double instead of a double[]
-		return funcpointer.call(this, fftgrain);
+		return functionPointer.call(this, fftgrain);
 	}
 
 }

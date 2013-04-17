@@ -19,14 +19,14 @@ public class SDF_ComplexDomain implements SpectralDescriptionFunction {
 			sd.dev1[i] = 2. * sd.theta1[i] - sd.theta2[i];
 			// compute the euclidean distance in the complex domain
 			// sqrt ( r_1^2 + r_2^2 - 2 * r_1 * r_2 * \cos ( \phi_1 - \phi_2 ) )
-			onset[0] += Math.sqrt(Math.abs(sd.oldmag[i] * sd.oldmag[i]
-					+ fftgrain[1][i] * fftgrain[1][i] - 2. * sd.oldmag[i]
+			onset[0] += Math.sqrt(Math.abs(sd.oldMagnitude[i] * sd.oldMagnitude[i]
+					+ fftgrain[1][i] * fftgrain[1][i] - 2. * sd.oldMagnitude[i]
 					* fftgrain[1][i] * Math.cos(sd.dev1[i] - fftgrain[0][i])));
 			/* swap old phase data (need to remember 2 frames behind) */
 			sd.theta2[i] = sd.theta1[i];
 			sd.theta1[i] = fftgrain[0][i];
 			/* swap old magnitude data (1 frame is enough) */
-			sd.oldmag[i] = fftgrain[1][i];
+			sd.oldMagnitude[i] = fftgrain[1][i];
 		}
 		return onset;
 	}
