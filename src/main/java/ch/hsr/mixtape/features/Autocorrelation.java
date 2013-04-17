@@ -1,16 +1,22 @@
 package ch.hsr.mixtape.features;
 
-import org.apache.commons.math.complex.Complex;
-import org.apache.commons.math.transform.FastFourierTransformer;
+import org.apache.commons.math3.complex.Complex;
+import org.apache.commons.math3.transform.DftNormalization;
+import org.apache.commons.math3.transform.FastFourierTransformer;
+import org.apache.commons.math3.transform.TransformType;
 
 public class Autocorrelation {
 
 	public Complex[] autocorrelate(double[] values) {
-		FastFourierTransformer transformer = new FastFourierTransformer();
+		FastFourierTransformer transformer = new FastFourierTransformer(
+				DftNormalization.STANDARD);
 		HanningWindow window = new HanningWindow();
 
-		Complex[] coefficients = transformer.transform(window.hanningWindow(values));
-		Complex[] autocorrelation = transformer.inversetransform(multiply(coefficients, conjugate(coefficients)));
+		Complex[] coefficients = transformer.transform(
+				window.hanningWindow(values), TransformType.FORWARD);
+		Complex[] autocorrelation = transformer.transform(
+				multiply(coefficients, conjugate(coefficients)),
+				TransformType.INVERSE);
 
 		return autocorrelation;
 	}
