@@ -5,6 +5,11 @@ import java.util.concurrent.Callable;
 
 import ch.hsr.mixtape.features.aubio.SpectralDescription.SpectralDescriptionType;
 
+/**
+ * Single task for multi-threaded tempo extraction.
+ *  
+ * @author Stefan Derungs
+ */
 public class TempoExtractionTask implements Callable<ExtractedTempo> {
 
 	private SpectralDescriptionType type;
