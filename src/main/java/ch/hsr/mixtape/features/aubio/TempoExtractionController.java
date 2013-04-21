@@ -3,12 +3,18 @@ package ch.hsr.mixtape.features.aubio;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import ch.hsr.mixtape.features.aubio.SpectralDescription.SpectralDescriptionType;
 
+/**
+ * Controller class for multi-threaded tempo extraction.
+ * 
+ * @author Stefan Derungs
+ */
 public class TempoExtractionController {
 
 	private ExecutorService threadPool;
@@ -87,11 +93,35 @@ public class TempoExtractionController {
 		threadPool.shutdown();
 	}
 
-	public ArrayList<ExtractedTempo> getResults() throws Exception {
+	public ArrayList<ExtractedTempo> getResults() throws InterruptedException,
+			ExecutionException {
 		ArrayList<ExtractedTempo> results = new ArrayList<ExtractedTempo>();
 		for (Future<ExtractedTempo> future : futures)
 			results.add(future.get());
 
 		return results;
+	}
+
+	public int simpleTempoFeedback() {
+		int tempo = 0;
+		try {
+			ArrayList<ExtractedTempo> results = getResults();
+
+			int[] array = new int[2 * results.size()];
+			int currentResult = 0;
+			for (int i = 0; i < 2 * results.size(); i += 2) {
+				array[i] = (int) Math.round(results.get(currentResult).getMedianBpm(true));
+				array[i + 1] = (int) Math
+						.round(results.get(currentResult++).getMeanBpm(true));
+			}
+			Arrays.sort(array);
+
+			tempo = (int) Math
+					.round(array.length % 2 == 0 ? (array[array.length / 2] + array[array.length / 2 - 1]) / 2.
+							: array[(array.length - 1) / 2]);
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		}
+		return tempo;
 	}
 }
