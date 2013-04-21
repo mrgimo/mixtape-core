@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class FeatureVector {
 	
-	ArrayList<Feature> features = new ArrayList<Feature>();
+	ArrayList<SpectralFeature> features = new ArrayList<SpectralFeature>();
 	
-	public void addFeature(Feature feature) {
+	public void addFeature(SpectralFeature feature) {
 		features.add(feature);
 	}
 	
@@ -19,11 +19,11 @@ public class FeatureVector {
 		return featureVector;
 	}
 
-	public void setFeatures(ArrayList<Feature> features) {
+	public void setFeatures(ArrayList<SpectralFeature> features) {
 		this.features = features;
 	}
 	
-	public ArrayList<Feature> getFeatures() {
+	public ArrayList<SpectralFeature> getFeatures() {
 		return features;
 	}
 

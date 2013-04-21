@@ -2,6 +2,10 @@ package ch.hsr.mixtape.distancefunction;
 
 import ch.hsr.mixtape.data.FeatureVector;
 
+/*
+ * needs normalized input !
+ */
+
 public class Euclidean implements DistanceFunction {
 	
 	@Override

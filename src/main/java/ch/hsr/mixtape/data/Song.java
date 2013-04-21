@@ -3,7 +3,6 @@ package ch.hsr.mixtape.data;
 import java.io.File;
 
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
-import ch.hsr.mixtape.distancefunction.Euclidean;
 import ch.hsr.mixtape.distancefunction.NormalizedCompressionDistance;
 
 
