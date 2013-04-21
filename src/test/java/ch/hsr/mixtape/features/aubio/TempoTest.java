@@ -14,7 +14,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.hsr.mixtape.features.aubio.Tempo;
 import ch.hsr.mixtape.features.aubio.SpectralDescription.SpectralDescriptionType;
 
 /**

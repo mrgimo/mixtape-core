@@ -55,6 +55,10 @@ public class PhaseVocoder {
 	 */
 	double[] w;
 
+	public enum WindowType {
+		RECTANGLE, HAMMING, HANNING, HANNINGZ, BLACKMAN, BLACKMAN_HARRIS, GAUSSIAN, WELCH, PARZEN
+	};
+
 	public PhaseVocoder(int windowSize, int hopSize) {
 		if (hopSize < 1) {
 			System.err.println("Hop size is smaller than 1!");
@@ -73,9 +77,8 @@ public class PhaseVocoder {
 		synthold = new double[windowSize - hopSize];
 
 		try {
-			w = createWindow("hanningz", windowSize);
+			w = createWindow(WindowType.HANNINGZ, windowSize);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -115,70 +118,77 @@ public class PhaseVocoder {
 	 * 
 	 * @throws Exception
 	 */
-	private double[] createWindow(String window_type, int size)
+	private double[] createWindow(WindowType windowType, int size)
 			throws Exception {
 		double[] win = new double[size];
 
-		if (window_type == null || window_type.isEmpty())
-			throw new Exception("Window type must not be null.");
-
-		switch (window_type) {
-		case "rectangle":
+		switch (windowType) {
+		case RECTANGLE:
 			for (int i = 0; i < win.length; i++)
 				win[i] = 0.5;
 			break;
-		case "hamming":
+		case HAMMING:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 0.54 - 0.46 * Math.cos(2 * Math.PI * i / (win.length));
+				win[i] = 0.54 - 0.46 * Math.cos(2 * Math.PI * i
+						/ ((double) win.length));
 			break;
-		case "hanning":
+		case HANNING:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 0.5 - (0.5 * Math.cos(2 * Math.PI * i / (win.length)));
+				win[i] = 0.5 - (0.5 * Math.cos(2 * Math.PI * i
+						/ ((double) win.length)));
 			break;
-		case "hanningz":
+		case HANNINGZ:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 0.5 * (1.0 - Math.cos(2 * Math.PI * i / (win.length)));
+				win[i] = 0.5 * (1.0 - Math.cos(2 * Math.PI * i
+						/ ((double) win.length)));
 
 			break;
-		case "blackman":
+		case BLACKMAN:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 0.42 - 0.50
-						* Math.cos(2 * Math.PI * i / (win.length - 1.0)) + 0.08
-						* Math.cos(2.0 * 2 * Math.PI * i / (win.length - 1.0));
+				win[i] = 0.42
+						- 0.50
+						* Math.cos(2 * Math.PI * i
+								/ ((double) win.length - 1.0))
+						+ 0.08
+						* Math.cos(2.0 * 2 * Math.PI * i
+								/ ((double) win.length - 1.0));
 			break;
-		case "blackman_harris":
+		case BLACKMAN_HARRIS:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 0.35875 - 0.48829
-						* Math.cos(2 * Math.PI * i / (win.length - 1.0))
+				win[i] = 0.35875
+						- 0.48829
+						* Math.cos(2 * Math.PI * i
+								/ ((double) win.length - 1.0))
 						+ 0.14128
-						* Math.cos(2.0 * 2 * Math.PI * i / (win.length - 1.0))
+						* Math.cos(2.0 * 2 * Math.PI * i
+								/ ((double) win.length - 1.0))
 						- 0.01168
-						* Math.cos(3.0 * 2 * Math.PI * i / (win.length - 1.0));
+						* Math.cos(3.0 * 2 * Math.PI * i
+								/ ((double) win.length - 1.0));
 			break;
-		case "gaussian":
+		case GAUSSIAN:
 			double /* lsmp_t */a,
 			b,
 			c = 0.5;
 			for (int n = 0; n < win.length; n++) {
-				a = (n - c * (win.length - 1)) / (c * c * (win.length - 1));
+				a = (n - c * ((double) win.length - 1))
+						/ (c * c * ((double) win.length - 1));
 				b = -c * a * a;
 				win[n] = Math.exp(b);
 			}
 			break;
-		case "welch":
+		case WELCH:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 1.0 - Math.pow((2. * i - win.length)
-						/ (win.length + 1.0), 2);
+				win[i] = 1.0 - Math.pow((2. * i - (double) win.length)
+						/ ((double) win.length + 1.0), 2);
 			break;
-		case "parzen":
+		case PARZEN:
 			for (int i = 0; i < win.length; i++)
-				win[i] = 1.0 - Math.abs((2. * i - win.length)
-						/ (win.length + 1.0));
-			break;
-		case "default":
+				win[i] = 1.0 - Math.abs((2. * i - (double) win.length)
+						/ ((double) win.length + 1.0));
 			break;
 		default:
-			throw new Exception("Unknown window type `" + window_type + "`.");
+			throw new Exception("Unknown window type `" + windowType + "`.");
 		}
 
 		return win;

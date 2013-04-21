@@ -92,7 +92,7 @@ public class FFTWrapper {
 	 * 
 	 * @param complexSpectrum
 	 *            real/imag input fft array
-	 * @return spectrum norm output array
+	 * @return Spectrum norm output array.
 	 */
 	private double[] getNorm(double[] complexSpectrum) {
 		double[] spectrum = new double[complexSpectrum.length];

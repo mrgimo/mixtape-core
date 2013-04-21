@@ -9,7 +9,7 @@ package ch.hsr.mixtape.features.aubio;
  * @author Stefan Derungs
  */
 public class MathUtils {
-
+	
 	/**
 	 * Finds exact peak index by quadratic interpolation.
 	 * 

@@ -15,9 +15,9 @@ public class SDF_SpectralFlux implements SpectralDescriptionFunction {
 	public double[] call(SpectralDescription sd, double[][] fftgrain) {
 		double[] onset = new double[1];
 		for (int i = 0; i < fftgrain[1].length; i++) {
-			if (fftgrain[1][i] > sd.oldMagnitude[i])
-				onset[0] += fftgrain[1][i] - sd.oldMagnitude[i];
-			sd.oldMagnitude[i] = fftgrain[1][i];
+			if (fftgrain[1][i] > sd.oldmag[i])
+				onset[0] += fftgrain[1][i] - sd.oldmag[i];
+			sd.oldmag[i] = fftgrain[1][i];
 		}
 		return onset;
 	}

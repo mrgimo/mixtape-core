@@ -13,19 +13,23 @@ package ch.hsr.mixtape.features.aubio;
 public class PeakPicker {
 
 	/**
-	 * Offset threshold [0.033 or 0.01].
+	 * Offset threshold [0.1; 0.033; 0.01; 0.0668; 0.33; 0.082;].
+	 * <br>
+	 * Value range: 0.0 to 1.0
+	 * <br>
+	 * Aubio's default: 0.3
 	 */
-	double threshold;
+	double threshold = 0.3;
 
 	/**
 	 * Median filter window length (causal part) [8].
 	 */
-	int windowPost;
+	int windowPost = 5;
 
 	/**
 	 * Median filter window (anti-causal part) [post-1].
 	 */
-	int windowPre;
+	int windowPre = 1;
 
 	/**
 	 * Biquad lowpass filter.
@@ -58,10 +62,6 @@ public class PeakPicker {
 	double[] scratch;
 
 	public PeakPicker() {
-		threshold = 0.1; /* 0.0668; 0.33; 0.082; 0.033; */
-		windowPost = 5;
-		windowPre = 1;
-
 		scratch = new double[windowPost + windowPre + 1];
 		onsetKeep = new double[windowPost + windowPre + 1];
 		onsetProc = new double[windowPost + windowPre + 1];
@@ -76,7 +76,6 @@ public class PeakPicker {
 			biquad = BiquadFilter.aubio_filter_set_biquad(0.15998789,
 					0.31997577, 0.15998789, -0.59488894, 0.23484048);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -117,9 +116,8 @@ public class PeakPicker {
 
 		/* shift peek array */
 		for (int j = 0; j < 2; j++)
-			onsetPeek[j] = onsetPeek[j + 1]; // TODO: <= check here what happens
-												// to onset_peek[2]?! => no peak
-												// could then ever be found!!
+			onsetPeek[j] = onsetPeek[j + 1];
+		
 		/* calculate new thresholded value */
 		thresholded[0] = onsetProc[windowPost] - median - mean * threshold;
 		onsetPeek[2] = thresholded[0];

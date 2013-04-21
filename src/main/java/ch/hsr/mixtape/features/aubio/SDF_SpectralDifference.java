@@ -23,12 +23,12 @@ public class SDF_SpectralDifference implements SpectralDescriptionFunction {
 		double[] onset = new double[1];
 		for (int i = 0; i < fftgrain[1].length; i++) {
 			sd.dev1[i] = Math.sqrt(Math.abs(fftgrain[1][i] * fftgrain[1][i]
-					- sd.oldMagnitude[i] * sd.oldMagnitude[i]));
+					- sd.oldmag[i] * sd.oldmag[i]));
 			if (sd.threshold < fftgrain[1][i])
 				sd.dev1[i] = Math.abs(sd.dev1[i]);
 			else
 				sd.dev1[i] = 0.0;
-			sd.oldMagnitude[i] = fftgrain[1][i];
+			sd.oldmag[i] = fftgrain[1][i];
 		}
 
 		/*

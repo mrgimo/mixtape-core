@@ -63,12 +63,16 @@ public class Tempo {
 	double[] onset;
 
 	/**
-	 * Silence parameter.
+	 * Silence parameter <br>
+	 * Value Range: -120.0 to 0.0 <br>
+	 * Aubio's default: -90.0
 	 */
-	double silence = -90.;
+	double silence = -90.0;
 
 	/**
 	 * Peak picking threshold.
+	 * 
+	 * @see PeakPicker.threshold
 	 */
 	double threshold = 0.3;
 
@@ -160,8 +164,7 @@ public class Tempo {
 		dfframe[windowLength - step + blockPos] = thresholded[0];
 		/* end of second level loop */
 		output[0] = 0; /* reset tactus */
-		// TODO: changed < with <=; why otherwise always omit last one?
-		for (int i = 1; i <= out[0]; i++) {
+		for (int i = 1; i < out[0]; i++) {
 			/* if current frame is a predicted tactus */
 			if (blockPos == (int) Math.floor(out[i])) {
 				/* set tactus */
@@ -169,7 +172,7 @@ public class Tempo {
 				/* test for silence */
 				if (!detectSilence(input, silence))
 					lastBeat = totalFrames
-							+ (int) Math.round(output[0] * hopSize);
+							+ (int) Math.floor(output[0] * hopSize + 0.5);
 			}
 		}
 		totalFrames += hopSize;
@@ -242,14 +245,13 @@ public class Tempo {
 	 *            vector to get level from
 	 * @param threshold
 	 *            threshold in dB SPL
-	 * @return false if level is under the given threshold, true otherwise
+	 * @return False if level is under the given threshold, true otherwise.
 	 */
 	private boolean detectSilence(double[] v, double threshold) {
 		double energy = 0.;
-		for (int j = 0; j < v.length; j++) {
+		for (int j = 0; j < v.length; j++)
 			energy += v[j] * v[j];
-		}
-		return 10. * Math.log10(energy / v.length) >= threshold;
+		return 10. * Math.log10(energy / (double) v.length) >= threshold;
 	}
 
 }

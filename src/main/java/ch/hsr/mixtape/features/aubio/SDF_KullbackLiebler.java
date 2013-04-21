@@ -17,8 +17,8 @@ public class SDF_KullbackLiebler implements SpectralDescriptionFunction {
 		double[] onset = new double[1];
 		for (int i = 0; i < fftgrain[1].length; i++) {
 			onset[0] += fftgrain[1][i]
-					* Math.log(1. + fftgrain[1][i] / (sd.oldMagnitude[i] + 1.e-1));
-			sd.oldMagnitude[i] = fftgrain[1][i];
+					* Math.log(1. + fftgrain[1][i] / (sd.oldmag[i] + 1.e-1));
+			sd.oldmag[i] = fftgrain[1][i];
 		}
 		if (Double.isNaN(onset[0]))
 			onset[0] = 0.;

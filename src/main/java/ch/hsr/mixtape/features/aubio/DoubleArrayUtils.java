@@ -25,7 +25,7 @@ public class DoubleArrayUtils {
 	 */
 	public static void revert(double[] data) {
 		double t;
-		for (int i = 0; i < Math.floor(data.length / 2); i++) {
+		for (int i = 0; i < Math.floor(data.length / 2.); i++) {
 			t = data[i];
 			data[i] = data[data.length - 1 - i];
 			data[data.length - 1 - i] = t;

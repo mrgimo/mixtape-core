@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * <ul>
  * <li>Matthew E. P. Davies and Mark D. Plumbley. Causal tempo tracking of
  * audio. In Proceedings of the International Symposium on Music Information
- * Retrieval (ISMIR), pages 164­169, Barcelona, Spain, 2004.</li>
+ * Retrieval (ISMIR), pages 164-169, Barcelona, Spain, 2004.</li>
  * <li>Matthew E. P. Davies, Paul Brossier, and Mark D. Plumbley. Beat tracking
  * towards automatic musical accompaniment. In Proceedings of the Audio
  * Engeeniring Society 118th Convention, Barcelona, Spain, May 2005.</li>
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 public class BeatTracking {
 
 	/**
-	 * Define to 1 to print out tracking difficulties.
+	 * If true, print out tracking difficulties.
 	 */
 	private static final boolean AUBIO_BEAT_WARNINGS = false;
 
@@ -106,7 +106,7 @@ public class BeatTracking {
 	 */
 	public BeatTracking(int hopSize) {
 		/*
-		 * parameter for rayleigh weight vector - sets preferred tempo to 120bpm
+		 * Parameter for rayleigh weight vector - sets preferred tempo to 120bpm
 		 * [43]
 		 */
 		double rayparam = 48. / 512. * hopSize;
@@ -117,6 +117,7 @@ public class BeatTracking {
 		int laglen = hopSize / 4;
 
 		this.rayparam = (int) rayparam;
+		
 		/*
 		 * step increment - both in detection function samples -i.e. 11.6ms or 1
 		 * onset frame [128]
@@ -202,10 +203,9 @@ public class BeatTracking {
 
 		/* initialize output */
 		phout = new double[phout.length];
-		for (int i = 0; i < beatPeriod; i++) {
+		for (int i = 0; i < beatPeriod; i++)
 			for (int k = 0; k < kmax; k++)
-				phout[i] += dfrev[i + (int) Math.round(beatPeriod * k)];
-		}
+				phout[i] += dfrev[i + (int) Math.floor(beatPeriod * k)];
 		DoubleArrayUtils.weight(phout, phwv);
 
 		double phase; // beat alignment (step - lastbeat)
