@@ -2,7 +2,7 @@ package ch.hsr.mixtape.distancefunction.skew;
 
 import java.util.Arrays;
 
-public class Skew {
+public class CopyOfSkew {
 
 	/*
 	 * problems with some constellations -> see unit tests
@@ -16,35 +16,38 @@ public class Skew {
 				+ ADDITIONAL_BORDERVALUES);
 		input[values.length] = input[values.length + 1] = input[values.length + 2] = Double.NEGATIVE_INFINITY;
 
-		int lengthMod0 = values.length / 3 + 1;
-
-		// changed from == 2
-		int lengthMod1 = values.length % 3 == 0 ? values.length / 3
-				: values.length / 3 + 1;
-		int lengthMod2 = values.length % 3 == 2 ? values.length / 3 + 1
+		int lengthMod0 = values.length % 3 != 0 ? values.length / 3 + 1
 				: values.length / 3;
+		
+		//changed from == 2
+		int lengthMod1 = values.length % 3 != 0 ? values.length / 3 + 1
+				: values.length / 3;
+
+		int lengthMod2 = values.length / 3;
 		int lengthMod12 = lengthMod1 + lengthMod2;
+		int lengthDifMod12 = lengthMod1 - lengthMod2;
 
 		int[] suffixArray = new int[values.length];
-		int[] suffixArrayMod12 = new int[lengthMod12];
+		int[] suffixArrayMod12 = new int[lengthMod12 + lengthDifMod12];
 
 		int[] indicesMod0 = new int[lengthMod0];
 		int[] suffixArrayMod0 = new int[lengthMod0];
 
-		int[] indicesMod12 = findMod12Positions(values.length + 1, lengthMod12);
-		double[] valuesByRanks = new double[lengthMod12];
+		int[] indicesMod12 = findMod12Positions(input.length - 2,
+				lengthMod12);
+		double[] valuesByRanks = new double[lengthMod12 + lengthDifMod12];
 
 		suffixArrayMod12 = sort(indicesMod12, input, 2);
 		suffixArrayMod12 = sort(suffixArrayMod12, input, 1);
 		suffixArrayMod12 = sort(suffixArrayMod12, input, 0);
 
-		int rank = 0;
+		int rank = 1;
 
 		double previousTripleValue0 = Double.NEGATIVE_INFINITY;
 		double previousTripleValue1 = Double.POSITIVE_INFINITY;
 		double previousTripleValue2 = Double.NEGATIVE_INFINITY;
 
-		for (int i = 0; i < lengthMod12; i++) {
+		for (int i = 0; i < lengthMod12 + lengthDifMod12; i++) {
 			if (tripleIsUnequal(input, suffixArrayMod12, previousTripleValue0,
 					previousTripleValue1, previousTripleValue2, i)) {
 				rank++;
@@ -71,22 +74,21 @@ public class Skew {
 
 		} else {
 			// map indices to ranks on a magic way
-			for (int i = 0; i < lengthMod12; i++)
+			for (int i = 0; i < lengthMod12 + lengthDifMod12; i++)
 				suffixArrayMod12[(int) valuesByRanks[i] - 1] = i;
 		}
 
 		// generate mod0 indices
-		for (int i = 0, j = 0; i < lengthMod12; i++)
+		for (int i = 0, j = 0; i < lengthMod12 + lengthDifMod12; i++)
 			if (suffixArrayMod12[i] < lengthMod0)
 				indicesMod0[j++] = 3 * suffixArrayMod12[i];
 
 		// sort by first position (enough?)
-		suffixArrayMod0 = radixSortByRanks(indicesMod0, valuesByRanks,
-				lengthMod1, suffixArrayMod12.length);
+		suffixArrayMod0 = radixSortByRanks(indicesMod0, valuesByRanks, lengthMod1, rank);
 		suffixArrayMod0 = sort(suffixArrayMod0, input, 0);
 
-		int indexMod0 = values.length % 3 == 0 ? 1 : 0;
-		int indexMod12 = values.length % 3 != 0 ? 1 : 0;
+		int indexMod0 = 0;
+		int indexMod12 = lengthDifMod12;
 
 		// merge mod12 & mod0
 		for (int indexSuffixArray = 0; indexSuffixArray < values.length; indexSuffixArray++) {
@@ -101,7 +103,7 @@ public class Skew {
 				suffixArray[indexSuffixArray] = positionMod12;
 				indexMod12++;
 
-				if (indexMod12 == lengthMod12)
+				if (indexMod12 == lengthMod12 + lengthDifMod12)
 					for (indexSuffixArray++; indexMod0 < lengthMod0; indexSuffixArray++, indexMod0++)
 						suffixArray[indexSuffixArray] = suffixArrayMod0[indexMod0];
 			} else {
@@ -109,7 +111,8 @@ public class Skew {
 				indexMod0++;
 
 				if (indexMod0 == lengthMod0)
-					for (indexSuffixArray++; indexMod12 < lengthMod12; indexSuffixArray++, indexMod12++)
+					for (indexSuffixArray++; indexMod12 < lengthMod12
+							+ lengthDifMod12; indexSuffixArray++, indexMod12++)
 						suffixArray[indexSuffixArray] = suffixArrayMod12[indexMod12] < lengthMod1 ? suffixArrayMod12[indexMod12] * 3 + 1
 								: (suffixArrayMod12[indexMod12] - lengthMod1) * 3 + 2;
 			}
@@ -118,40 +121,37 @@ public class Skew {
 
 		return suffixArray;
 	}
-
-	private int[] radixSort(int[] indices, int[] values, int offset,
-			int maxvalue) {
-
+	
+	private int[] radixSort(int[] indices, int[] values, int offset, int maxvalue) {
+		
 		int[] appearanceCounter = new int[maxvalue];
 		int[] sortedValues = new int[indices.length];
-
+		
 		// count appearance
-		for (int i = 0; i < indices.length; i++)
-			appearanceCounter[values[indices[i] + offset]]++;
-
+		for (int i = 0; i < indices.length; i++) 
+			appearanceCounter[values[indices[i] + offset]] ++;
+		
 		calculateOffsets(appearanceCounter);
-
-		for (int i = 0; i < indices.length; i++)
+		
+		for (int i = 0; i < indices.length; i++) 
 			sortedValues[appearanceCounter[values[indices[i] + offset]]] = indices[i];
-
+		
 		return sortedValues;
 	}
-
-	private int[] radixSortByRanks(int[] indices, double[] valuesByRanks,
-			int lengthMod1, int maxvalue) {
-
+	
+	private int[] radixSortByRanks(int[] indices, double[] valuesByRanks, int lengthMod1, int maxvalue) {
+		
 		int[] appearanceCounter = new int[maxvalue + 2];
 		int[] sortedValues = new int[indices.length];
-
-		// if last pos mod0 -> rank(pos+1) no rank, but is smallest so shift
-		// ranks 1
-
-		for (int i = 0; i < indices.length; i++)
-			appearanceCounter[(int) valuesByRanks[indices[i] / 3]]++;
-
+		
+		// if last pos mod0 -> rank(pos+1) no rank, but is smallest so shift ranks 1
+		
+		for (int i = 0; i < indices.length; i++) 
+			appearanceCounter[(int) valuesByRanks[indices[i] / 3]] ++;
+		
 		calculateOffsets(appearanceCounter);
-
-		for (int i = 0; i < indices.length; i++)
+		
+		for (int i = 0; i < indices.length; i++) 
 			sortedValues[appearanceCounter[(int) valuesByRanks[indices[i] / 3]]] = indices[i];
 		return sortedValues;
 	}
@@ -174,16 +174,11 @@ public class Skew {
 							+ lengthMod1], values[positionMod0],
 					indicesMod12ByRanks[positionMod0 / 3]);
 
-		return isLexOrder(
-				values[positionMod12],
-				values[positionMod12 + 1],
+		return isLexOrder(values[positionMod12], values[positionMod12 + 1],
 				indicesMod12ByRanks[sortedIndicesMod12[mod12Count] - lengthMod1
-						+ 1],
-				values[positionMod0],
-				values[positionMod0 + 1],
-				values[positionMod0 + 1] != Double.NEGATIVE_INFINITY ? indicesMod12ByRanks[positionMod0
-						/ 3 + lengthMod1]
-						: -1);
+						+ 1], values[positionMod0], values[positionMod0 + 1],
+				indicesMod12ByRanks[sortedIndicesMod12[mod12Count] - lengthMod1
+						+ 1]);
 	}
 
 	private boolean isLexOrder(double a1, double a2, double a3, double b1,
@@ -200,7 +195,7 @@ public class Skew {
 			double previousTripleValue2, int i) {
 		return input[sortedIndicesMod12[i]] != previousTripleValue0
 
-		|| input[sortedIndicesMod12[i] + 1] != previousTripleValue1
+				|| input[sortedIndicesMod12[i] + 1] != previousTripleValue1
 				|| input[sortedIndicesMod12[i] + 2] != previousTripleValue2;
 	}
 
