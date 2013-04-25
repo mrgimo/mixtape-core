@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Skew {
 
 	/*
-	 * problems with some constellations -> see unit tests
+	 * still some constellations not tested
 	 */
 
 	private static final int ADDITIONAL_BORDERVALUES = 3;
@@ -18,7 +18,6 @@ public class Skew {
 
 		int lengthMod0 = values.length / 3 + 1;
 
-		// changed from == 2
 		int lengthMod1 = values.length % 3 == 0 ? values.length / 3
 				: values.length / 3 + 1;
 		int lengthMod2 = values.length % 3 == 2 ? values.length / 3 + 1
@@ -80,7 +79,7 @@ public class Skew {
 			if (suffixArrayMod12[i] < lengthMod0)
 				indicesMod0[j++] = 3 * suffixArrayMod12[i];
 
-		// sort by first position (enough?)
+		// sort mod0
 		suffixArrayMod0 = radixSortByRanks(indicesMod0, valuesByRanks,
 				lengthMod1, suffixArrayMod12.length);
 		suffixArrayMod0 = sort(suffixArrayMod0, input, 0);
@@ -125,7 +124,6 @@ public class Skew {
 		int[] appearanceCounter = new int[maxvalue];
 		int[] sortedValues = new int[indices.length];
 
-		// count appearance
 		for (int i = 0; i < indices.length; i++)
 			appearanceCounter[values[indices[i] + offset]]++;
 
@@ -142,9 +140,6 @@ public class Skew {
 
 		int[] appearanceCounter = new int[maxvalue + 2];
 		int[] sortedValues = new int[indices.length];
-
-		// if last pos mod0 -> rank(pos+1) no rank, but is smallest so shift
-		// ranks 1
 
 		for (int i = 0; i < indices.length; i++)
 			appearanceCounter[(int) valuesByRanks[indices[i] / 3]]++;
