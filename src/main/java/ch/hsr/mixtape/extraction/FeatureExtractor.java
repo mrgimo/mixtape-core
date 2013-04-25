@@ -3,7 +3,7 @@ package ch.hsr.mixtape.extraction;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import ch.hsr.mixtape.data.SpectralFeature;
+import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.features.FastFourierTransform;
 import ch.hsr.mixtape.features.PowerSpectrum;
 import ch.hsr.mixtape.features.SpectralCentroid;
@@ -16,28 +16,28 @@ public class FeatureExtractor {
 
 	private static final int WINDOW_SIZE = 1024;
 
-	public ArrayList<SpectralFeature> extractFeatures(double[] samples) {
-		ArrayList<SpectralFeature> features = new ArrayList<SpectralFeature>();
+	public ArrayList<Feature> extractFeatures(double[] samples) {
+		ArrayList<Feature> features = new ArrayList<Feature>();
 
 		features.addAll(extractSpectralFeatures(samples));
 		return features;
 	}
 
-	private ArrayList<SpectralFeature> extractSpectralFeatures(double[] samples) {
-		ArrayList<SpectralFeature> spectralFeatures = new ArrayList<SpectralFeature>();
+	private ArrayList<Feature> extractSpectralFeatures(double[] samples) {
+		ArrayList<Feature> spectralFeatures = new ArrayList<Feature>();
 
 		int windowCount = samples.length % WINDOW_SIZE == 0 ? samples.length
 				/ WINDOW_SIZE : samples.length / WINDOW_SIZE + 1;
 
-		SpectralFeature scFeature = new SpectralFeature("spectral centroid",
+		Feature scFeature = new Feature("spectral centroid",
 				windowCount);
-		SpectralFeature spFeature = new SpectralFeature("spectral spread",
+		Feature spFeature = new Feature("spectral spread",
 				windowCount);
-		SpectralFeature skFeature = new SpectralFeature("spectral kurtosis",
+		Feature skFeature = new Feature("spectral kurtosis",
 				windowCount);
-		SpectralFeature sropFeature = new SpectralFeature(
+		Feature sropFeature = new Feature(
 				"spectral rolloff point", windowCount);
-		SpectralFeature ssFeature = new SpectralFeature("spectral skewness",
+		Feature ssFeature = new Feature("spectral skewness",
 				windowCount);
 
 		PowerSpectrum ps = new PowerSpectrum();
