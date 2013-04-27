@@ -2,8 +2,7 @@ package ch.hsr.mixtape.data;
 
 import java.io.File;
 
-import ch.hsr.mixtape.distancefunction.DistanceFunction;
-import ch.hsr.mixtape.distancefunction.NormalizedCompressionDistance;
+import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
 
 
 public class Song {
@@ -11,13 +10,16 @@ public class Song {
 	private String name;
 	private File audioFile;
 
-	DistanceFunction distanceFunction = new NormalizedCompressionDistance();
-
+	private KolmogorovDistance distanceFunction = new KolmogorovDistance();
 	private FeatureVector featureVector = new FeatureVector();
 
 	public Song(File audoFile) {
 		audioFile = audoFile;
 		this.name = audioFile.getName();
+	}
+	
+	public Song() {
+		
 	}
 
 	public String getName() {
@@ -33,7 +35,7 @@ public class Song {
 	}
 
 	public double distanceTo(Song song) {
-		return distanceFunction.computeDistance(featureVector, song.getFeatureVector());
+		return distanceFunction.distance(this, song);
 	}
 
 	public File getAudioFile() {

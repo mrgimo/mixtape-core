@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.zip.Deflater;
 
 import ch.hsr.mixtape.data.FeatureVector;
-import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.data.SpectralCentroidFeature;
 
 @Deprecated
 public class NormalizedCompressionDistance implements DistanceFunction {
@@ -24,8 +24,8 @@ public class NormalizedCompressionDistance implements DistanceFunction {
 			FeatureVector featureVector2) {
 		double[] distanceVector = new double[featureVector1.getDimension()];
 		
-		ArrayList<Feature> featuresV1 = featureVector1.getFeatures();
-		ArrayList<Feature> featuresV2 = featureVector2.getFeatures();
+		ArrayList<SpectralCentroidFeature> featuresV1 = featureVector1.getFeatures();
+		ArrayList<SpectralCentroidFeature> featuresV2 = featureVector2.getFeatures();
 		
 		for (int i = 0; i < featureVector1.getDimension(); i++) {
 			distanceVector[i] = computeDistance(featuresV1.get(i).windowValues(), featuresV2.get(i).windowValues());

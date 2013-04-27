@@ -9,7 +9,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import cern.colt.Arrays;
 import ch.hsr.mixtape.data.Song;
+import ch.hsr.mixtape.data.SpectralCentroidFeature;
+import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
+import ch.hsr.mixtape.distancefunction.skew.LCP;
+import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
 import ch.hsr.mixtape.extraction.AudioExtractor;
 import ch.hsr.mixtape.library.LibraryController;
 
@@ -19,6 +24,9 @@ public class MixTape {
 
 	public static void main(String[] args) {
 		ArrayList<Song> songs = extractAudioData();
+		
+		
+		
 
 		LibraryController libraryController = new LibraryController();
 		libraryController.addSongsToLibrary(songs);
@@ -27,7 +35,7 @@ public class MixTape {
 		libraryController.printClusters();
 	}
 
-	private static ArrayList<Song> extractAudioData() {
+	public static ArrayList<Song> extractAudioData() {
 		System.out.println("Available Processors: " + THREAD_COUNT);
 
 		File audioDirectory = new File(PATH);

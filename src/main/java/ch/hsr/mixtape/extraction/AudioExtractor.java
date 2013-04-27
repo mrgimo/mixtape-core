@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.hsr.mixtape.audio.AudioChannel;
-import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.data.SpectralCentroidFeature;
 import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
 
@@ -32,12 +32,12 @@ public class AudioExtractor implements Runnable {
 
 	private void extractFeatures(double[] samples) {
 		FeatureExtractor featureController = new FeatureExtractor();
-		ArrayList<Feature> extractedFeatures = featureController.extractFeatures(samples);
+		ArrayList<SpectralCentroidFeature> extractedFeatures = featureController.extractFeatures(samples);
 
 		generateFeatureVector(extractedFeatures);
 	}
 
-	private void generateFeatureVector(ArrayList<Feature> extractedFeatures) {
+	private void generateFeatureVector(ArrayList<SpectralCentroidFeature> extractedFeatures) {
 		FeatureVector featureVector = new FeatureVector();
 		featureVector.setFeatures(extractedFeatures);
 		song.setFeatureVector(featureVector);
