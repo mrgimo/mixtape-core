@@ -27,7 +27,7 @@ public class LibraryController {
 	public void printClusters() {
 		System.out.println();
 		for (Cluster cluster : library.getClusters()) {
-			System.out.println("---------------------------------------------------------");
+			System.out.println("\n\n---------------------------------------------------------");
 			System.out.println("Cluster: " + cluster.getName() + "\n");
 			for (Song song : cluster.getSongs()) {
 				System.out.println(song.getName() + "\n"

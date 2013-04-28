@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import ch.hsr.mixtape.MixTape;
+import ch.hsr.mixtape.Mixer;
 import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
@@ -44,7 +44,7 @@ public class KolmogorovDistanceTest {
 		
 		NormalizedInformationDistance distFunc = new NormalizedInformationDistance();
 
-		ArrayList<Song> extractAudioData = MixTape.extractAudioData();
+		ArrayList<Song> extractAudioData = new Mixer().extractAudioData();
 		
 		for (int i = 0; i < extractAudioData.size(); i++) {
 			for (int j = i; j < extractAudioData.size(); j++) {

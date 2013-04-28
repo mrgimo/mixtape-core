@@ -1,7 +1,13 @@
 package ch.hsr.mixtape.clustering.algorithm;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import ch.hsr.mixtape.Mixer;
+import ch.hsr.mixtape.Mixer.LoggingFormatter;
 import ch.hsr.mixtape.data.Cluster;
 import ch.hsr.mixtape.data.Song;
 
@@ -12,14 +18,37 @@ import ch.hsr.mixtape.data.Song;
  * Slink runs in O(n^2)
  */
 
+// TODO: remove loggin shissle
+
 public class Slink implements ClusterAlgorithm {
 
-	private static final double DISTANCE_THRESHOLD = 0.35;
+	private Logger logger;
+
+	private static final double DISTANCE_THRESHOLD = 1.67;
 	private static final double INFINITY = Double.POSITIVE_INFINITY;
 	private static final int CLUSTER_COUNT = 2;
 
 	private double[][] distanceMatrix;
 	private int[] nearestCluster;
+
+	public Slink() {
+		initLogger();
+		
+	}
+
+	private void initLogger() {
+		logger = Logger.getLogger("Clustering Report\n");
+		try {
+			FileHandler fileHandler = new FileHandler("logs/clustering.log",
+					false);
+			logger.addHandler(fileHandler);
+			logger.setLevel(Level.ALL);
+			fileHandler.setFormatter(new Mixer.LoggingFormatter());
+			logger.log(Level.INFO, "\n\nClustering Report");
+		} catch (SecurityException | IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public ArrayList<Cluster> cluster(ArrayList<Song> songs) {
@@ -40,12 +69,13 @@ public class Slink implements ClusterAlgorithm {
 		}
 
 		int clusterCount = initialClusters.size();
-		System.out.print("\ngenerating clusters: \t\t");
+		System.out.print("\n\nBuilding clusters: \n\n");
 
 		double minDistance = 0.0;
 
 		while (minDistance < DISTANCE_THRESHOLD) {
-			System.out.print("min Distance: " + minDistance);
+			logger.log(Level.INFO, "\n\n\n-----------------------------------------\n\nNew clustering round\n\nMinimum distance: "
+							+ minDistance);
 			int clusterPair1 = 0;
 			for (int i = 0; i < songs.size(); i++)
 				if (distanceMatrix[i][nearestCluster[i]] < distanceMatrix[clusterPair1][nearestCluster[clusterPair1]])
@@ -73,6 +103,7 @@ public class Slink implements ClusterAlgorithm {
 			Cluster mergedCluster = initialClusters.get(clusterPair2);
 			masterCluster.add(mergedCluster.getSongs());
 			mergedCluster.getSongs().clear();
+
 			printClusters(initialClusters);
 
 			clusterCount--;
@@ -83,13 +114,13 @@ public class Slink implements ClusterAlgorithm {
 	}
 
 	private void printClusters(ArrayList<Cluster> initialClusters) {
-		System.out
-				.println("\n----------------------------------------\nnew cluster round \n");
 		for (int i = 0; i < initialClusters.size(); i++) {
-			System.out.println("\n\nCluster " + i);
-			ArrayList<Song> songs = initialClusters.get(i).getSongs();
-			for (Song song : songs) {
-				System.out.println(song.getName());
+			if (!initialClusters.get(i).getSongs().isEmpty()) {
+				logger.log(Level.INFO, "\n\nCluster " + i);
+				ArrayList<Song> songs = initialClusters.get(i).getSongs();
+				for (Song song : songs) {
+					logger.log(Level.INFO, song.getName());
+				}
 			}
 		}
 	}
