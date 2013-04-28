@@ -40,6 +40,7 @@ public class Mixer {
 			FileHandler fileHandler = new FileHandler("logs/timeMeasurements.log", false);
 			logger.addHandler(fileHandler);
 			logger.setLevel(Level.ALL);
+			logger.setUseParentHandlers(false);
 			fileHandler.setFormatter(new LoggingFormatter());
 			logger.log(Level.INFO, "Time Measurement\n\n");
 			logger.log(Level.INFO, "Available Processors: " + THREAD_COUNT + "\n");

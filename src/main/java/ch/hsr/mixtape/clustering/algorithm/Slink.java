@@ -43,6 +43,7 @@ public class Slink implements ClusterAlgorithm {
 					false);
 			logger.addHandler(fileHandler);
 			logger.setLevel(Level.ALL);
+			logger.setUseParentHandlers(false);
 			fileHandler.setFormatter(new Mixer.LoggingFormatter());
 			logger.log(Level.INFO, "\n\nClustering Report");
 		} catch (SecurityException | IOException e) {
