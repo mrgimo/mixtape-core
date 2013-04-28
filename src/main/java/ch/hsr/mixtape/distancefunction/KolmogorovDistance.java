@@ -3,15 +3,15 @@ package ch.hsr.mixtape.distancefunction;
 import java.util.ArrayList;
 
 import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.SpectralCentroidFeature;
+import ch.hsr.mixtape.data.Feature;
 
 public class KolmogorovDistance {
 
 	public double distance(Song song1, Song song2) {
 
-		ArrayList<SpectralCentroidFeature> features1 = song1.getFeatureVector()
+		ArrayList<Feature> features1 = song1.getFeatureVector()
 				.getFeatures();
-		ArrayList<SpectralCentroidFeature> features2 = song2.getFeatureVector()
+		ArrayList<Feature> features2 = song2.getFeatureVector()
 				.getFeatures();
 
 		double[] distances = new double[features1.size()];
@@ -21,17 +21,26 @@ public class KolmogorovDistance {
 					features2.get(i));
 			int zYX = findMatches(features2.get(i), features1.get(i));
 			
-			double maxZXY = zXY > zYX ? zXY : zYX;
+			double maxZXY = 0.0;
+			
+			if(zXY > zYX) {
+				maxZXY = zXY;
+			}else {
+				maxZXY = zYX;
+			}
 			
 			int maxX = features1.get(i).suffixArray().length;
 			int maxY = features2.get(i).suffixArray().length;
 			
 			double maxXY = maxX > maxY ? maxX : maxY; 
 			
-			distances[i] = maxXY > 0 ? maxZXY / maxXY : 0;
+			distances[i] = maxXY > 0 ? (maxXY - maxZXY) / maxXY : 0;
 			
 		}
-		return vectorLength(distances);
+		
+		double vectorLength = vectorLength(distances);
+		System.out.println("\ndistance " + song1.getName() + " to " + song2.getName() + " : " + vectorLength);
+		return vectorLength;
 	}
 
 	private double vectorLength(double[] distances) {
@@ -44,12 +53,12 @@ public class KolmogorovDistance {
 	}
 
 	private int findMatches(
-			SpectralCentroidFeature spectralCentroidFeature1,
-			SpectralCentroidFeature spectralCentroidFeature2) {
+			Feature spectralCentroidFeature1,
+			Feature spectralCentroidFeature2) {
 
-		int[] values1 = spectralCentroidFeature1.getValues();
+		int[] values1 = spectralCentroidFeature1.windowValues();
 
-		int[] values2 = spectralCentroidFeature2.getValues();
+		int[] values2 = spectralCentroidFeature2.windowValues();
 		int[] suffixArray2 = spectralCentroidFeature2.suffixArray();
 		int[] lcp2 = spectralCentroidFeature2.lcp();
 

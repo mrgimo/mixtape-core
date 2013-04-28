@@ -1,6 +1,11 @@
 package ch.hsr.mixtape.distancefunction.skew;
 
+/**
+ * Linear time implementation for finding the longest common prefixes
+ */
+
 public class LCP {
+
 	public int[] longestCommonPrefixes(int[] values, int[] suffixArray) {
 
 		int[] inversedSuffixArray = generateInverseArray(suffixArray);
@@ -27,11 +32,11 @@ public class LCP {
 
 		while (suffix + offset < values.length
 				&& predecessorSuffix + offset < values.length) {
-			
+
 			if (values[suffix++ + offset] != values[predecessorSuffix++
 					+ offset])
 				return matches;
-			
+
 			matches++;
 		}
 		return matches;
@@ -43,7 +48,7 @@ public class LCP {
 
 		for (int i = 0; i < suffixArray.length; i++)
 			inversed[suffixArray[i]] = i;
-		
+
 		return inversed;
 	}
 }

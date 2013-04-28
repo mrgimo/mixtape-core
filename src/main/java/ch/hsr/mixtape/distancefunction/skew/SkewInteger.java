@@ -2,6 +2,11 @@ package ch.hsr.mixtape.distancefunction.skew;
 
 import java.util.Arrays;
 
+/**
+ * Implementation based on the algorithm proposed in 'Simple Linear Work Suffix
+ * Array Construction' by Juha Kärkkäinen and Peter Sanders
+ */
+
 public class SkewInteger {
 
 	/*
@@ -10,6 +15,14 @@ public class SkewInteger {
 
 	private static final int ADDITIONAL_BORDERVALUES = 3;
 
+	/**
+	 * 
+	 * @param values
+	 *            input 
+	 * @param maxValue
+	 *            maximum value in input
+	 * @return suffix array for the input 
+	 */
 	public int[] buildSuffixArray(int[] values, int maxValue) {
 
 		int[] input = Arrays.copyOf(values, values.length
@@ -36,7 +49,7 @@ public class SkewInteger {
 		suffixArrayMod12 = radixSort(indicesMod12, input, 2, maxValue + 1);
 		suffixArrayMod12 = radixSort(suffixArrayMod12, input, 1, maxValue + 1);
 		suffixArrayMod12 = radixSort(suffixArrayMod12, input, 0, maxValue + 1);
-		
+
 		int rank = 0;
 
 		int previousTripleValue0 = Integer.MIN_VALUE;
@@ -82,7 +95,7 @@ public class SkewInteger {
 		// sort mod0
 		suffixArrayMod0 = radixSortByRanks(indicesMod0, valuesByRanks,
 				lengthMod1, suffixArrayMod12.length);
-		
+
 		suffixArrayMod0 = radixSort(suffixArrayMod0, input, 0, maxValue + 1);
 
 		int indexMod0 = values.length % 3 == 0 ? 1 : 0;
@@ -182,8 +195,7 @@ public class SkewInteger {
 						: -1);
 	}
 
-	private boolean isLexOrder(int a1, int a2, int a3, int b1,
-			int b2, int b3) {
+	private boolean isLexOrder(int a1, int a2, int a3, int b1, int b2, int b3) {
 		return a1 < b1 || (a1 == b1 && isLexOrder(a2, a3, b2, b3));
 	}
 

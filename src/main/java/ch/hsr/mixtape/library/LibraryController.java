@@ -1,6 +1,5 @@
 package ch.hsr.mixtape.library;
 
-//move to other package ?
 
 import java.util.ArrayList;
 

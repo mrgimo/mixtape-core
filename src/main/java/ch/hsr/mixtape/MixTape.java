@@ -9,23 +9,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import cern.colt.Arrays;
 import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.SpectralCentroidFeature;
-import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
-import ch.hsr.mixtape.distancefunction.skew.LCP;
-import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
+import ch.hsr.mixtape.distancefunction.DistanceGenerator;
 import ch.hsr.mixtape.extraction.AudioExtractor;
 import ch.hsr.mixtape.library.LibraryController;
 
 public class MixTape {
-	private static final int THREAD_COUNT = 2;
+	private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors() - 2;
 	private static final String PATH = "songs/";
 
 	public static void main(String[] args) {
+		
+		long timeStart = System.currentTimeMillis();
+		
 		ArrayList<Song> songs = extractAudioData();
 		
-		
+		System.out.println("\n\nExtraction done after " + (System.currentTimeMillis() - timeStart) + " ms \n\n");
 		
 
 		LibraryController libraryController = new LibraryController();
@@ -33,6 +32,8 @@ public class MixTape {
 		
 		libraryController.organizeLibrary();
 		libraryController.printClusters();
+		
+		System.out.println("Task completed for "+ songs.size() + " songs after " + (System.currentTimeMillis() - timeStart) + " ms \n\n");
 	}
 
 	public static ArrayList<Song> extractAudioData() {
@@ -57,6 +58,23 @@ public class MixTape {
 			}
 		}
 		for (Future<?> future:futures) {
+			try {
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		futures.clear();
+		
+		System.out.println("\n\nGenerating distances \n");
+		for (int i = 0; i < songs.size() - 1; i++) {
+			
+			DistanceGenerator distanceGenerator = new DistanceGenerator(songs.get(i), songs, i + 1);
+			futures.add(executorService.submit(distanceGenerator));
+		}
+		
+		for (Future<?> future : futures) {
 			try {
 				future.get();
 			} catch (InterruptedException | ExecutionException e) {

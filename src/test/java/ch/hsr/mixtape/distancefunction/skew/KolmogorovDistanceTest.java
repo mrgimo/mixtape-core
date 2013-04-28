@@ -1,20 +1,21 @@
 package ch.hsr.mixtape.distancefunction.skew;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
-import java.util.Random;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import ch.hsr.mixtape.MixTape;
+import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.SpectralCentroidFeature;
+import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
 import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
-import ch.hsr.mixtape.features.LPC;
 
 public class KolmogorovDistanceTest {
 
+	@Test
 	public void testSameValues() {
 		int[] input = new int[] { 1, 2, 3, 4, 5, 6 , 1, 2, 3, 4, 5, 7};
 		int[] suffixArray = new SkewInteger().buildSuffixArray(input, 7);
@@ -23,7 +24,7 @@ public class KolmogorovDistanceTest {
 		Song song = new Song();
 		
 		
-		SpectralCentroidFeature f = new SpectralCentroidFeature("", 12);
+		Feature f = new Feature("", 12, new SpectralCentroidValueMaper());
 		f.setLcp(lcp);
 		f.setSuffixArray(suffixArray);
 		FeatureVector fv = new FeatureVector();
@@ -35,11 +36,10 @@ public class KolmogorovDistanceTest {
 		double act = dist.distance(song, song);
 		
 		
-		assertEquals(1, act, 0);
+		assertEquals(0, act, 0);
 	}
 	
 	
-	@Test
 	public void testActualSong() {
 		
 		KolmogorovDistance distFunc = new KolmogorovDistance();
@@ -52,10 +52,6 @@ public class KolmogorovDistanceTest {
 				Song song2 = extractAudioData.get(j);
 				
 				double dist = distFunc.distance(song, song2);
-				
-				System.out.println("\ndistance: " + song.getName() + " to " + song2.getName() + " : " + dist);
-				System.out.println("--------------------------------------- \n");
-				
 			}
 		}
 	}

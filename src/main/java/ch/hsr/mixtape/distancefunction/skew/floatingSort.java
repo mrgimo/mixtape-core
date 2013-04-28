@@ -5,7 +5,7 @@ import java.util.Random;
 import cern.colt.Arrays;
 import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.SpectralCentroidFeature;
+import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
 
 public class floatingSort {
@@ -51,15 +51,15 @@ public class floatingSort {
 		
 		 Song song = new Song();
 			
-			SpectralCentroidFeature feature = new SpectralCentroidFeature("", values.length);
-			feature.addWindowValues(values);
-			feature.setLcp(lcpArray);
-			feature.setSuffixArray(suffixArray);
-			
-			FeatureVector fv = new FeatureVector();
-			fv.addFeature(feature);
-			
-			song.setFeatureVector(fv);
+//			Feature feature = new Feature("", values.length);
+//			feature.addWindowValues(values);
+//			feature.setLcp(lcpArray);
+//			feature.setSuffixArray(suffixArray);
+//			
+//			FeatureVector fv = new FeatureVector();
+//			fv.addFeature(feature);
+//			
+//			song.setFeatureVector(fv);
 			
 			double dist = new KolmogorovDistance().distance(song, song);
 			

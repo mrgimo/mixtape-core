@@ -1,8 +1,7 @@
 package ch.hsr.mixtape.data;
 
 import java.io.File;
-
-import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
+import java.util.HashMap;
 
 
 public class Song {
@@ -10,8 +9,9 @@ public class Song {
 	private String name;
 	private File audioFile;
 
-	private KolmogorovDistance distanceFunction = new KolmogorovDistance();
 	private FeatureVector featureVector = new FeatureVector();
+	
+	private HashMap<Song, Double> distances = new HashMap<Song, Double>();
 
 	public Song(File audoFile) {
 		audioFile = audoFile;
@@ -35,10 +35,20 @@ public class Song {
 	}
 
 	public double distanceTo(Song song) {
-		return distanceFunction.distance(this, song);
+		return distances.containsKey(song) ? distances.get(song) : 1;
 	}
 
 	public File getAudioFile() {
 		return audioFile;
 	}
+
+	public void setDistance(Song songToCompare, double distance) {
+		distances.put(songToCompare, distance);
+	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
 }

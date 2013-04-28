@@ -3,7 +3,12 @@ package ch.hsr.mixtape.extraction;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import ch.hsr.mixtape.data.SpectralCentroidFeature;
+import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.data.valuemapper.MFCCValueMapper;
+import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
+import ch.hsr.mixtape.data.valuemapper.SpectralKurtosisValueMapper;
+import ch.hsr.mixtape.data.valuemapper.SpectralSkewnessValueMapper;
+import ch.hsr.mixtape.data.valuemapper.SpectralSpreadValueMapper;
 import ch.hsr.mixtape.distancefunction.skew.LCP;
 import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
 import ch.hsr.mixtape.features.FastFourierTransform;
@@ -23,29 +28,37 @@ public class FeatureExtractor {
 	SkewInteger skew = new SkewInteger();
 	LCP lcp = new LCP();
 
-	public ArrayList<SpectralCentroidFeature> extractFeatures(double[] samples) {
-		ArrayList<SpectralCentroidFeature> features = new ArrayList<SpectralCentroidFeature>();
+	public ArrayList<Feature> extractFeatures(double[] samples) {
+		ArrayList<Feature> features = new ArrayList<Feature>();
 
 		features.addAll(extractSpectralFeatures(samples));
 		return features;
 	}
 
-	private ArrayList<SpectralCentroidFeature> extractSpectralFeatures(double[] samples) {
-		ArrayList<SpectralCentroidFeature> spectralFeatures = new ArrayList<SpectralCentroidFeature>();
+	private ArrayList<Feature> extractSpectralFeatures(double[] samples) {
+		ArrayList<Feature> features = new ArrayList<Feature>();
 
 		int windowCount = samples.length % WINDOW_SIZE == 0 ? samples.length
 				/ WINDOW_SIZE : samples.length / WINDOW_SIZE + 1;
 
-		SpectralCentroidFeature scFeature = new SpectralCentroidFeature("spectral centroid",
-				windowCount);
-		SpectralCentroidFeature spFeature = new SpectralCentroidFeature("spectral spread",
-				windowCount);
-		SpectralCentroidFeature skFeature = new SpectralCentroidFeature("spectral kurtosis",
-				windowCount);
-		SpectralCentroidFeature sropFeature = new SpectralCentroidFeature(
-				"spectral rolloff point", windowCount);
-		SpectralCentroidFeature ssFeature = new SpectralCentroidFeature("spectral skewness",
-				windowCount);
+		Feature scFeature = new Feature("spectral centroid",
+				windowCount, new SpectralCentroidValueMaper());
+		Feature spFeature = new Feature("spectral spread",
+				windowCount, new SpectralSpreadValueMapper());
+		Feature skFeature = new Feature("spectral kurtosis",
+				windowCount, new SpectralKurtosisValueMapper());
+		Feature sropFeature = new Feature(
+				"spectral rolloff point", windowCount, new SpectralCentroidValueMaper());
+		Feature ssFeature = new Feature("spectral skewness",
+				windowCount, new SpectralSkewnessValueMapper());
+		
+		Feature mfccFeature1 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature2 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature3 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature4 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature5 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature6 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		
 		
 		MFCC mfcc = new MFCC();
 		MagnitudeSpectrum ms = new MagnitudeSpectrum();
@@ -79,37 +92,60 @@ public class FeatureExtractor {
 			double spectralKurtosisValue = sk.extracFeature(powerSpectrum,
 					spectralCentroidValue, spectralSpreadValue);
 			skFeature.addWindowValue(spectralKurtosisValue);
-
-			double spectralRollofPointValue = srop
-					.extractFeature(powerSpectrum);
-			sropFeature.addWindowValue(spectralRollofPointValue);
-
+//
+//			double spectralRollofPointValue = srop
+//					.extractFeature(powerSpectrum);
+//			sropFeature.addWindowValue(spectralRollofPointValue);
+//
 			double spectralSkewnessValue = ss.extractFeature(powerSpectrum,
 					spectralCentroidValue, spectralSpreadValue);
 			ssFeature.addWindowValue(spectralSkewnessValue);
+			
 			double[] magnitudeSpectrum = ms.extractFeature(fft.getRealValues(), fft.getImaginaryValues());
 			try {
 				double[] mfccs = mfcc.extractFeature(samples, 44100, magnitudeSpectrum );
+				mfccFeature1.addWindowValue(mfccs[1]);
+				mfccFeature2.addWindowValue(mfccs[2]);
+				mfccFeature3.addWindowValue(mfccs[3]);
+				mfccFeature4.addWindowValue(mfccs[4]);
+				mfccFeature5.addWindowValue(mfccs[5]);
+				mfccFeature6.addWindowValue(mfccs[6]);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
 		computeSuffixTree(scFeature);
+		computeSuffixTree(skFeature);
+		computeSuffixTree(spFeature);
+		computeSuffixTree(skFeature);
 		
-		spectralFeatures.add(ssFeature);
-		// spectralFeatures.add(sropFeature);
-//		spectralFeatures.add(skFeature);
-		spectralFeatures.add(spFeature);
-		spectralFeatures.add(scFeature);
+		computeSuffixTree(mfccFeature1);
+		computeSuffixTree(mfccFeature2);
+		computeSuffixTree(mfccFeature3);
+		computeSuffixTree(mfccFeature4);
+		computeSuffixTree(mfccFeature5);
+		computeSuffixTree(mfccFeature6);
+		
+//		spectralFeatures.add(sropFeature);
+		features.add(ssFeature);
+		features.add(skFeature);
+		features.add(spFeature);
+		features.add(scFeature);
+		
+		features.add(mfccFeature1);
+		features.add(mfccFeature2);
+		features.add(mfccFeature3);
+		features.add(mfccFeature4);
+		features.add(mfccFeature5);
+		features.add(mfccFeature6);
 
-		return spectralFeatures;
+		return features;
 	}
 
-	private void computeSuffixTree(SpectralCentroidFeature feature) {
+	private void computeSuffixTree(Feature feature) {
 		
-		int[] values = feature.getValues();
+		int[] values = feature.windowValues();
 		
 		int[] suffixArray = skew.buildSuffixArray(values, feature.maxValue());
 		int[] lcpValues = lcp.longestCommonPrefixes(values, suffixArray);

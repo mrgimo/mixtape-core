@@ -44,7 +44,4 @@ public class Cluster {
 	public void add(List<Song> songs) {
 		clusteredSongs.addAll(songs);
 	}
-	
-	
-
 }

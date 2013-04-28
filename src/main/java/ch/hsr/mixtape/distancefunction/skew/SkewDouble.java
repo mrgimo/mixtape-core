@@ -2,6 +2,12 @@ package ch.hsr.mixtape.distancefunction.skew;
 
 import java.util.Arrays;
 
+/**
+ * @deprecated use SkewInteger
+ */
+
+
+@Deprecated
 public class SkewDouble {
 
 	/*
