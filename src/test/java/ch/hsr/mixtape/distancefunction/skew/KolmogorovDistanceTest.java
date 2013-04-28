@@ -11,7 +11,7 @@ import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
-import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
+import ch.hsr.mixtape.distancefunction.NormalizedInformationDistance;
 
 public class KolmogorovDistanceTest {
 
@@ -32,7 +32,7 @@ public class KolmogorovDistanceTest {
 		song.setFeatureVector(fv);
 		
 		
-		KolmogorovDistance dist = new KolmogorovDistance();
+		NormalizedInformationDistance dist = new NormalizedInformationDistance();
 		double act = dist.distance(song, song);
 		
 		
@@ -42,7 +42,7 @@ public class KolmogorovDistanceTest {
 	
 	public void testActualSong() {
 		
-		KolmogorovDistance distFunc = new KolmogorovDistance();
+		NormalizedInformationDistance distFunc = new NormalizedInformationDistance();
 
 		ArrayList<Song> extractAudioData = MixTape.extractAudioData();
 		

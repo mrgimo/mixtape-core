@@ -22,7 +22,7 @@ public class DistanceGenerator implements Runnable {
 	}
 
 	public void computeDistances() {
-		KolmogorovDistance distanceFunction = new KolmogorovDistance();
+		NormalizedInformationDistance distanceFunction = new NormalizedInformationDistance();
 		
 		for (int i = startIndex; i < songsToCompare.size(); i++) {
 			Song songToCompare = songsToCompare.get(i);

@@ -6,7 +6,7 @@ import cern.colt.Arrays;
 import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.data.Feature;
-import ch.hsr.mixtape.distancefunction.KolmogorovDistance;
+import ch.hsr.mixtape.distancefunction.NormalizedInformationDistance;
 
 public class floatingSort {
 
@@ -61,7 +61,7 @@ public class floatingSort {
 //			
 //			song.setFeatureVector(fv);
 			
-			double dist = new KolmogorovDistance().distance(song, song);
+			double dist = new NormalizedInformationDistance().distance(song, song);
 			
 		
 		

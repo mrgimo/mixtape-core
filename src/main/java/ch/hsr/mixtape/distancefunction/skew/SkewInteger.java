@@ -18,10 +18,10 @@ public class SkewInteger {
 	/**
 	 * 
 	 * @param values
-	 *            input 
+	 *            input
 	 * @param maxValue
 	 *            maximum value in input
-	 * @return suffix array for the input 
+	 * @return suffix array for the input
 	 */
 	public int[] buildSuffixArray(int[] values, int maxValue) {
 
@@ -206,8 +206,8 @@ public class SkewInteger {
 	private boolean tripleIsUnequal(int[] input, int[] sortedIndicesMod12,
 			int previousTripleValue0, int previousTripleValue1,
 			int previousTripleValue2, int i) {
+		
 		return input[sortedIndicesMod12[i]] != previousTripleValue0
-
 		|| input[sortedIndicesMod12[i] + 1] != previousTripleValue1
 				|| input[sortedIndicesMod12[i] + 2] != previousTripleValue2;
 	}
