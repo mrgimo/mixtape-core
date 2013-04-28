@@ -50,13 +50,7 @@ public class NormalizedInformationDistance {
 			int zXY = findMatches(features1.get(i), features2.get(i));
 			int zYX = findMatches(features2.get(i), features1.get(i));
 
-			double maxZXY = 0.0;
-
-			if (zXY > zYX) {
-				maxZXY = zXY;
-			} else {
-				maxZXY = zYX;
-			}
+			double maxZXY = zXY > zYX ? zXY : zYX;
 
 			int maxX = features1.get(i).suffixArray().length;
 			int maxY = features2.get(i).suffixArray().length;
