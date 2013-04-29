@@ -24,10 +24,10 @@ public class AudioExtractor implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("Extracting Data from " + song.getAudioFile().getName());
+		System.out.println("\nExtracting Data from " + song.getAudioFile().getName());
 		double[] samples = extractSamples();
 		extractFeatures(samples);
-		System.out.println(song.getAudioFile().getName() + " done");
+		System.out.println("\n" + song.getAudioFile().getName() + " done");
 	}
 
 	private void extractFeatures(double[] samples) {

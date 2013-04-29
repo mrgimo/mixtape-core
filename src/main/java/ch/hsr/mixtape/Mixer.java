@@ -106,7 +106,7 @@ public class Mixer {
 		long featureExtractionEndTime = System.currentTimeMillis();
 		
 		logger.log(Level.INFO, "Feature extraction and building of suffix array and lcp array done after: " + (featureExtractionEndTime - startTime + " ms"));
-		System.out.println("Computing distances: \n");
+		System.out.println("\n\n----------------------------------------\n\nComputing distances: \n");
 
 		for (int i = 0; i < songs.size() - 1; i++) {
 

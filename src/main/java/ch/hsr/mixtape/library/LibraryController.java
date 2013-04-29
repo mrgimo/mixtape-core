@@ -1,6 +1,5 @@
 package ch.hsr.mixtape.library;
 
-
 import java.util.ArrayList;
 
 import ch.hsr.mixtape.clustering.algorithm.ClusterAlgorithm;
@@ -25,26 +24,15 @@ public class LibraryController {
 	}
 
 	public void printClusters() {
-		System.out.println();
+		int clusterCount = 1;
+		System.out.println("\n\nPrinting cluster: ");
 		for (Cluster cluster : library.getClusters()) {
-			System.out.println("\n\n---------------------------------------------------------");
-			System.out.println("Cluster: " + cluster.getName() + "\n");
-			for (Song song : cluster.getSongs()) {
-				System.out.println(song.getName() + "\n"
-//						+ "RMS: "
-//						+ song.getFeatureVector().getFeatureMeanValues()[0] + "\n"
-//						+ "ZC: "
-//						+ song.getFeatureVector().getFeatureMeanValues()[1] + "\n"
-//						+ song.getFeatureVector().getFeatureMeanValues()[2] + "\n"
-//						+ song.getFeatureVector().getFeatureMeanValues()[3] + "\n"
-//						+ song.getFeatureVector().getFeatureMeanValues()[4] + "\n"
-//						+ song.getFeatureVector().getFeatureValues()[5] + "\n"
-//						+ song.getFeatureVector().getFeatureValues()[6] + "\n"
-				);
-				System.out.println();
-			}
-			System.out.println();
-			System.out.println();
+			System.out
+					.println("\n---------------------------------------------------------");
+			System.out.println("\nCluster: " + clusterCount++ + "\n");
+
+			for (Song song : cluster.getSongs())
+				System.out.println(song.getName() + "\n");
 		}
 
 	}

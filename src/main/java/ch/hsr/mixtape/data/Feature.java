@@ -14,6 +14,8 @@ public class Feature {
 
 	private int addedWindows = 0;
 
+	private int[] nfcas;
+
 	public Feature(String name, int windowCount, ValueMapper valueMapper) {
 		this.name = name;
 		values = new int[windowCount];
@@ -39,11 +41,11 @@ public class Feature {
 		return maxValue;
 	}
 
-	public int[] suffixArray() {
+	public int[] getSuffixArray() {
 		return suffixArray ;
 	}
 
-	public int[] lcp() {
+	public int[] getLcp() {
 		return lcp ;
 	}
 
@@ -61,5 +63,18 @@ public class Feature {
 
 	public void addWindowValues(int[] values) {
 		this.values = values;
+	}
+
+	public void setNFCAs(int[] nfcas) {
+		this.nfcas = nfcas;
+		
+	}
+	
+	public int[] getNFCAs() {
+		return nfcas;
+	}
+
+	public int windowCount() {
+		return values.length;
 	}
 }

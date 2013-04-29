@@ -10,6 +10,7 @@ import ch.hsr.mixtape.data.valuemapper.SpectralKurtosisValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralSkewnessValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralSpreadValueMapper;
 import ch.hsr.mixtape.distancefunction.skew.LCP;
+import ch.hsr.mixtape.distancefunction.skew.NFCA;
 import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
 import ch.hsr.mixtape.features.FastFourierTransform;
 import ch.hsr.mixtape.features.MFCC;
@@ -24,10 +25,12 @@ import ch.hsr.mixtape.features.SpectralSpread;
 public class FeatureExtractor {
 
 	private static final int WINDOW_SIZE = 512;
-	
-	SkewInteger skew = new SkewInteger();
-	LCP lcp = new LCP();
 
+	private SkewInteger skew = new SkewInteger();
+	private LCP lcp = new LCP();
+	private NFCA nfca = new NFCA();
+	
+	
 	public ArrayList<Feature> extractFeatures(double[] samples) {
 		ArrayList<Feature> features = new ArrayList<Feature>();
 
@@ -36,6 +39,7 @@ public class FeatureExtractor {
 	}
 
 	private ArrayList<Feature> extractSpectralFeatures(double[] samples) {
+		
 		ArrayList<Feature> features = new ArrayList<Feature>();
 
 		int windowCount = samples.length % WINDOW_SIZE == 0 ? samples.length
@@ -115,17 +119,17 @@ public class FeatureExtractor {
 			}
 		}
 		
-		computeSuffixTree(scFeature);
-		computeSuffixTree(skFeature);
-		computeSuffixTree(spFeature);
-		computeSuffixTree(skFeature);
+		computeSuffixTreeInformation(scFeature);
+		computeSuffixTreeInformation(skFeature);
+		computeSuffixTreeInformation(spFeature);
+		computeSuffixTreeInformation(ssFeature);
 		
-		computeSuffixTree(mfccFeature1);
-		computeSuffixTree(mfccFeature2);
-		computeSuffixTree(mfccFeature3);
-		computeSuffixTree(mfccFeature4);
-		computeSuffixTree(mfccFeature5);
-		computeSuffixTree(mfccFeature6);
+		computeSuffixTreeInformation(mfccFeature1);
+		computeSuffixTreeInformation(mfccFeature2);
+		computeSuffixTreeInformation(mfccFeature3);
+		computeSuffixTreeInformation(mfccFeature4);
+		computeSuffixTreeInformation(mfccFeature5);
+		computeSuffixTreeInformation(mfccFeature6);
 		
 //		spectralFeatures.add(sropFeature);
 		features.add(ssFeature);
@@ -143,15 +147,17 @@ public class FeatureExtractor {
 		return features;
 	}
 
-	private void computeSuffixTree(Feature feature) {
+	private void computeSuffixTreeInformation(Feature feature) {
 		
 		int[] values = feature.windowValues();
 		
 		int[] suffixArray = skew.buildSuffixArray(values, feature.maxValue());
 		int[] lcpValues = lcp.longestCommonPrefixes(values, suffixArray);
+		int[] nfcas = nfca.numberOfFirsCommontAncestors(lcpValues);
 		
-		feature.setLcp(lcpValues);
 		feature.setSuffixArray(suffixArray);
+		feature.setLcp(lcpValues);
+		feature.setNFCAs(nfcas);
 		
 	}
 

@@ -5,43 +5,6 @@ import java.util.ArrayList;
 import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.data.Feature;
 
-
-/*
-
-Time Measurement -> Distance computation normal
-
-
-Available Processors: 6
-
-Feature extraction and building of suffix array and lcp array done after: 186411 ms -> 3min 6.411s
-
-Distance generation done in 666321 ms -> 11min 6.321s
-
-Clustering done after 38 ms 
-
-Task completed for 36 songs after 852773 ms -> 14min 12.77s
-
-
-
-Time Measurement -> Distance computation speedUp
-
-
-Available Processors: 6
-
-Feature extraction and building of suffix array and lcp array done after: 186193 ms -> 3min 6.193s
-
-Distance generation done in 441704 ms -> 7min 21.7s
-
-Clustering done after 38 ms 
-
-Task completed for 36 songs after 627947 ms  -> 10min 27.9s
-
-
-
-==> Time saved 3min 44.6sec
- */
-
-
 /**
  * Implementation for finding the normalized information distance (NID) between
  * two songs with the help of the suffix array and the longest common prefix
@@ -52,10 +15,11 @@ Task completed for 36 songs after 627947 ms  -> 10min 27.9s
  * matches for song X and song Y and maxZXY is the higher value of the matches
  * for song X taking song Y as input and vic versa.
  * <p>
- * The distances between two features are in the range [0,1] where 0 is similar and 1 is as different as
- * it gets.
+ * The distances between two features are in the range [0,1] where 0 is similar
+ * and 1 is as different as it gets.
  * <p>
- * The length of the distance vector is computed using the euclidean distance |v| = sqrt(sum(xi^2))
+ * The length of the distance vector is computed using the euclidean distance
+ * |v| = sqrt(sum(xi^2))
  * <p>
  * <p>
  * 
@@ -63,7 +27,7 @@ Task completed for 36 songs after 627947 ms  -> 10min 27.9s
  * :)
  */
 
-public class NormalizedInformationDistance {
+public class NormalizedInformationDistanceSpeedUp {
 
 	/**
 	 * Computes the distance beteween two songs. The distance vector is
@@ -99,8 +63,8 @@ public class NormalizedInformationDistance {
 		}
 
 		double vectorLength = vectorLength(distanceVector);
-		System.out.println("\ndistance " + song1.getName() + " to "
-				+ song2.getName() + " : " + vectorLength);
+		System.out.println("\n\n" + song1.getName() + " \n"
+				+ song2.getName() + "\n\nDistance: " + vectorLength + "\n\n----------------------------------------------");
 		return vectorLength;
 	}
 
@@ -113,19 +77,12 @@ public class NormalizedInformationDistance {
 		return Math.sqrt(sqSum);
 	}
 
-	private int findMatches(Feature spectralCentroidFeature1,
-			Feature spectralCentroidFeature2) {
-
-		int[] values1 = spectralCentroidFeature1.windowValues();
-
-		int[] values2 = spectralCentroidFeature2.windowValues();
-		int[] suffixArray2 = spectralCentroidFeature2.getSuffixArray();
-		int[] lcp2 = spectralCentroidFeature2.getLcp();
+	private int findMatches(Feature feature1,
+			Feature feature2) {
 
 		int totalMatches = 0;
-		for (int i = 0; i < values1.length;) {
-			int matches = findCommonPrefix(i, values1, suffixArray2, lcp2,
-					values2);
+		for (int i = 0; i < feature1.windowCount();) {
+			int matches = findCommonPrefix(i, feature1, feature2);
 			totalMatches += matches;
 
 			i += matches > 0 ? matches : 1;
@@ -133,24 +90,30 @@ public class NormalizedInformationDistance {
 		return totalMatches;
 	}
 
-	private int findCommonPrefix(int indexValues1, int[] values1,
-			int[] suffixArray2, int[] lcp2, int[] values2) {
-
+	private int findCommonPrefix(int indexValues1, Feature feature1, Feature feature2) {
+		
+		int[] values1 = feature1.windowValues();
+		int[] values2 = feature2.windowValues();
+		int[] suffixArray2 = feature2.getSuffixArray();
+		int[] lcp2 = feature2.getLcp();
+		int[] nfcas2 = feature2.getNFCAs();
+		
+		
 		int matches = 0;
 
 		int suffix1 = values1[indexValues1];
 
-		for (int i = 0; i < suffixArray2.length; i++) {
-			int suffix2 = values2[suffixArray2[i]];
+		for (int posSuffix2 = 0; posSuffix2 < suffixArray2.length;) {
+			int suffix2 = values2[suffixArray2[posSuffix2]];
 			if (suffix1 < suffix2)
 				return matches;
 
 			if (suffix1 == suffix2) {
 				matches++;
-				matches = compare(indexValues1, values1, suffixArray2[i],
+				matches = compare(indexValues1, values1, suffixArray2[posSuffix2],
 						values2, matches);
 
-				int nextSuffix2 = i + 1;
+				int nextSuffix2 = posSuffix2 + 1;
 				while (hasMoreSuffixCandidates(lcp2, matches, nextSuffix2)) {
 					matches = compare(indexValues1, values1,
 							suffixArray2[nextSuffix2], values2, matches);
@@ -158,6 +121,8 @@ public class NormalizedInformationDistance {
 				}
 				return matches;
 			}
+			
+			posSuffix2 += posSuffix2 < nfcas2.length ? nfcas2[posSuffix2] + 1 : 1;
 		}
 
 		return matches;

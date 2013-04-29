@@ -24,7 +24,7 @@ public class Slink implements ClusterAlgorithm {
 
 	private Logger logger;
 
-	private static final double DISTANCE_THRESHOLD = 1.67;
+	private static final double DISTANCE_THRESHOLD = 1.673;
 	private static final double INFINITY = Double.POSITIVE_INFINITY;
 	private static final int CLUSTER_COUNT = 2;
 
@@ -44,7 +44,7 @@ public class Slink implements ClusterAlgorithm {
 			logger.addHandler(fileHandler);
 			logger.setLevel(Level.ALL);
 			logger.setUseParentHandlers(false);
-			fileHandler.setFormatter(new Mixer.LoggingFormatter());
+			fileHandler.setFormatter(new LoggingFormatter());
 			logger.log(Level.INFO, "\n\nClustering Report");
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
@@ -70,7 +70,7 @@ public class Slink implements ClusterAlgorithm {
 		}
 
 		int clusterCount = initialClusters.size();
-		System.out.print("\n\nBuilding clusters: \n\n");
+		System.out.print("\n\nBuilding clusters... \n\n");
 
 		double minDistance = 0.0;
 
@@ -140,7 +140,7 @@ public class Slink implements ClusterAlgorithm {
 	private void generateInitialDistances(ArrayList<Song> songs) {
 		distanceMatrix = new double[songs.size()][songs.size()];
 
-		System.out.print("\ngenerating distance matrix: \t");
+		System.out.print("\nGenerating distance matrix: \t");
 
 		for (int i = 0; i < songs.size(); i++) {
 			System.out.print("#");
