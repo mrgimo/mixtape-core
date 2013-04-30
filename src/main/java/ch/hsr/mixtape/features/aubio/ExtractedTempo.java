@@ -38,6 +38,18 @@ public class ExtractedTempo {
 	}
 
 	/**
+	 * @return The ArrayList contains beats rounded to the next integer value.
+	 */
+	public ArrayList<Double> getRoundedBeatCollection(boolean discardZeroValues) {
+		ArrayList<Double> beats = new ArrayList<Double>();
+		for (int i = 0; i < bpms.length; i++) {
+			if (!discardZeroValues || bpms[i] > 0)
+				beats.add((double) Math.round(bpms[i]));
+		}
+		return beats;
+	}
+
+	/**
 	 * @return The number of elements in the BPM array.
 	 */
 	public int getLength() {
