@@ -4,13 +4,14 @@ import java.util.ArrayList;
 
 import ch.hsr.mixtape.clustering.algorithm.ClusterAlgorithm;
 import ch.hsr.mixtape.clustering.algorithm.Slink;
+import ch.hsr.mixtape.clustering.algorithm.SlinkMax;
 import ch.hsr.mixtape.data.Cluster;
 import ch.hsr.mixtape.data.Library;
 import ch.hsr.mixtape.data.Song;
 
 public class LibraryController {
 
-	private ClusterAlgorithm clusterAlgorithm = new Slink();
+	private ClusterAlgorithm clusterAlgorithm = new SlinkMax();
 	private Library library = new Library();
 
 	public void organizeLibrary() {

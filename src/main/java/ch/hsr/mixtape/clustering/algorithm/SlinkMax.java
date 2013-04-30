@@ -20,7 +20,7 @@ import ch.hsr.mixtape.data.Song;
 
 // TODO: remove loggin shissle
 
-public class Slink implements ClusterAlgorithm {
+public class SlinkMax implements ClusterAlgorithm {
 
 	private Logger logger;
 
@@ -31,7 +31,7 @@ public class Slink implements ClusterAlgorithm {
 	private double[][] distanceMatrix;
 	private int[] nearestCluster;
 
-	public Slink() {
+	public SlinkMax() {
 		initLogger();
 
 	}
@@ -75,8 +75,7 @@ public class Slink implements ClusterAlgorithm {
 		double minDistance = 0.0;
 
 		while (minDistance < DISTANCE_THRESHOLD) {
-			logger.log(
-					Level.INFO,
+			logger.log(Level.INFO,
 					"\n\n\n-----------------------------------------\n\nNew clustering round\n\n");
 			int clusterPair1 = 0;
 			for (int i = 0; i < songs.size(); i++)
@@ -85,13 +84,20 @@ public class Slink implements ClusterAlgorithm {
 			int clusterPair2 = nearestCluster[clusterPair1];
 
 			minDistance = distanceMatrix[clusterPair1][clusterPair2];
-			
-			logger.log(Level.INFO, "Minimum distance: "
-							+ minDistance + "\n\n");
+
+			logger.log(Level.INFO, "Minimum distance: " + minDistance + "\n\n");
+
+			Cluster masterCluster = initialClusters.get(clusterPair1);
+			Cluster mergedCluster = initialClusters.get(clusterPair2);
+			masterCluster.add(mergedCluster.getSongs());
+			mergedCluster.getSongs().clear();
 
 			for (int j = 0; j < songs.size(); j++)
-				if (distanceMatrix[clusterPair2][j] < distanceMatrix[clusterPair1][j])
-					distanceMatrix[clusterPair1][j] = distanceMatrix[j][clusterPair1] = distanceMatrix[clusterPair2][j];
+				
+				//set mean value to cluster as distance, not minimal distance
+				distanceMatrix[clusterPair1][j] = distanceMatrix[j][clusterPair1] = masterCluster
+						.distance(initialClusters.get(j));
+
 			distanceMatrix[clusterPair1][clusterPair1] = INFINITY;
 
 			for (int i = 0; i < songs.size(); i++)
@@ -103,11 +109,6 @@ public class Slink implements ClusterAlgorithm {
 				if (distanceMatrix[clusterPair1][j] < distanceMatrix[clusterPair1][nearestCluster[clusterPair1]])
 					nearestCluster[clusterPair1] = j;
 			}
-
-			Cluster masterCluster = initialClusters.get(clusterPair1);
-			Cluster mergedCluster = initialClusters.get(clusterPair2);
-			masterCluster.add(mergedCluster.getSongs());
-			mergedCluster.getSongs().clear();
 
 			printClusters(initialClusters);
 
