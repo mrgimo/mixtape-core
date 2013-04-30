@@ -31,5 +31,4 @@ public class LCPTest {
 		
 		assertArrayEquals(expectedLCP, generatedLCP);
 	}
-//	[1, 15, 15, 7, 0, 8, 6, 14, 6, 12, 14, 10, 4, 10, 12, 14, 8, 3, 4, 11]
 }
