@@ -48,6 +48,13 @@
 			<version>1.9.5-1</version>
 		</dependency>
 
+		<!-- clustering -->
+		<dependency>
+			<groupId>nz.ac.waikato.cms.weka</groupId>
+			<artifactId>weka-dev</artifactId>
+			<version>3.7.9</version>
+		</dependency>
+
 		<!-- persistency -->
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
