@@ -172,7 +172,6 @@ public class TempoExtractionController {
 		double[][][] numericAttributes = em.getClusterModelsNumericAtts();
 		int[][] beats = new int[numericAttributes.length][3];
 
-		System.out.println("nofInstancesInCluster: " + data.size());
 		for (int i = 0; i < numericAttributes.length; i++) {
 			// BPM
 			beats[i][0] = (int) Math.round(numericAttributes[i][0][0]);
@@ -189,15 +188,20 @@ public class TempoExtractionController {
 	private Instances setupClusterInstances() throws InterruptedException,
 			ExecutionException {
 		ArrayList<Double> beats = new ArrayList<Double>();
-		for (ExtractedTempo t : getAllResults())
+		ArrayList<Double> confidences = new ArrayList<Double>();
+		for (ExtractedTempo t : getAllResults()) {
 			beats.addAll(t.getRoundedBeatCollection(true));
+			confidences.addAll(t.getNormalizedConfidences());
+		}
 
 		ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 		attributes.add(new Attribute("BPM"));
 		Instances data = new Instances("TempoDataset", attributes, beats.size());
 
 		for (int i = 0; i < beats.size(); i++)
-			data.add(new DenseInstance(1.0, new double[] { beats.get(i) }));
+			data.add(new DenseInstance(confidences.get(i), new double[] { beats
+					.get(i) }));
+		// data.add(new DenseInstance(1.0, new double[] { beats.get(i) }));
 
 		return data;
 	}
