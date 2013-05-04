@@ -44,6 +44,7 @@ public class FeatureExtractor {
 
 		int windowCount = samples.length % WINDOW_SIZE == 0 ? samples.length
 				/ WINDOW_SIZE : samples.length / WINDOW_SIZE + 1;
+		windowCount *= 2;
 
 		Feature scFeature = new Feature("spectral centroid",
 				windowCount, new SpectralCentroidValueMaper());
@@ -74,9 +75,12 @@ public class FeatureExtractor {
 		SpectralRolloffPoint srop = new SpectralRolloffPoint();
 		SpectralSkewness ss = new SpectralSkewness();
 
-		for (int windowStartIndex = 0; windowStartIndex < samples.length; windowStartIndex += WINDOW_SIZE) {
+		for (int windowStartIndex = 0; windowStartIndex < samples.length; windowStartIndex += WINDOW_SIZE / 2) {
 
-			int windowEndIndex = nextWindowEndIndex(samples, windowStartIndex);
+			//int windowEndIndex = nextWindowEndIndex(samples, windowStartIndex);
+			int windowEndIndex = windowStartIndex + WINDOW_SIZE;
+			if(windowEndIndex > samples.length)
+				windowEndIndex = samples.length;
 
 			double[] currentWindow = Arrays.copyOfRange(samples, windowStartIndex,windowEndIndex);
 

@@ -33,6 +33,23 @@ public class ExtractedTempo {
 		return type;
 	}
 
+	public ArrayList<Double> getNormalizedConfidences() {
+		double max = Double.NEGATIVE_INFINITY;
+		for (int i = 0; i < confidences.length; i++)
+			if (max < confidences[i])
+				max = confidences[i];
+
+		ArrayList<Double> c = new ArrayList<Double>();
+		if (max != 0)
+			for (int i = 0; i < confidences.length; i++)
+				c.add(confidences[i] / max);
+		else
+			for (int i = 0; i < confidences.length; i++)
+				c.add(confidences[i]);
+
+		return c;
+	}
+
 	public void printBeat(int j) {
 		System.out.println(bpms[j]);
 	}
