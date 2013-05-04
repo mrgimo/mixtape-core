@@ -24,7 +24,7 @@ public class Slink implements ClusterAlgorithm {
 
 	private Logger logger;
 
-	private static final double DISTANCE_THRESHOLD = 1.673;
+	private static final double DISTANCE_THRESHOLD = 10;
 	private static final double INFINITY = Double.POSITIVE_INFINITY;
 	private static final int CLUSTER_COUNT = 2;
 

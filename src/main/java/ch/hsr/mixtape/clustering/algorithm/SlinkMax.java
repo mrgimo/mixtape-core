@@ -26,7 +26,7 @@ public class SlinkMax implements ClusterAlgorithm {
 
 	private static final double DISTANCE_THRESHOLD = 1.673;
 	private static final double INFINITY = Double.POSITIVE_INFINITY;
-	private static final int CLUSTER_COUNT = 2;
+	private static final int CLUSTER_COUNT = 1;
 
 	private double[][] distanceMatrix;
 	private int[] nearestCluster;
@@ -74,7 +74,7 @@ public class SlinkMax implements ClusterAlgorithm {
 
 		double minDistance = 0.0;
 
-		while (minDistance < DISTANCE_THRESHOLD) {
+		while (clusterCount > CLUSTER_COUNT) {
 			logger.log(Level.INFO,
 					"\n\n\n-----------------------------------------\n\nNew clustering round\n\n");
 			int clusterPair1 = 0;

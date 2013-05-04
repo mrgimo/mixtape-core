@@ -4,7 +4,8 @@ public class MFCCValueMapper implements ValueMapper {
 
 	@Override
 	public int mapValueToInt(double value) {
-		return (int) ((value + 100) * 100);
+//		System.out.println("raw value" + value +"\nintVal: " + (int)(value + 100));
+		return (int) ((value + 100) * 10);
 	}
 
 }

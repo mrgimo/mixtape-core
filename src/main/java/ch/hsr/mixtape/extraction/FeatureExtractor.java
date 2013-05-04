@@ -119,30 +119,39 @@ public class FeatureExtractor {
 			}
 		}
 		
-		computeSuffixTreeInformation(scFeature);
-		computeSuffixTreeInformation(skFeature);
-		computeSuffixTreeInformation(spFeature);
-		computeSuffixTreeInformation(ssFeature);
+//		computeSuffixTreeInformation(scFeature);
+//		features.add(scFeature);
+//	
+//		computeSuffixTreeInformation(skFeature);
+//		features.add(skFeature);
+//		
+//		computeSuffixTreeInformation(spFeature);
+//		features.add(spFeature);
+//		
+//		computeSuffixTreeInformation(ssFeature);
+//		features.add(ssFeature);
+
+//		spectralFeatures.add(sropFeature);
 		
 		computeSuffixTreeInformation(mfccFeature1);
-		computeSuffixTreeInformation(mfccFeature2);
-		computeSuffixTreeInformation(mfccFeature3);
-		computeSuffixTreeInformation(mfccFeature4);
-		computeSuffixTreeInformation(mfccFeature5);
-		computeSuffixTreeInformation(mfccFeature6);
-		
-//		spectralFeatures.add(sropFeature);
-		features.add(ssFeature);
-		features.add(skFeature);
-		features.add(spFeature);
-		features.add(scFeature);
-		
 		features.add(mfccFeature1);
+		
+		computeSuffixTreeInformation(mfccFeature2);
 		features.add(mfccFeature2);
+//		
+		computeSuffixTreeInformation(mfccFeature3);
 		features.add(mfccFeature3);
+		
+		computeSuffixTreeInformation(mfccFeature4);
 		features.add(mfccFeature4);
+		
+		computeSuffixTreeInformation(mfccFeature5);
 		features.add(mfccFeature5);
+		
+		computeSuffixTreeInformation(mfccFeature6);
 		features.add(mfccFeature6);
+		
+		
 
 		return features;
 	}
