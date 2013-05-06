@@ -123,17 +123,17 @@ public class FeatureExtractor {
 			}
 		}
 		
-//		computeSuffixTreeInformation(scFeature);
-//		features.add(scFeature);
-//	
-//		computeSuffixTreeInformation(skFeature);
-//		features.add(skFeature);
-//		
-//		computeSuffixTreeInformation(spFeature);
-//		features.add(spFeature);
-//		
-//		computeSuffixTreeInformation(ssFeature);
-//		features.add(ssFeature);
+		computeSuffixTreeInformation(scFeature);
+		features.add(scFeature);
+	
+		computeSuffixTreeInformation(skFeature);
+		features.add(skFeature);
+		
+		computeSuffixTreeInformation(spFeature);
+		features.add(spFeature);
+		
+		computeSuffixTreeInformation(ssFeature);
+		features.add(ssFeature);
 
 //		spectralFeatures.add(sropFeature);
 		
@@ -142,7 +142,7 @@ public class FeatureExtractor {
 		
 		computeSuffixTreeInformation(mfccFeature2);
 		features.add(mfccFeature2);
-//		
+
 		computeSuffixTreeInformation(mfccFeature3);
 		features.add(mfccFeature3);
 		

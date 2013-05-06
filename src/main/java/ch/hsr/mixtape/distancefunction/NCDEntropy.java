@@ -26,10 +26,13 @@ public class NCDEntropy implements DistanceFunction {
 
 			double entropyX = entropyEstimator.estimateEntropy(lcpX);
 			double entropyY = entropyEstimator.estimateEntropy(lcpY);
+			
 
 			double entropyXY = getCombinedEntropy(featureX, featureY);
+			System.out.println(songX.getName() + "\n" + songY.getName());
+			System.out.println("eX " + entropyX + "eY " + entropyY + "eXY " + entropyXY);
 			
-			distances[i] = 1 - entropyXY / (entropyX + entropyY);
+			distances[i] = (entropyXY - min(entropyX, entropyY)) / max(entropyX, entropyY);
 			
 		}
 		double vectorLength = vectorLength(distances);
@@ -37,6 +40,14 @@ public class NCDEntropy implements DistanceFunction {
 		return vectorLength(distances);
 	}
 	
+	private double max(double valueX, double valueY) {
+		return  valueX > valueY ? valueX : valueY;
+	}
+
+	private double min(double valueX, double valueY) {
+		return valueX < valueY ? valueX : valueY;
+	}
+
 	private double vectorLength(double[] distances) {
 		double sqSum = 0.0;
 

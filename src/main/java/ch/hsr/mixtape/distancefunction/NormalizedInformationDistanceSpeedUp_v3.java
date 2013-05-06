@@ -81,7 +81,6 @@ public class NormalizedInformationDistanceSpeedUp_v3 {
 		for (int i = 0; i < feature1.windowCount();) {
 			int matches = findCommonPrefix(i, feature1, feature2);
 			totalMatches += matches;
-			System.out.println(matches);
 			
 			rounds++;
 			i += matches > 0 ? matches : 1;
