@@ -22,7 +22,8 @@ public class DistanceGenerator implements Runnable {
 	}
 
 	public void computeDistances() {
-		NormalizedInformationDistanceSpeedUp_v2 distanceFunction = new NormalizedInformationDistanceSpeedUp_v2();
+//		NormalizedInformationDistanceSpeedUp_v2 distanceFunction = new NormalizedInformationDistanceSpeedUp_v2();
+		NCDEntropy distanceFunction = new NCDEntropy();
 		
 		for (int i = startIndex; i < songsToCompare.size(); i++) {
 			Song songToCompare = songsToCompare.get(i);

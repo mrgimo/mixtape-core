@@ -1,8 +1,8 @@
 package ch.hsr.mixtape.distancefunction;
 
-import ch.hsr.mixtape.data.FeatureVector;
+import ch.hsr.mixtape.data.Song;
 
 public interface DistanceFunction {
 	
-	public double computeDistance(FeatureVector featureVector1, FeatureVector featureVector2);
+	public double distance(Song songX, Song songY);
 }
