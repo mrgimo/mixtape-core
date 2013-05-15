@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.distancefunction.skew.LCP;
-import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
+import ch.hsr.mixtape.distancefunction.skew.LcpBuilder;
+import ch.hsr.mixtape.distancefunction.skew.SuffixArrayBuilder;
 
 public class NCDEntropy implements DistanceFunction {
 
@@ -27,12 +27,14 @@ public class NCDEntropy implements DistanceFunction {
 			double entropyX = entropyEstimator.estimateEntropy(lcpX);
 			double entropyY = entropyEstimator.estimateEntropy(lcpY);
 			
-
 			double entropyXY = getCombinedEntropy(featureX, featureY);
-			System.out.println(songX.getName() + "\n" + songY.getName());
-			System.out.println("eX " + entropyX + "eY " + entropyY + "eXY " + entropyXY);
+
+			System.out.println(entropyX);
+			System.out.println(entropyY);
+			System.out.println(entropyXY);
 			
 			distances[i] = (entropyXY - min(entropyX, entropyY)) / max(entropyX, entropyY);
+			System.out.println("Distance feature " + featureX.getName() + " : " + distances[i] );
 			
 		}
 		double vectorLength = vectorLength(distances);
@@ -59,8 +61,8 @@ public class NCDEntropy implements DistanceFunction {
 
 	private double getCombinedEntropy(Feature featureX, Feature featureY) {
 
-		SkewInteger skew = new SkewInteger();
-		LCP lcpBuilder = new LCP();
+		SuffixArrayBuilder skew = new SuffixArrayBuilder();
+		LcpBuilder lcpBuilder = new LcpBuilder();
 
 		int[] windowValuesX = featureX.windowValues();
 		int[] windowValuesY = featureY.windowValues();

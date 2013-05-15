@@ -9,9 +9,9 @@ import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
 import ch.hsr.mixtape.data.valuemapper.SpectralKurtosisValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralSkewnessValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralSpreadValueMapper;
-import ch.hsr.mixtape.distancefunction.skew.LCP;
+import ch.hsr.mixtape.distancefunction.skew.LcpBuilder;
 import ch.hsr.mixtape.distancefunction.skew.NFCA;
-import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
+import ch.hsr.mixtape.distancefunction.skew.SuffixArrayBuilder;
 import ch.hsr.mixtape.features.FastFourierTransform;
 import ch.hsr.mixtape.features.MFCC;
 import ch.hsr.mixtape.features.MagnitudeSpectrum;
@@ -26,8 +26,8 @@ public class FeatureExtractor {
 
 	private static final int WINDOW_SIZE = 512;
 
-	private SkewInteger skew = new SkewInteger();
-	private LCP lcp = new LCP();
+	private SuffixArrayBuilder skew = new SuffixArrayBuilder();
+	private LcpBuilder lcp = new LcpBuilder();
 	private NFCA nfca = new NFCA();
 	
 	
