@@ -29,17 +29,17 @@ public class LZ77 implements DistanceFunction {
 			int zX = compressedSize(windowValuesX, 0, maxValueX);
 			int zY = compressedSize(windowValuesY, 0, maxValueY);
 
-			int[] windowValuesXY = merge(windowValuesX, windowValuesY);
-			int[] windowValuesYX = merge(windowValuesY, windowValuesX);
+			int[] windowValuesXY = merge(windowValuesY, windowValuesX);
+			int[] windowValuesYX = merge(windowValuesX, windowValuesY);
 
 			int maxValueXY = max(maxValueX, maxValueY);
 
-			int zXY = compressedSize(windowValuesXY, windowValuesX.length, maxValueXY);
-			int zYX = compressedSize(windowValuesYX, windowValuesY.length, maxValueXY);
+			int zXY = compressedSize(windowValuesXY, windowValuesY.length, maxValueXY);
+			int zYX = compressedSize(windowValuesYX, windowValuesX.length, maxValueXY);
 			
 			System.out.println("distance: " + (max(zXY, zYX)) + " / " + max(zX, zY));
-
-			distanceVector[i] = (double)(max(zXY, zYX)) / max(zX, zY);
+			System.out.println(((double)(max(zXY, zYX)) / max(zX, zY)));
+			distanceVector[i] = ((double)max(zXY, zYX)) / max(zX, zY);
 
 		}
 		double vectorLength = vectorLength(distanceVector);
@@ -78,7 +78,7 @@ public class LZ77 implements DistanceFunction {
 				int[] sADictionary = sABuilder.buildSuffixArray(dictionary,
 						maxValue);
 				int[] lcp = lcpBuilder.longestCommonPrefixes(dictionary,
-						sADictionary);
+						sADictionary, values.length);
 
 				int lookAheadStartPos = valuesInDictionary;
 				int firstMatchingSuffix = findFirstMatchingSuffix(

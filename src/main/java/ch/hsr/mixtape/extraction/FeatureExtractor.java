@@ -126,33 +126,33 @@ public class FeatureExtractor {
 		computeSuffixTreeInformation(scFeature);
 		features.add(scFeature);
 	
-		computeSuffixTreeInformation(skFeature);
+//		computeSuffixTreeInformation(skFeature);
 		features.add(skFeature);
-		
-		computeSuffixTreeInformation(spFeature);
+//		
+//		computeSuffixTreeInformation(spFeature);
 		features.add(spFeature);
-		
-		computeSuffixTreeInformation(ssFeature);
+//		
+//		computeSuffixTreeInformation(ssFeature);
 		features.add(ssFeature);
-
-//		spectralFeatures.add(sropFeature);
-		
-		computeSuffixTreeInformation(mfccFeature1);
+//
+////		spectralFeatures.add(sropFeature);
+//		
+//		computeSuffixTreeInformation(mfccFeature1);
 		features.add(mfccFeature1);
-		
-		computeSuffixTreeInformation(mfccFeature2);
+//		
+//		computeSuffixTreeInformation(mfccFeature2);
 		features.add(mfccFeature2);
-
-		computeSuffixTreeInformation(mfccFeature3);
+//
+//		computeSuffixTreeInformation(mfccFeature3);
 		features.add(mfccFeature3);
-		
-		computeSuffixTreeInformation(mfccFeature4);
+//		
+//		computeSuffixTreeInformation(mfccFeature4);
 		features.add(mfccFeature4);
-		
-		computeSuffixTreeInformation(mfccFeature5);
+//		
+//		computeSuffixTreeInformation(mfccFeature5);
 		features.add(mfccFeature5);
-		
-		computeSuffixTreeInformation(mfccFeature6);
+//		
+//		computeSuffixTreeInformation(mfccFeature6);
 		features.add(mfccFeature6);
 		
 		

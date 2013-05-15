@@ -6,9 +6,30 @@ package ch.hsr.mixtape.distancefunction.skew;
 
 public class LcpBuilder {
 
+	public int[] longestCommonPrefixes(int[] values, int[] suffixArray,
+			int maxIndex) {
+		int[] inversedSuffixArray = generateInverseArray(suffixArray, maxIndex);
+		int[] lcp = new int[values.length];
+
+		int predecessorSuffix = 0;
+		int matches = 0;
+
+		for (int suffix = 0; suffix < suffixArray.length; suffix++) {
+			if (inversedSuffixArray[suffix] > 0) {
+				predecessorSuffix = suffixArray[inversedSuffixArray[suffix] - 1];
+				matches = findMatches(suffix, predecessorSuffix, values,
+						matches > 0 ? matches - 1 : 0);
+				lcp[inversedSuffixArray[suffix]] = matches;
+			}
+		}
+		return lcp;
+	}
+
+	
+	//TODO: remove
 	public int[] longestCommonPrefixes(int[] values, int[] suffixArray) {
 
-		int[] inversedSuffixArray = generateInverseArray(suffixArray);
+		int[] inversedSuffixArray = generateInverseArray(suffixArray, values.length);
 		int[] lcp = new int[values.length];
 
 		int predecessorSuffix = 0;
@@ -42,9 +63,9 @@ public class LcpBuilder {
 		return matches;
 	}
 
-	private int[] generateInverseArray(int[] suffixArray) {
+	private int[] generateInverseArray(int[] suffixArray, int maxIndex) {
 
-		int[] inversed = new int[suffixArray.length];
+		int[] inversed = new int[maxIndex];
 
 		for (int i = 0; i < suffixArray.length; i++)
 			inversed[suffixArray[i]] = i;
