@@ -38,8 +38,8 @@ public class LZ77V2 implements DistanceFunction {
 			int zYX = compressedCombindedSize(windowValuesY, windowValuesX,
 					maxValueXY);
 
-			System.out.println("distance: " + (max(zXY, zYX)) + " / "
-					+ max(zX, zY));
+			System.out.println("distance " + featuresX.get(i).getName() + " : " + (max(zXY, zYX)) + " / "
+					+ max(zX, zY) + " = " +((double) (max(zXY, zYX)) / max(zX, zY)));
 
 			distanceVector[i] = (double) (max(zXY, zYX)) / max(zX, zY);
 
@@ -110,7 +110,7 @@ public class LZ77V2 implements DistanceFunction {
 			int firstMatchingSuffixY = findFirstMatchingSuffix(valuesX[posX],
 					saY, lcpY, valuesY);
 
-			int bestMatchY = firstMatchingSuffixX != -1 ? findBestMatch(
+			int bestMatchY = firstMatchingSuffixY != -1 ? findBestMatch(
 					valuesX, posX, firstMatchingSuffixY, saY, lcpY, valuesY)
 					: 0;
 

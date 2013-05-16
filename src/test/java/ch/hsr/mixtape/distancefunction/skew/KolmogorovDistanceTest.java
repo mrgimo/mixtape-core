@@ -2,8 +2,6 @@ package ch.hsr.mixtape.distancefunction.skew;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Random;
-
 import org.junit.Test;
 
 import ch.hsr.mixtape.data.Feature;
@@ -12,18 +10,17 @@ import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.data.valuemapper.FooMapper;
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
 import ch.hsr.mixtape.distancefunction.LZ77;
-import ch.hsr.mixtape.distancefunction.NormalizedInformationDistance;
-import ch.hsr.mixtape.distancefunction.NormalizedInformationDistanceSpeedUp;
+import ch.hsr.mixtape.distancefunction.LZ77V2;
 
 public class KolmogorovDistanceTest {
 
-	
+	@Test
 	public void testSameValues() {
 		
-		int[] input = new int[] { 2, 3, 4, 5, 6 , 1, 2, 3, 4, 5, 7, 2, 3, 4, 5, 7, 4, 5, 6, 7, 3};
+		int[] input = new int[] { 2, 3, 4, 5, 6 , 1, 2, 3, 4, 5, 7, 2, 3, 4, 5, 7, 4, 5, 6, 7, 3, 2};
 		Song song = createSong(input, 7);
 
-		DistanceFunction dist = new LZ77();
+		DistanceFunction dist = new LZ77V2();
 		
 		double expectedDistance = 0.0;
 		double actualDistance = dist.distance(song, song);
@@ -36,7 +33,6 @@ public class KolmogorovDistanceTest {
 //		
 //	}
 //	
-	@Test
 	public void halfToFullCommonValuesTest() {
 		int[] input = new int[] { 9, 9, 9, 9, 9, 1, 2, 3, 4, 5, 9, 3, 4};
 		int[] input2 = new int[] { 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2};

@@ -57,12 +57,12 @@ public class FeatureExtractor {
 		Feature ssFeature = new Feature("spectral skewness",
 				windowCount, new SpectralSkewnessValueMapper());
 		
-		Feature mfccFeature1 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature2 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature3 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature4 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature5 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature6 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature1 = new Feature("mfcc1", windowCount, new MFCCValueMapper());
+		Feature mfccFeature2 = new Feature("mfcc2", windowCount, new MFCCValueMapper());
+		Feature mfccFeature3 = new Feature("mfcc3", windowCount, new MFCCValueMapper());
+		Feature mfccFeature4 = new Feature("mfcc4", windowCount, new MFCCValueMapper());
+		Feature mfccFeature5 = new Feature("mfcc5", windowCount, new MFCCValueMapper());
+		Feature mfccFeature6 = new Feature("mfcc6", windowCount, new MFCCValueMapper());
 		
 		
 		MFCC mfcc = new MFCC();
@@ -127,33 +127,33 @@ public class FeatureExtractor {
 		features.add(scFeature);
 	
 //		computeSuffixTreeInformation(skFeature);
-		features.add(skFeature);
+//		features.add(skFeature);
 //		
 //		computeSuffixTreeInformation(spFeature);
-		features.add(spFeature);
+//		features.add(spFeature);
 //		
 //		computeSuffixTreeInformation(ssFeature);
-		features.add(ssFeature);
+//		features.add(ssFeature);
 //
 ////		spectralFeatures.add(sropFeature);
 //		
 //		computeSuffixTreeInformation(mfccFeature1);
-		features.add(mfccFeature1);
+//		features.add(mfccFeature1);
 //		
 //		computeSuffixTreeInformation(mfccFeature2);
-		features.add(mfccFeature2);
+//		features.add(mfccFeature2);
 //
 //		computeSuffixTreeInformation(mfccFeature3);
-		features.add(mfccFeature3);
+//		features.add(mfccFeature3);
 //		
 //		computeSuffixTreeInformation(mfccFeature4);
-		features.add(mfccFeature4);
+//		features.add(mfccFeature4);
 //		
 //		computeSuffixTreeInformation(mfccFeature5);
-		features.add(mfccFeature5);
+//		features.add(mfccFeature5);
 //		
 //		computeSuffixTreeInformation(mfccFeature6);
-		features.add(mfccFeature6);
+//		features.add(mfccFeature6);
 		
 		
 
