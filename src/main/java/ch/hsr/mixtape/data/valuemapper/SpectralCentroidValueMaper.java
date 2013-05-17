@@ -9,7 +9,7 @@ public class SpectralCentroidValueMaper implements ValueMapper {
 	 */
 	@Override
 	public int mapValueToInt(double value) {
-		return (int) (value * 100 + 1);
+		return (int) (value * 10 + 1);
 	}
 
 }

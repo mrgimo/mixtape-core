@@ -10,7 +10,7 @@ public class SpectralKurtosisValueMapper implements ValueMapper {
 
 	@Override
 	public int mapValueToInt(double value) {
-		return (int) (value / 10 + 1);
+		return (int) (value / 1000 + 1);
 	}
 
 }

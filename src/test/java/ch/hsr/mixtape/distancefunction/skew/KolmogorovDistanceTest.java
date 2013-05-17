@@ -33,6 +33,7 @@ public class KolmogorovDistanceTest {
 //		
 //	}
 //	
+	@Test
 	public void halfToFullCommonValuesTest() {
 		int[] input = new int[] { 9, 9, 9, 9, 9, 1, 2, 3, 4, 5, 9, 3, 4};
 		int[] input2 = new int[] { 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2};
@@ -40,15 +41,16 @@ public class KolmogorovDistanceTest {
 		Song song = createSong(input, 9);
 		Song song2 = createSong(input2, 5);
 		
-		DistanceFunction dist = new LZ77();
+		DistanceFunction dist = new LZ77V2();
 		
-		double expectedDistance = 0.0;
+		double expectedDistance = 0.5;
 		
 		double actualDistance = dist.distance(song, song2);
 		
 		assertEquals(expectedDistance, actualDistance, 0);
 	}
 	
+	@Test
 	public void halfToHalfCommonValuesTest() {
 
 		int[] input = new int[] { 9, 9, 9, 9, 9, 1, 2, 3, 4, 5};
@@ -57,7 +59,7 @@ public class KolmogorovDistanceTest {
 		Song song = createSong(input, 9);
 		Song song2 = createSong(input2, 8);
 		
-		DistanceFunction dist = new LZ77();
+		DistanceFunction dist = new LZ77V2();
 		
 		double expectedDistance = 0.5;
 		double actualDistance = dist.distance(song, song2);

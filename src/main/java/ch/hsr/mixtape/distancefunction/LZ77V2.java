@@ -38,8 +38,9 @@ public class LZ77V2 implements DistanceFunction {
 			int zYX = compressedCombindedSize(windowValuesY, windowValuesX,
 					maxValueXY);
 
-			System.out.println("distance " + featuresX.get(i).getName() + " : " + (max(zXY, zYX)) + " / "
-					+ max(zX, zY) + " = " +((double) (max(zXY, zYX)) / max(zX, zY)));
+			System.out.println("distance " + featuresX.get(i).getName() + " : "
+					+ (max(zXY, zYX)) + " / " + max(zX, zY) + " = "
+					+ ((double) (max(zXY, zYX)) / max(zX, zY)));
 
 			distanceVector[i] = (double) (max(zXY, zYX)) / max(zX, zY);
 
@@ -133,7 +134,7 @@ public class LZ77V2 implements DistanceFunction {
 
 		while (morePossibleMatches(values.length, pos, sAIndex, sA, matches)) {
 
-			if (legitSuffix(pos, matches, sAIndex)
+			if (legitSuffix(pos, matches, sA[sAIndex])
 					&& equal(values, pos, sA, matches, sAIndex))
 				matches++;
 
@@ -164,10 +165,10 @@ public class LZ77V2 implements DistanceFunction {
 
 		int sAIndexY = firstMatchingSuffixY;
 
-		while (morePossibleMatches(valuesX.length, posX, sAIndexY, saY,
-				valuesY.length, matches)) {
+		while (hasMoreValuesX(valuesX.length, posX, matches)) {
 
-			if (equal(valuesX, posX, sAIndexY, saY, valuesY, matches))
+			if (morePossibleSuffixYMatches(saY, valuesY, matches, sAIndexY)
+					&& equal(valuesX, posX, sAIndexY, saY, valuesY, matches))
 				matches++;
 
 			else if (hasMoreSuffixCandidates(sAIndexY, saY, lcpY, matches))
@@ -178,6 +179,11 @@ public class LZ77V2 implements DistanceFunction {
 		}
 
 		return matches;
+	}
+
+	private boolean morePossibleSuffixYMatches(int[] saY, int[] valuesY,
+			int matches, int sAIndexY) {
+		return saY[sAIndexY] + matches < valuesY.length;
 	}
 
 	private boolean equal(int[] valuesX, int posX, int sAIndexY, int[] saY,
@@ -191,10 +197,8 @@ public class LZ77V2 implements DistanceFunction {
 				&& sA[sAIndex] + matches < lengthValues;
 	}
 
-	private boolean morePossibleMatches(int lengthValuesX, int posX,
-			int suffixIndexY, int[] saY, int lengthValuesY, int matches) {
-		return posX + matches < lengthValuesX
-				&& saY[suffixIndexY] + matches < lengthValuesY;
+	private boolean hasMoreValuesX(int lengthValuesX, int posX, int matches) {
+		return posX + matches < lengthValuesX;
 	}
 
 	private boolean hasMoreSuffixCandidates(int sAIndex, int[] sA, int[] lcp,
