@@ -40,9 +40,9 @@ public class LZ77V2 implements DistanceFunction {
 
 			System.out.println("distance " + featuresX.get(i).getName() + " : "
 					+ (max(zXY, zYX)) + " / " + max(zX, zY) + " = "
-					+ ((double) (max(zXY, zYX)) / max(zX, zY)));
+					+ ((double) (zXY + zYX) / (windowValuesX.length + windowValuesY.length)));
 
-			distanceVector[i] = (double) (max(zXY, zYX)) / max(zX, zY);
+			distanceVector[i] = (double) (zXY + zYX) / (windowValuesX.length + windowValuesY.length);
 
 		}
 		double vectorLength = vectorLength(distanceVector);
@@ -64,10 +64,13 @@ public class LZ77V2 implements DistanceFunction {
 			int firstMatchingSuffix = findFirstMatchingSuffix(values[pos], sA,
 					lcp, values);
 
-			pos += findBestInternalMatch(values, pos, firstMatchingSuffix, sA,
+			int match = findBestInternalMatch(values, pos, firstMatchingSuffix, sA,
 					lcp) + 1; // + 1 -> otherwise the
 								// "1 match would be same as no match" problem
 								// occurs....
+			
+//			System.out.println("internal match: " + match);
+			pos += match;
 
 			lz77Tripples++;
 
@@ -115,7 +118,10 @@ public class LZ77V2 implements DistanceFunction {
 					valuesX, posX, firstMatchingSuffixY, saY, lcpY, valuesY)
 					: 0;
 
-			posX += max(bestMatchX, bestMatchY) + 1; // + 1 -> otherwise the
+//					System.out.println("combined match: " + max(bestMatchX, bestMatchY));
+					
+					//TODO: changed formula
+			posX += bestMatchY + 1; // + 1 -> otherwise the
 														// "1 match would be same as no match"
 														// problem occurs....
 
