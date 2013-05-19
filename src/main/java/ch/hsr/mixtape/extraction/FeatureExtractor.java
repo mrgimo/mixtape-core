@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.data.valuemapper.FooMapper;
 import ch.hsr.mixtape.data.valuemapper.MFCCValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
 import ch.hsr.mixtape.data.valuemapper.SpectralKurtosisValueMapper;
@@ -13,14 +14,19 @@ import ch.hsr.mixtape.distancefunction.skew.LcpBuilder;
 import ch.hsr.mixtape.distancefunction.skew.NFCA;
 import ch.hsr.mixtape.distancefunction.skew.SuffixArrayBuilder;
 import ch.hsr.mixtape.features.FastFourierTransform;
-import ch.hsr.mixtape.features.MFCC;
 import ch.hsr.mixtape.features.MagnitudeSpectrum;
 import ch.hsr.mixtape.features.PowerSpectrum;
-import ch.hsr.mixtape.features.SpectralCentroid;
-import ch.hsr.mixtape.features.SpectralKurtosis;
 import ch.hsr.mixtape.features.SpectralRolloffPoint;
-import ch.hsr.mixtape.features.SpectralSkewness;
-import ch.hsr.mixtape.features.SpectralSpread;
+import ch.hsr.mixtape.features.harmonic.Inharmonicity;
+import ch.hsr.mixtape.features.harmonic.OddtoEvenHarmonicEnergyRatio;
+import ch.hsr.mixtape.features.harmonic.SinusoidalHarmonicModel;
+import ch.hsr.mixtape.features.harmonic.Tristimulus;
+import ch.hsr.mixtape.features.perceptual.MFCC;
+import ch.hsr.mixtape.features.spectral.SpectralCentroid;
+import ch.hsr.mixtape.features.spectral.SpectralKurtosis;
+import ch.hsr.mixtape.features.spectral.SpectralSkewness;
+import ch.hsr.mixtape.features.spectral.SpectralSpread;
+import ch.hsr.mixtape.features.temporal.ZeroCrossings;
 
 public class FeatureExtractor {
 
@@ -63,6 +69,19 @@ public class FeatureExtractor {
 		Feature mfccFeature4 = new Feature("mfcc4", windowCount, new MFCCValueMapper());
 		Feature mfccFeature5 = new Feature("mfcc5", windowCount, new MFCCValueMapper());
 		Feature mfccFeature6 = new Feature("mfcc6", windowCount, new MFCCValueMapper());
+		
+		Feature oEHarmonicEnergyRatio = new Feature("oddEvenEnergyRatio", windowCount, new FooMapper());
+		Feature tristimulus = new Feature("tristimulus", windowCount, new FooMapper());
+		Feature inharmonicity = new Feature("inharmonicity", windowCount, new FooMapper());
+		
+		Feature zeroCrossing = new Feature("zeroCrossing", windowCount, new FooMapper());
+		
+		Inharmonicity inh = new Inharmonicity();
+		OddtoEvenHarmonicEnergyRatio oeer = new OddtoEvenHarmonicEnergyRatio();
+		SinusoidalHarmonicModel shm = new SinusoidalHarmonicModel();
+		Tristimulus trist = new Tristimulus();
+		
+		ZeroCrossings zc = new ZeroCrossings();
 		
 		
 		MFCC mfcc = new MFCC();
@@ -121,6 +140,8 @@ public class FeatureExtractor {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			
 		}
 		
 //		computeSuffixTreeInformation(scFeature);
