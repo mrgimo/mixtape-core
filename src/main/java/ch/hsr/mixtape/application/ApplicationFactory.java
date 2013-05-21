@@ -1,10 +1,5 @@
 package ch.hsr.mixtape.application;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-
 import ch.hsr.mixtape.application.service.PlaylistService;
 import ch.hsr.mixtape.application.service.QueryService;
 import ch.hsr.mixtape.application.service.SystemService;
@@ -53,18 +48,21 @@ public class ApplicationFactory {
 		return systemService;
 	}
 
-	public static SystemSettings getSystemSettings() throws FirstRunException {
-		if (systemSettings == null) {
-			EntityManager em = getDatabaseManager().getEntityManager();
-			TypedQuery<SystemSettings> query = em.createNamedQuery("getAllSystemSettings", SystemSettings.class);
-			try {
-				systemSettings = query.getSingleResult();
-				if (systemSettings == null)
-					throw new FirstRunException();
-			} catch (NoResultException | NonUniqueResultException e) {
-				throw new FirstRunException();
-			}
-		}
+	/**
+	 * @deprecated
+	 */
+	public static SystemSettings getSystemSettings() /*throws FirstRunException*/ {
+//		if (systemSettings == null) {
+//			EntityManager em = getDatabaseManager().getEntityManager();
+//			TypedQuery<SystemSettings> query = em.createNamedQuery("getAllSystemSettings", SystemSettings.class);
+//			try {
+//				systemSettings = query.getSingleResult();
+//				if (systemSettings == null)
+//					throw new FirstRunException();
+//			} catch (NoResultException | NonUniqueResultException e) {
+//				throw new FirstRunException();
+//			}
+//		}
 
 		return systemSettings;
 	}
