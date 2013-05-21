@@ -12,7 +12,7 @@ public class LCPTest {
 		
 		int[] expectedLCP = new int[]{0, 5, 0, 4, 0, 3, 0, 2, 0, 1, 0, 0};
 		
-		LCP lcp = new LCP();
+		LcpBuilder lcp = new LcpBuilder();
 		
 		int[] generatedLCP = lcp.longestCommonPrefixes(input, suffixArray);
 		
@@ -26,7 +26,7 @@ public class LCPTest {
 		
 		int[] expectedLCP = new int[] {0, 0, 0, 0, 0 , 0, 0, 0, 0 ,0 ,0 ,0 ,0, 0,0};
 		
-		LCP lcp = new LCP();
+		LcpBuilder lcp = new LcpBuilder();
 		int[] generatedLCP = lcp.longestCommonPrefixes(input, suffixArray);
 		
 		assertArrayEquals(expectedLCP, generatedLCP);

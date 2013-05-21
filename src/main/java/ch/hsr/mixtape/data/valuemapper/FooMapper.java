@@ -4,7 +4,8 @@ public class FooMapper implements ValueMapper {
 
 	@Override
 	public int mapValueToInt(double value) {
-		return (int) value;
+		System.out.println("foo maped " + value + " to " + ((int) value + 1));
+		return (int) value + 1;
 	}
 
 }

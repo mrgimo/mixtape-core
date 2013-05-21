@@ -4,30 +4,36 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.data.valuemapper.FooMapper;
 import ch.hsr.mixtape.data.valuemapper.MFCCValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
 import ch.hsr.mixtape.data.valuemapper.SpectralKurtosisValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralSkewnessValueMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralSpreadValueMapper;
-import ch.hsr.mixtape.distancefunction.skew.LCP;
+import ch.hsr.mixtape.distancefunction.skew.LcpBuilder;
 import ch.hsr.mixtape.distancefunction.skew.NFCA;
-import ch.hsr.mixtape.distancefunction.skew.SkewInteger;
+import ch.hsr.mixtape.distancefunction.skew.SuffixArrayBuilder;
 import ch.hsr.mixtape.features.FastFourierTransform;
-import ch.hsr.mixtape.features.MFCC;
 import ch.hsr.mixtape.features.MagnitudeSpectrum;
 import ch.hsr.mixtape.features.PowerSpectrum;
-import ch.hsr.mixtape.features.SpectralCentroid;
-import ch.hsr.mixtape.features.SpectralKurtosis;
 import ch.hsr.mixtape.features.SpectralRolloffPoint;
-import ch.hsr.mixtape.features.SpectralSkewness;
-import ch.hsr.mixtape.features.SpectralSpread;
+import ch.hsr.mixtape.features.harmonic.Inharmonicity;
+import ch.hsr.mixtape.features.harmonic.OddtoEvenHarmonicEnergyRatio;
+import ch.hsr.mixtape.features.harmonic.SinusoidalHarmonicModel;
+import ch.hsr.mixtape.features.harmonic.Tristimulus;
+import ch.hsr.mixtape.features.perceptual.MFCC;
+import ch.hsr.mixtape.features.spectral.SpectralCentroid;
+import ch.hsr.mixtape.features.spectral.SpectralKurtosis;
+import ch.hsr.mixtape.features.spectral.SpectralSkewness;
+import ch.hsr.mixtape.features.spectral.SpectralSpread;
+import ch.hsr.mixtape.features.temporal.ZeroCrossings;
 
 public class FeatureExtractor {
 
 	private static final int WINDOW_SIZE = 512;
 
-	private SkewInteger skew = new SkewInteger();
-	private LCP lcp = new LCP();
+	private SuffixArrayBuilder skew = new SuffixArrayBuilder();
+	private LcpBuilder lcp = new LcpBuilder();
 	private NFCA nfca = new NFCA();
 	
 	
@@ -57,12 +63,25 @@ public class FeatureExtractor {
 		Feature ssFeature = new Feature("spectral skewness",
 				windowCount, new SpectralSkewnessValueMapper());
 		
-		Feature mfccFeature1 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature2 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature3 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature4 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature5 = new Feature("mfcc", windowCount, new MFCCValueMapper());
-		Feature mfccFeature6 = new Feature("mfcc", windowCount, new MFCCValueMapper());
+		Feature mfccFeature1 = new Feature("mfcc1", windowCount, new MFCCValueMapper());
+		Feature mfccFeature2 = new Feature("mfcc2", windowCount, new MFCCValueMapper());
+		Feature mfccFeature3 = new Feature("mfcc3", windowCount, new MFCCValueMapper());
+		Feature mfccFeature4 = new Feature("mfcc4", windowCount, new MFCCValueMapper());
+		Feature mfccFeature5 = new Feature("mfcc5", windowCount, new MFCCValueMapper());
+		Feature mfccFeature6 = new Feature("mfcc6", windowCount, new MFCCValueMapper());
+		
+		Feature oEHarmonicEnergyRatio = new Feature("oddEvenEnergyRatio", windowCount, new FooMapper());
+		Feature tristimulus = new Feature("tristimulus", windowCount, new FooMapper());
+		Feature inharmonicity = new Feature("inharmonicity", windowCount, new FooMapper());
+		
+		Feature zeroCrossing = new Feature("zeroCrossing", windowCount, new FooMapper());
+		
+		Inharmonicity inh = new Inharmonicity();
+		OddtoEvenHarmonicEnergyRatio oeer = new OddtoEvenHarmonicEnergyRatio();
+		SinusoidalHarmonicModel shm = new SinusoidalHarmonicModel();
+		Tristimulus trist = new Tristimulus();
+		
+		ZeroCrossings zc = new ZeroCrossings();
 		
 		
 		MFCC mfcc = new MFCC();
@@ -121,38 +140,40 @@ public class FeatureExtractor {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			
 		}
 		
-		computeSuffixTreeInformation(scFeature);
+//		computeSuffixTreeInformation(scFeature);
 		features.add(scFeature);
 	
-		computeSuffixTreeInformation(skFeature);
+//		computeSuffixTreeInformation(skFeature);
 		features.add(skFeature);
-		
-		computeSuffixTreeInformation(spFeature);
+//		
+//		computeSuffixTreeInformation(spFeature);
 		features.add(spFeature);
-		
-		computeSuffixTreeInformation(ssFeature);
+//		
+//		computeSuffixTreeInformation(ssFeature);
 		features.add(ssFeature);
-
-//		spectralFeatures.add(sropFeature);
-		
-		computeSuffixTreeInformation(mfccFeature1);
+//
+////		spectralFeatures.add(sropFeature);
+//		
+//		computeSuffixTreeInformation(mfccFeature1);
 		features.add(mfccFeature1);
-		
-		computeSuffixTreeInformation(mfccFeature2);
+//		
+//		computeSuffixTreeInformation(mfccFeature2);
 		features.add(mfccFeature2);
-
-		computeSuffixTreeInformation(mfccFeature3);
+//
+//		computeSuffixTreeInformation(mfccFeature3);
 		features.add(mfccFeature3);
-		
-		computeSuffixTreeInformation(mfccFeature4);
+//		
+//		computeSuffixTreeInformation(mfccFeature4);
 		features.add(mfccFeature4);
-		
-		computeSuffixTreeInformation(mfccFeature5);
+//		
+//		computeSuffixTreeInformation(mfccFeature5);
 		features.add(mfccFeature5);
-		
-		computeSuffixTreeInformation(mfccFeature6);
+//		
+//		computeSuffixTreeInformation(mfccFeature6);
 		features.add(mfccFeature6);
 		
 		

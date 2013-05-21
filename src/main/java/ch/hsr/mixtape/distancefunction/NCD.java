@@ -80,16 +80,17 @@ public class NCD {
 
 	private double[] findEntropieOfValues(int[] windowValues1, int maxValue) {
 
-		double[] entropieValues = new double[maxValue];
+		double[] appearance = new double[maxValue];
+		double[] entropy = new double[maxValue];
 
 		for (int i = 0; i < windowValues1.length; i++)
-			entropieValues[windowValues1[i]]++;
+			appearance[windowValues1[i]]++;
 
 		for (int i = 0; i < windowValues1.length; i++)
-			entropieValues[windowValues1[i]] = calculateEntropy(windowValues1,
-					entropieValues, i);
+			entropy[windowValues1[i]] = calculateEntropy(windowValues1,
+					appearance, i);
 
-		return entropieValues;
+		return appearance;
 	}
 
 	private double calculateEntropy(int[] windowValues1,
