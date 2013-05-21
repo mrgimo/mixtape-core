@@ -19,6 +19,7 @@ import ch.hsr.mixtape.features.PowerSpectrum;
 import ch.hsr.mixtape.features.SpectralRolloffPoint;
 import ch.hsr.mixtape.features.harmonic.Inharmonicity;
 import ch.hsr.mixtape.features.harmonic.OddtoEvenHarmonicEnergyRatio;
+import ch.hsr.mixtape.features.harmonic.PitchDetection;
 import ch.hsr.mixtape.features.harmonic.SinusoidalHarmonicModel;
 import ch.hsr.mixtape.features.harmonic.Tristimulus;
 import ch.hsr.mixtape.features.perceptual.MFCC;
@@ -30,7 +31,7 @@ import ch.hsr.mixtape.features.temporal.ZeroCrossings;
 
 public class FeatureExtractor {
 
-	private static final int WINDOW_SIZE = 512;
+	private static final int WINDOW_SIZE = 4096;
 
 	private SuffixArrayBuilder skew = new SuffixArrayBuilder();
 	private LcpBuilder lcp = new LcpBuilder();
@@ -75,6 +76,10 @@ public class FeatureExtractor {
 		Feature inharmonicity = new Feature("inharmonicity", windowCount, new FooMapper());
 		
 		Feature zeroCrossing = new Feature("zeroCrossing", windowCount, new FooMapper());
+
+		
+		Feature fundamentals = new Feature("fundamentals", windowCount, new FooMapper());
+		PitchDetection pitchDetection = new PitchDetection();
 		
 		Inharmonicity inh = new Inharmonicity();
 		OddtoEvenHarmonicEnergyRatio oeer = new OddtoEvenHarmonicEnergyRatio();
@@ -95,14 +100,18 @@ public class FeatureExtractor {
 		SpectralSkewness ss = new SpectralSkewness();
 
 		for (int windowStartIndex = 0; windowStartIndex < samples.length; windowStartIndex += WINDOW_SIZE / 2) {
+			int rest = samples.length - windowStartIndex;
 
-			//int windowEndIndex = nextWindowEndIndex(samples, windowStartIndex);
-			int windowEndIndex = windowStartIndex + WINDOW_SIZE;
-			if(windowEndIndex > samples.length)
-				windowEndIndex = samples.length;
-
-			double[] currentWindow = Arrays.copyOfRange(samples, windowStartIndex,windowEndIndex);
-
+			double[] currentWindow = new double[WINDOW_SIZE];
+			System.arraycopy(samples, windowStartIndex, currentWindow, 0, rest < WINDOW_SIZE ? rest : WINDOW_SIZE);
+			
+			
+			int[] pitches = pitchDetection.fundamentals(currentWindow);
+			if(pitches.length != 0)
+				fundamentals.addWindowValue(pitches[0]);
+			else
+				fundamentals.addWindowValue(0);
+/*
 			FastFourierTransform fft = new FastFourierTransform(currentWindow);
 
 			double[] powerSpectrum = ps.extractFeature(
@@ -140,10 +149,10 @@ public class FeatureExtractor {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
+			*/
 			
 		}
-		
+		/*
 //		computeSuffixTreeInformation(scFeature);
 		features.add(scFeature);
 	
@@ -175,8 +184,9 @@ public class FeatureExtractor {
 //		
 //		computeSuffixTreeInformation(mfccFeature6);
 		features.add(mfccFeature6);
+			*/
 		
-		
+		features.add(fundamentals);
 
 		return features;
 	}

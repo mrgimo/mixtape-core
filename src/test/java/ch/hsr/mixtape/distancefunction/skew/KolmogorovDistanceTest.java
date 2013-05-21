@@ -9,7 +9,6 @@ import ch.hsr.mixtape.data.FeatureVector;
 import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.data.valuemapper.FooMapper;
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
-import ch.hsr.mixtape.distancefunction.LZ77;
 import ch.hsr.mixtape.distancefunction.LZ77V2;
 
 public class KolmogorovDistanceTest {

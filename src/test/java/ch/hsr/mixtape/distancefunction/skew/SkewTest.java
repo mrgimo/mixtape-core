@@ -7,41 +7,6 @@ import org.junit.Test;
 public class SkewTest {
 	
 	@Test
-	public void testAllDifferentLengthMod0() {
-		double[] input = new double[] { -1, -2, - 3, -4, -5, -6 , -7, -8, -9, -10, -11, -12, -13, -14, -15};
-		SkewDouble skew = new SkewDouble();
-		
-		int[] expectedSuffixArray = new int[]{14, 13, 12, 11, 10, 9 , 8 , 7 , 6 , 5, 4, 3, 2, 1, 0};
-		int[] suffixArray = skew.buildSuffixArray(input);
-		
-		assertArrayEquals(expectedSuffixArray, suffixArray);
-		
-	}
-	
-	@Test
-	public void testAllDifferentLengthMod2() {
-		double[] input = new double[] { -1, -2, - 3, -4, -5, -6 , -7, -8, -9, -10, -11, -12, -13, -14};
-		SkewDouble skew = new SkewDouble();
-		
-		int[] expectedSuffixArray = new int[]{13, 12, 11, 10, 9 , 8 , 7 , 6 , 5, 4, 3, 2, 1, 0};
-		int[] suffixArray = skew.buildSuffixArray(input);
-		
-		assertArrayEquals(expectedSuffixArray, suffixArray);
-	}
-	
-	@Test
-	public void testAllDifferentLengthMod1() {
-		double[] input = new double[] { -1, -2, - 3, -4, -5, -6 , -7, -8, -9, -10, -11, -12, -13};
-		SkewDouble skew = new SkewDouble();
-		
-		int[] expectedSuffixArray = new int[]{12, 11, 10, 9 , 8 , 7 , 6 , 5, 4, 3, 2, 1, 0};
-		int[] suffixArray = skew.buildSuffixArray(input);
-		
-		assertArrayEquals(expectedSuffixArray, suffixArray);
-	}
-	
-	
-	@Test
 	public void testEqualSuffixLengthMod1SameModPos() {
 		
 		int[] input = new int[] { 9, 1, 2, 3, 4, 5, 6, 1 , 2 , 3, 4, 5, 1};

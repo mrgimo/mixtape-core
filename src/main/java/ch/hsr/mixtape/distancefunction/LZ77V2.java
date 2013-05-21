@@ -28,8 +28,8 @@ public class LZ77V2 implements DistanceFunction {
 			int maxValueX = featuresX.get(i).maxValue();
 			int maxValueY = featuresY.get(i).maxValue();
 
-			int zX = compressedSize(windowValuesX, maxValueX);
-			int zY = compressedSize(windowValuesY, maxValueY);
+//			int zX = compressedSize(windowValuesX, maxValueX);
+//			int zY = compressedSize(windowValuesY, maxValueY);
 
 			int maxValueXY = max(maxValueX, maxValueY);
 
@@ -42,7 +42,7 @@ public class LZ77V2 implements DistanceFunction {
 //					+ (max(zXY, zYX)) + " / " + max(zX, zY) + " = "
 //					+ ((double) (zXY + zYX) / (windowValuesX.length + windowValuesY.length)));
 
-			distanceVector[i] = (double) (max(zXY, zYX)) / (max(zX, zY));
+			distanceVector[i] = (double) (zXY + zYX) / (windowValuesX.length + windowValuesY.length); //(double) (max(zXY, zYX)) / (max(zX, zY));
 
 		}
 		double vectorLength = vectorLength(distanceVector);
@@ -121,7 +121,7 @@ public class LZ77V2 implements DistanceFunction {
 //					System.out.println("combined match: " + max(bestMatchX, bestMatchY));
 					
 					//TODO: changed formula
-			posX += max(bestMatchY, bestMatchX) + 1; // + 1 -> otherwise the
+			posX += bestMatchY + 1; // max(bestMatchY, bestMatchX) + 1; // + 1 -> otherwise the
 														// "1 match would be same as no match"
 														// problem occurs....
 
