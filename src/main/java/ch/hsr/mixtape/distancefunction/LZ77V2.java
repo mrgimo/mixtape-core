@@ -29,20 +29,32 @@ public class LZ77V2 implements DistanceFunction {
 			int maxValueY = featuresY.get(i).maxValue();
 
 			int zX = compressedSize(windowValuesX, maxValueX);
+			System.out.println("\n");
 			int zY = compressedSize(windowValuesY, maxValueY);
 
 			int maxValueXY = max(maxValueX, maxValueY);
 
+//			System.out.println("\n\ncomputing k(x|y) \n");
 			int zXY = compressedCombindedSize(windowValuesX, windowValuesY,
 					maxValueXY);
+			
+//			System.out.println("\ncomputing k(y|x)");
 			int zYX = compressedCombindedSize(windowValuesY, windowValuesX,
 					maxValueXY);
 
+//			System.out.println("\nzX: " + zX);
+//			System.out.println("zY: " + zY);
+//			System.out.println("zXY: " + zXY);
+//			System.out.println("zYX: " + zYX);
 //			System.out.println("distance " + featuresX.get(i).getName() + " : "
 //					+ (max(zXY, zYX)) + " / " + max(zX, zY) + " = "
-//					+ ((double) (zXY + zYX) / (windowValuesX.length + windowValuesY.length)));
+//					+ ((double) max(zXY, zYX) / max(zX, zY)));
+//			System.out.println("\n");
 
-			distanceVector[i] = (double) (max(zXY, zYX)) / (max(zX, zY));
+			// System.out.println("other distance: " + ((double) (zXY + zYX) /
+			// (windowValuesX.length + windowValuesY.length)));
+
+			distanceVector[i] = (double) max(zXY, zYX) / max(zX, zY);
 
 		}
 		double vectorLength = vectorLength(distanceVector);
@@ -64,12 +76,20 @@ public class LZ77V2 implements DistanceFunction {
 			int firstMatchingSuffix = findFirstMatchingSuffix(values[pos], sA,
 					lcp, values);
 
-			int match = findBestInternalMatch(values, pos, firstMatchingSuffix, sA,
-					lcp) + 1; // + 1 -> otherwise the
-								// "1 match would be same as no match" problem
-								// occurs....
+			int match = findBestInternalMatch(values, pos, firstMatchingSuffix,
+					sA, lcp) + 1; // + 1 -> otherwise the
+									// "1 match would be same as no match"
+									// problem
+									// occurs....
+
+			// System.out.println("internal match: " + match);
+//			if(match == 1) {
+//				System.out.print((char) (values[pos] - 1));
+////				System.out.print((char) (values[pos + 1] - 1));
+//			} else {
+//				System.out.print("[" + match + "]");
+//			}
 			
-//			System.out.println("internal match: " + match);
 			pos += match;
 
 			lz77Tripples++;
@@ -104,6 +124,7 @@ public class LZ77V2 implements DistanceFunction {
 		int lz77Tripples = 0;
 
 		for (int posX = 0; posX < valuesX.length;) {
+		//	System.out.println("find best match for position: " + posX + "\n");
 
 			int firstMatchingSuffixX = findFirstMatchingSuffix(valuesX[posX],
 					saX, lcpX, valuesX);
@@ -118,17 +139,35 @@ public class LZ77V2 implements DistanceFunction {
 					valuesX, posX, firstMatchingSuffixY, saY, lcpY, valuesY)
 					: 0;
 
-//					System.out.println("combined match: " + max(bestMatchX, bestMatchY));
-					
-					//TODO: changed formula
-			posX += max(bestMatchY, bestMatchX) + 1; // + 1 -> otherwise the
-														// "1 match would be same as no match"
-														// problem occurs....
+		//	System.out.println("best selfMatch: " + bestMatchX);
+		//	System.out.println("best other match: " + bestMatchY);
+//					if(bestMatchX == 0) {
+//				System.out.print((char) (valuesX[posX] - 1));
+//				//System.out.print(bestMatchY + " : ");
+//				// printNextChars(posX, valuesX);
+//			} else {
+//				System.out.print("[" + max(bestMatchX, bestMatchY) + "]");
+//			}
+		//	System.out.println();
+			// TODO: changed formula
+			posX += max(bestMatchY, bestMatchX) + 1;
+			// posX += bestMatchY + 1; // + 1 -> otherwise the
+			// "1 match would be same as no match"
+			// problem occurs....
 
 			lz77Tripples++;
 		}
 
 		return lz77Tripples;
+	}
+
+	private void printNextChars(int posX, int[] valuesX) {
+			int range = posX + 80 > valuesX.length ? valuesX.length : posX + 80;
+			System.out.println("none matching character");
+			for (int i = posX; i < range; i++) {
+				System.out.print((char)(valuesX[i] - 1));
+			}
+			System.out.println("\n");
 	}
 
 	private int findBestInternalMatch(int[] values, int pos,
