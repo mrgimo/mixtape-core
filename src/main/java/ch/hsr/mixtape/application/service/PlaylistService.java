@@ -136,9 +136,11 @@ public class PlaylistService {
 			throw new UninitializedPlaylistException(
 					"Uninitialized playlist. You have to create a playlist first.");
 
+		log.debug("Looking for id: " + songId);
 		// TODO do path-finding and add song at appropriate place
 		for (Song s : ApplicationFactory.getDatabaseManager()
 				.getDummyDatabase()) {
+			log.debug(s.getId() + "\t\t" + s.getTitle());
 			if (s.getId() == songId) {
 				s.setUserWish(true);
 				songs.add(s);
