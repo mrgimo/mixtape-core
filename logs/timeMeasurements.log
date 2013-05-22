@@ -3,12 +3,12 @@ Time Measurement
 
 Available Processors: 6
 
-Feature extraction and building of suffix array and lcp array done after: 3806 ms
+Feature extraction and building of suffix array and lcp array done after: 614632 ms
 
-Distance generation done in 4275 ms
+Distance generation done in 249 ms
 
-Clustering done after 150 ms 
+Clustering done after 8 ms 
 
-Task completed for 100 songs after 8234 ms 
+Task completed for 12 songs after 614909 ms 
 
 
