@@ -75,7 +75,7 @@ public class LZ77V2 implements DistanceFunction {
 			else
 				distanceVector[i] = (double) (zY - (zX - zXY)) / zY;
 
-			distanceVector[i] = (double) max(zXY, zYX) / max(zX, zY);
+//			distanceVector[i] = (double) max(zXY, zYX) / max(zX, zY);
 			// distanceVector[i] = (double) (zXY + zYX)
 			// / (windowValuesX.length + windowValuesY.length); // (double)
 			// (max(zXY,
