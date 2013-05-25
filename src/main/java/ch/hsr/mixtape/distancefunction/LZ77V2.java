@@ -28,39 +28,61 @@ public class LZ77V2 implements DistanceFunction {
 			int maxValueX = featuresX.get(i).maxValue();
 			int maxValueY = featuresY.get(i).maxValue();
 
-			// int zX = compressedSize(windowValuesX, maxValueX);
-			// int zY = compressedSize(windowValuesY, maxValueY);
+			int zX = compressedSize(windowValuesX, maxValueX);
+			System.out.println();
+			int zY = compressedSize(windowValuesY, maxValueY);
 
 			int maxValueXY = max(maxValueX, maxValueY);
 
-			// System.out.println("\n\ncomputing k(x|y) \n");
+			System.out.println("Length X: " + windowValuesX.length);
+			System.out.println("Length Y" + windowValuesY.length + "\n\n");
+			System.out.println("\n\ncomputing k(x|y) \n");
 			int zXY = compressedCombindedSize(windowValuesX, windowValuesY,
 					maxValueXY);
 
-			// System.out.println("\ncomputing k(y|x)");
+			System.out.println("\n\ncomputing k(y|x)\n");
 			int zYX = compressedCombindedSize(windowValuesY, windowValuesX,
 					maxValueXY);
 
-			// System.out.println("\nzX: " + zX);
-			// System.out.println("zY: " + zY);
-			// System.out.println("zXY: " + zXY);
-			// System.out.println("zYX: " + zYX);
-			// System.out.println("distance " + featuresX.get(i).getName() +
-			// " : "
-			// + (max(zXY, zYX)) + " / " + max(zX, zY) + " = "
-			// + ((double) max(zXY, zYX) / max(zX, zY)));
-			// System.out.println("\n");
+			if (zX > zY)
+				System.out.println("\n\nNew Formula: " + zX + " - (" + zY
+						+ " - " + zYX + ") / " + zX + " = "
+						+ ((double) (zX - (zY - zYX)) / zX));
+
+			else
+				System.out.println("\n\nNew Formula: " + zY + " - (" + zX
+						+ " - " + zXY + ") / " + zY + " = "
+						+ ((double) (zY - (zX - zXY)) / zY));
+
+			System.out
+					.println("\n\noriginal length X: " + windowValuesX.length);
+			System.out.println("original length Y: " + windowValuesY.length);
+			System.out.println("\n\nzX: " + zX);
+			System.out.println("zY: " + zY);
+			System.out.println("zXY: " + zXY);
+			System.out.println("zYX: " + zYX);
+			System.out.println("distance " + featuresX.get(i).getName() + " : "
+					+ (max(zXY, zYX)) + " / " + max(zX, zY) + " = "
+					+ ((double) max(zXY, zYX) / max(zX, zY)));
+			System.out.println("\n");
 
 			// System.out.println("other distance: " + ((double) (zXY + zYX) /
 			// (windowValuesX.length + windowValuesY.length)));
 
-			distanceVector[i] = (double) (zXY + zYX)
-					/ (windowValuesX.length + windowValuesY.length); // (double)
-																		// (max(zXY,
-																		// zYX))
-																		// /
-																		// (max(zX,
-																		// zY));
+			if (zX > zY)
+				distanceVector[i] = (double) (zX - (zY - zYX)) / zX;
+
+			else
+				distanceVector[i] = (double) (zY - (zX - zXY)) / zY;
+
+//			distanceVector[i] = (double) max(zXY, zYX) / max(zX, zY);
+			// distanceVector[i] = (double) (zXY + zYX)
+			// / (windowValuesX.length + windowValuesY.length); // (double)
+			// (max(zXY,
+			// zYX))
+			// /
+			// (max(zX,
+			// zY));
 
 		}
 		double vectorLength = vectorLength(distanceVector);
@@ -89,7 +111,7 @@ public class LZ77V2 implements DistanceFunction {
 									// occurs....
 
 			// System.out.println("internal match: " + match);
-			// if(match == 1) {
+			// if (match == 1) {
 			// System.out.print((char) (values[pos] - 1));
 			// // System.out.print((char) (values[pos + 1] - 1));
 			// } else {
@@ -150,19 +172,26 @@ public class LZ77V2 implements DistanceFunction {
 			// bestMatchY));
 			// System.out.println("best selfMatch: " + bestMatchX);
 			// System.out.println("best other match: " + bestMatchY);
-			// if(bestMatchX == 0) {
-			// System.out.print((char) (valuesX[posX] - 1));
-			// //System.out.print(bestMatchY + " : ");
+			// if (bestMatchX == 0)
+			// printNextChars(posX, valuesX, bestMatchY + 1);
+			//
+			// else if (bestMatchX < bestMatchY) {
+			// System.out.print("[--");
+			// printNextChars(posX, valuesX, bestMatchY + 1);
+			// System.out.print("--]");
+			// // System.out.print((char) (valuesX[posX] - 1));
+			// // System.out.print(bestMatchY + " : ");
 			// // printNextChars(posX, valuesX);
 			// } else {
-			// System.out.print("[" + max(bestMatchX, bestMatchY) + "]");
+			// System.out.print("[" + (max(bestMatchX, bestMatchY) + 1) + "]");
 			// }
-			// System.out.println();
 			// TODO: changed formula
-			posX += bestMatchY + 1; // max(bestMatchY, bestMatchX) + 1; // + 1
-									// -> otherwise the
-									// "1 match would be same as no match"
-									// problem occurs....
+			posX += max(bestMatchX, bestMatchY) + 1;
+			// posX += bestMatchY + 1; // max(bestMatchY, bestMatchX) + 1; // +
+			// 1
+			// -> otherwise the
+			// "1 match would be same as no match"
+			// problem occurs....
 
 			lz77Tripples++;
 		}
@@ -170,13 +199,12 @@ public class LZ77V2 implements DistanceFunction {
 		return lz77Tripples;
 	}
 
-	private void printNextChars(int posX, int[] valuesX) {
-		int range = posX + 80 > valuesX.length ? valuesX.length : posX + 80;
-		System.out.println("none matching character");
+	private void printNextChars(int posX, int[] valuesX, int count) {
+		int range = posX + count > valuesX.length ? valuesX.length : posX
+				+ count;
 		for (int i = posX; i < range; i++) {
 			System.out.print((char) (valuesX[i] - 1));
 		}
-		System.out.println("\n");
 	}
 
 	private int findBestInternalMatch(int[] values, int pos,

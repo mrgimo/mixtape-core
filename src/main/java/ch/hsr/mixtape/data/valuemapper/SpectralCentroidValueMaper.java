@@ -9,6 +9,7 @@ public class SpectralCentroidValueMaper implements ValueMapper {
 	 */
 	@Override
 	public int mapValueToInt(double value) {
+//		System.out.println("centroid value: " + ((int) (value * 10 + 1)));
 		return (int) (value * 10 + 1);
 	}
 

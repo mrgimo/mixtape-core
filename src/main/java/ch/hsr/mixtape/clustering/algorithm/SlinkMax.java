@@ -121,7 +121,7 @@ public class SlinkMax implements ClusterAlgorithm {
 
 	private void printClusters(ArrayList<Cluster> initialClusters) {
 		for (int i = 0; i < initialClusters.size(); i++) {
-			if (!initialClusters.get(i).getSongs().isEmpty()) {
+			if (initialClusters.get(i).getSongs().size() > 1) {
 				logger.log(Level.INFO, "\n\nCluster " + i);
 				ArrayList<Song> songs = initialClusters.get(i).getSongs();
 				for (Song song : songs) {
