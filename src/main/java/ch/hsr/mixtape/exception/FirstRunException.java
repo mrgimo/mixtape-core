@@ -1,4 +1,4 @@
-package ch.hsr.mixtape.application;
+package ch.hsr.mixtape.exception;
 
 /**
  * This exception should only be raised the first time mixtape-core is executed

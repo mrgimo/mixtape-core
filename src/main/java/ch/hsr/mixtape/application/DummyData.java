@@ -10,6 +10,7 @@ import ch.hsr.mixtape.model.SongSimilarity;
 public class DummyData {
 
 	private static ArrayList<Song> availableSongs;
+	private static Random r = new Random();
 
 	public static ArrayList<Song> getDummyDatabase() {
 		availableSongs = new ArrayList<Song>();
@@ -67,18 +68,26 @@ public class DummyData {
 		return songs;
 	}
 
-	private static void initializeSimilarities(ArrayList<Song> songs) {
-		Random r = new Random();
+	public static void initializeSimilarities(ArrayList<Song> songs) {
 		for (int i = 1; i < songs.size(); i++) {
-			int tempo = (int) (r.nextDouble() * 100);
-			int melody = (int) (r.nextDouble() * 100);
-			int mfcc = (int) (r.nextDouble() * 100);
-			int perception = (int) (r.nextDouble() * 100);
-			int total = (tempo + melody + mfcc + perception) / 4;
-			songs.get(i).setSongSimilarity(
-					new SongSimilarity(songs.get(i), songs.get(i - 1), total,
-							tempo, melody, mfcc, perception));
-			songs.get(i).setUserWish(i % 3 == 2 ? true : false);
+			if (i == 0) {
+				songs.get(i).setSongSimilarity(null);
+			} else {
+				songs.get(i).setSongSimilarity(
+						getDummySongSimilarity(songs.get(i), songs.get(i - 1)));
+				songs.get(i).setUserWish(i % 3 == 2 ? true : false);
+			}
 		}
+	}
+
+	public static SongSimilarity getDummySongSimilarity(Song songCurrent,
+			Song songAntecessor) {
+		int tempo = (int) (r.nextDouble() * 100);
+		int melody = (int) (r.nextDouble() * 100);
+		int mfcc = (int) (r.nextDouble() * 100);
+		int perception = (int) (r.nextDouble() * 100);
+		int total = (tempo + melody + mfcc + perception) / 4;
+		return new SongSimilarity(songCurrent, songAntecessor, total, tempo,
+				melody, mfcc, perception);
 	}
 }
