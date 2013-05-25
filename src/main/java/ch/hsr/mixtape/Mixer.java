@@ -54,6 +54,8 @@ public class Mixer {
 		long timeStart = System.currentTimeMillis();
 
 		ArrayList<Song> songs = extractAudioData();
+		
+		printSongDistances(songs);
 
 		LibraryController libraryController = new LibraryController();
 		libraryController.addSongsToLibrary(songs);
@@ -142,6 +144,25 @@ public class Mixer {
 			return record.getMessage() + System.getProperty("line.separator");
 			
 		}
+	}
+	
+private void printSongDistances(ArrayList<Song> songs) {
+		
+		Logger distanceLogger = Logger.getLogger("\n\nDistances\n");
+		try {
+			FileHandler fileHandler = new FileHandler("logs/distances.log", false);
+			distanceLogger.addHandler(fileHandler);
+			distanceLogger.setLevel(Level.ALL);
+			distanceLogger.setUseParentHandlers(false);
+			fileHandler.setFormatter(new LoggingFormatter());
+			distanceLogger.log(Level.INFO, "Distances: \n\n");
+		} catch (SecurityException | IOException e) {
+			e.printStackTrace();
+		}
+		for (Song song : songs) {
+			song.printSongsWithDistances(distanceLogger);
+		}
+		
 	}
 
 }
