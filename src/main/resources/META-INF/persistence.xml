@@ -21,7 +21,7 @@
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver" />
 			<property name="javax.persistence.jdbc.url"
-				value="jdbc:derby:${mixtapeData}mixtapeDB;create=true;upgrade=true" />
+				value="jdbc:derby:mixtapeData/mixtapeDB;create=true;upgrade=true" />
 			<property name="javax.persistence.jdbc.user" value="admin" />
 			<property name="javax.persistence.jdbc.password" value="password" />
 
@@ -30,8 +30,8 @@
 			<property name="eclipselink.ddl-generation.output-mode"
 				value="both" />
 			<property name="eclipselink.logging.level" value="SEVERE" />
-			<property name="eclipselink.logging.file" value="${mixtapeData}derby.log" />
-			<property name="eclipselink.application-location" value="dbScripts" />
+			<property name="eclipselink.logging.file" value="mixtapeData/derby.log" />
+			<property name="eclipselink.application-location" value="mixtapeData/dbScripts" />
 		</properties>
 
 	</persistence-unit>

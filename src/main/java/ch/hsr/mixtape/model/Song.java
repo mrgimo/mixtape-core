@@ -1,5 +1,9 @@
 package ch.hsr.mixtape.model;
 
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Random;
 
@@ -11,6 +15,11 @@ import javax.persistence.PrePersist;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import ch.hsr.mixtape.application.SongTagExtractor;
+
+/**
+ * @author Stefan Derungs
+ */
 @Entity
 public class Song {
 
@@ -26,6 +35,10 @@ public class Song {
 
 	@Temporal(TemporalType.DATE)
 	private Date analyzeDate;
+
+	private int lengthInSeconds;
+
+	private int sampleRateInHz;
 
 	private String filepath;
 
@@ -56,6 +69,56 @@ public class Song {
 		this.artist = artist;
 		this.album = album;
 		this.userWish = isUserWish;
+	}
+
+	/**
+	 * 
+	 * @param filepath
+	 * @throws IllegalArgumentException
+	 *             If there are any problems accessing the provided filepath.
+	 */
+	public Song(String filepath) throws IllegalArgumentException {
+		this();
+		checkFilepathIsValid(filepath);
+		this.filepath = filepath;
+
+		SongTagExtractor extractor = new SongTagExtractor();
+		extractor.extractTagsFromSong(this);
+	}
+
+	/**
+	 * Checks if the provided filepath is valid by format, reachable and if the
+	 * file is readable.
+	 * 
+	 * @return If everything is ok, true is returned. False else.
+	 * @throws IllegalArgumentException
+	 *             If there are any problems accessing the provided filepath.
+	 */
+	private boolean checkFilepathIsValid(String filepath)
+			throws IllegalArgumentException {
+		try {
+			Path path = Paths.get(filepath);
+			if (!Files.isRegularFile(path))
+				throw new IllegalArgumentException(
+						"The provided filepath cannot be resolved to a "
+								+ "regular file or the file does not exist.");
+
+			if (!Files.isReadable(path)) {
+				throw new IllegalArgumentException(
+						"The file represented by the provided filepath is not "
+								+ "readable. Please make sure you have proper access "
+								+ "rights to this file (" + filepath + ").");
+			}
+
+			return true;
+		} catch (InvalidPathException e) {
+			throw new IllegalArgumentException(
+					"The provided filepath is incorrect (" + filepath + ").");
+		} catch (SecurityException e) {
+			throw new IllegalArgumentException(
+					"There exist security restrictions which deny the access "
+							+ "to the provided filepath.");
+		}
 	}
 
 	@PrePersist
@@ -91,8 +154,20 @@ public class Song {
 		this.analyzeDate = analyzeDate;
 	}
 
-	public String getTitle() {
-		return title;
+	public int getLengthInSeconds() {
+		return lengthInSeconds;
+	}
+
+	public void setLengthInSeconds(int lengthInSeconds) {
+		this.lengthInSeconds = lengthInSeconds;
+	}
+
+	public int getSampleRateInHz() {
+		return sampleRateInHz;
+	}
+
+	public void setSampleRateInHz(int sampleRateInHz) {
+		this.sampleRateInHz = sampleRateInHz;
 	}
 
 	public String getFilepath() {
@@ -101,6 +176,14 @@ public class Song {
 
 	public void setFilepath(String filepath) {
 		this.filepath = filepath;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public String getArtist() {
@@ -132,4 +215,11 @@ public class Song {
 		return title.hashCode();
 	}
 
+	@Override
+	public String toString() {
+		return "===========\nFilepath: " + filepath + "\nTitle: " + title
+				+ "\nArtist: " + artist + "\nAlbum: " + album
+				+ "\nLengthInSeconds: " + lengthInSeconds
+				+ "\nSampleRateInHz: " + sampleRateInHz + "\n===========";
+	}
 }
