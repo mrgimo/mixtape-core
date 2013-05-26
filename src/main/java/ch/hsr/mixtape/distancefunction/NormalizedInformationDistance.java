@@ -2,8 +2,8 @@ package ch.hsr.mixtape.distancefunction;
 
 import java.util.ArrayList;
 
-import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.domain.Feature2;
+import ch.hsr.mixtape.domain.Song;
 
 
 /*
@@ -78,8 +78,8 @@ public class NormalizedInformationDistance {
 
 	public double distance(Song song1, Song song2) {
 
-		ArrayList<Feature> features1 = song1.getFeatureVector().getFeatures();
-		ArrayList<Feature> features2 = song2.getFeatureVector().getFeatures();
+		ArrayList<Feature2> features1 = song1.getFeatureVector().getFeatures();
+		ArrayList<Feature2> features2 = song2.getFeatureVector().getFeatures();
 
 		double[] distanceVector = new double[features1.size()];
 
@@ -113,8 +113,8 @@ public class NormalizedInformationDistance {
 		return Math.sqrt(sqSum);
 	}
 
-	private int findMatches(Feature spectralCentroidFeature1,
-			Feature spectralCentroidFeature2) {
+	private int findMatches(Feature2 spectralCentroidFeature1,
+			Feature2 spectralCentroidFeature2) {
 
 		int[] values1 = spectralCentroidFeature1.windowValues();
 

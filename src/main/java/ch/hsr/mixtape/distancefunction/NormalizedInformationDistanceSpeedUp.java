@@ -2,8 +2,8 @@ package ch.hsr.mixtape.distancefunction;
 
 import java.util.ArrayList;
 
-import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.Feature;
+import ch.hsr.mixtape.domain.Feature2;
+import ch.hsr.mixtape.domain.Song;
 
 /**
  * Implementation for finding the normalized information distance (NID) between
@@ -42,8 +42,8 @@ public class NormalizedInformationDistanceSpeedUp {
 
 	public double distance(Song song1, Song song2) {
 
-		ArrayList<Feature> features1 = song1.getFeatureVector().getFeatures();
-		ArrayList<Feature> features2 = song2.getFeatureVector().getFeatures();
+		ArrayList<Feature2> features1 = song1.getFeatureVector().getFeatures();
+		ArrayList<Feature2> features2 = song2.getFeatureVector().getFeatures();
 
 		double[] distanceVector = new double[features1.size()];
 
@@ -77,8 +77,8 @@ public class NormalizedInformationDistanceSpeedUp {
 		return Math.sqrt(sqSum);
 	}
 
-	private int findMatches(Feature feature1,
-			Feature feature2) {
+	private int findMatches(Feature2 feature1,
+			Feature2 feature2) {
 
 		int totalMatches = 0;
 		for (int i = 0; i < feature1.windowCount();) {
@@ -90,7 +90,7 @@ public class NormalizedInformationDistanceSpeedUp {
 		return totalMatches;
 	}
 
-	private int findCommonPrefix(int indexValues1, Feature feature1, Feature feature2) {
+	private int findCommonPrefix(int indexValues1, Feature2 feature1, Feature2 feature2) {
 		
 		int[] values1 = feature1.windowValues();
 		int[] values2 = feature2.windowValues();

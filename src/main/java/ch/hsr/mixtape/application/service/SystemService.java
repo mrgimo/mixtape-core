@@ -28,8 +28,7 @@ public class SystemService {
 	 */
 	public double getCurrentSystemLoad() {
 		// TODO
-		return ManagementFactory.getOperatingSystemMXBean()
-				.getSystemLoadAverage();
+		return ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage();
 	}
 
 	/**
@@ -59,4 +58,5 @@ public class SystemService {
 	public int getNumberOfPendingSongs() {
 		return 0;
 	}
+
 }

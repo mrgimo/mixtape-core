@@ -19,8 +19,7 @@ import ch.hsr.mixtape.model.Song;
  */
 public class PlaylistService {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(PlaylistService.class);
+	private static final Logger log = LoggerFactory.getLogger(PlaylistService.class);
 
 	private ReentrantReadWriteLock lock;
 
@@ -61,14 +60,12 @@ public class PlaylistService {
 		return initialized;
 	}
 
-	public ArrayList<Song> getCurrentPlaylist()
-			throws UninitializedPlaylistException {
+	public ArrayList<Song> getCurrentPlaylist() throws UninitializedPlaylistException {
 		lock.readLock().lock();
 		log.debug("Acquired Read-Lock in `getCurrentPlaylist`.");
 
 		if (!initialized)
-			throw new UninitializedPlaylistException(
-					"No playlist available. You have to create a playlist first.");
+			throw new UninitializedPlaylistException("No playlist available. You have to create a playlist first.");
 
 		lock.readLock().unlock();
 		log.debug("Released Read-Lock in `getCurrentPlaylist`.");
@@ -76,14 +73,12 @@ public class PlaylistService {
 		return songs;
 	}
 
-	public PlaylistSettings getCurrentPlaylistSettings()
-			throws UninitializedPlaylistException {
+	public PlaylistSettings getCurrentPlaylistSettings() throws UninitializedPlaylistException {
 		lock.readLock().lock();
 		log.debug("Acquired Read-Lock in `getCurrentPlaylist`.");
 
 		if (!initialized)
-			throw new UninitializedPlaylistException(
-					"No playlist available. You have to create a playlist first.");
+			throw new UninitializedPlaylistException("No playlist available. You have to create a playlist first.");
 
 		lock.readLock().unlock();
 		log.debug("Released Read-Lock in `getCurrentPlaylistSettings`.");
@@ -98,15 +93,13 @@ public class PlaylistService {
 	 *         song is not at the expected oldPosition).
 	 * @throws UninitializedPlaylistException
 	 */
-	public boolean switchSorting(long songId, int oldPosition, int newPosition)
-			throws UninitializedPlaylistException {
+	public boolean switchSorting(long songId, int oldPosition, int newPosition) throws UninitializedPlaylistException {
 		// TODO: persist the playlist change also to database?
 		lock.writeLock().lock();
 		log.debug("Acquired Write-Lock in `switchSorting`.");
 
 		if (!initialized)
-			throw new UninitializedPlaylistException(
-					"No playlist available. You have to create a playlist first.");
+			throw new UninitializedPlaylistException("No playlist available. You have to create a playlist first.");
 
 		if (oldPosition == newPosition)
 			return true;
@@ -133,13 +126,11 @@ public class PlaylistService {
 		log.debug("Acquired Write-Lock in `placeWish`.");
 
 		if (!initialized)
-			throw new UninitializedPlaylistException(
-					"Uninitialized playlist. You have to create a playlist first.");
+			throw new UninitializedPlaylistException("Uninitialized playlist. You have to create a playlist first.");
 
 		log.debug("Looking for id: " + songId);
 		// TODO do path-finding and add song at appropriate place
-		for (Song s : ApplicationFactory.getDatabaseManager()
-				.getDummyDatabase()) {
+		for (Song s : ApplicationFactory.getDatabaseManager().getDummyDatabase()) {
 			log.debug(s.getId() + "\t\t" + s.getTitle());
 			if (s.getId() == songId) {
 				s.setUserWish(true);
@@ -160,11 +151,9 @@ public class PlaylistService {
 	 * @return If no song is found -1 is returned.
 	 * @throws UninitializedPlaylistException
 	 */
-	private int findIndexOfSongById(long songId)
-			throws UninitializedPlaylistException {
+	private int findIndexOfSongById(long songId) throws UninitializedPlaylistException {
 		if (!initialized)
-			throw new UninitializedPlaylistException(
-					"Playlist has not been initialized.");
+			throw new UninitializedPlaylistException("Playlist has not been initialized.");
 
 		for (int i = 0; i < songs.size(); i++) {
 			if (songs.get(i).getId() == songId)

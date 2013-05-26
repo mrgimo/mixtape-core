@@ -1,6 +1,6 @@
 package ch.hsr.mixtape.distancefunction;
 
-import ch.hsr.mixtape.data.Song;
+import ch.hsr.mixtape.domain.Song;
 
 public interface DistanceFunction {
 	

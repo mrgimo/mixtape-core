@@ -4,12 +4,12 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import ch.hsr.mixtape.data.Feature;
-import ch.hsr.mixtape.data.FeatureVector;
-import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.data.valuemapper.FooMapper;
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
 import ch.hsr.mixtape.distancefunction.LZ77V2;
+import ch.hsr.mixtape.domain.Feature2;
+import ch.hsr.mixtape.domain.FeatureVector;
+import ch.hsr.mixtape.domain.Song;
 
 public class KolmogorovDistanceTest {
 
@@ -104,7 +104,7 @@ public class KolmogorovDistanceTest {
 		int[] lcp = new LcpBuilder().longestCommonPrefixes(input, suffixArray);
 		int[] nfcas = new NFCA().numberOfFirsCommontAncestors(lcp);
 		
-		Feature f = new Feature("foo feature", input.length, new FooMapper());
+		Feature2 f = new Feature2("foo feature", input.length, new FooMapper());
 		f.setLcp(lcp);
 		f.setSuffixArray(suffixArray);
 		f.setNFCAs(nfcas);

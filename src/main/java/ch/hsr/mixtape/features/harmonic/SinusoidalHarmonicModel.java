@@ -2,8 +2,6 @@ package ch.hsr.mixtape.features.harmonic;
 
 import java.util.Arrays;
 
-import ch.hsr.mixtape.features.PeakDetector;
-
 //TODO: maybe needs to be changed to handle multiple fundamental frequencies per window
 
 public class SinusoidalHarmonicModel {
@@ -28,11 +26,9 @@ public class SinusoidalHarmonicModel {
 	}
 
 	private int[] findHarmonics(double[] powerSpectrum, double fundamentalFrequency) {
-		PeakDetector peakDetector = new PeakDetector();
-
-		int[] harmonicPeaks = peakDetector.getIndicesOfPeaks(powerSpectrum);
+		int[] harmonicPeaks = getPeaks(powerSpectrum);
 		int[] overtones = new int[harmonicPeaks.length];
-		
+
 		double frequencyMulitplicator = SAMPLING_RATE / powerSpectrum.length;
 
 		int overtoneCount = 0;
@@ -55,6 +51,10 @@ public class SinusoidalHarmonicModel {
 		}
 
 		return Arrays.copyOf(overtones, overtoneCount);
+	}
+
+	private int[] getPeaks(double[] powerSpectrum) {
+		return null;
 	}
 
 }

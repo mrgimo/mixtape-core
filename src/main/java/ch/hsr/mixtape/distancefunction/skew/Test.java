@@ -3,9 +3,6 @@ package ch.hsr.mixtape.distancefunction.skew;
 import java.util.Random;
 
 import cern.colt.Arrays;
-import ch.hsr.mixtape.data.FeatureVector;
-import ch.hsr.mixtape.data.Song;
-import ch.hsr.mixtape.data.Feature;
 import ch.hsr.mixtape.data.valuemapper.FooMapper;
 import ch.hsr.mixtape.data.valuemapper.SpectralCentroidValueMaper;
 import ch.hsr.mixtape.distancefunction.DistanceFunction;
@@ -15,6 +12,9 @@ import ch.hsr.mixtape.distancefunction.NormalizedInformationDistanceSpeedUp;
 import ch.hsr.mixtape.distancefunction.NormalizedInformationDistance;
 import ch.hsr.mixtape.distancefunction.NormalizedInformationDistanceSpeedUp_v2;
 import ch.hsr.mixtape.distancefunction.NormalizedInformationDistanceSpeedUp_v3;
+import ch.hsr.mixtape.domain.Feature2;
+import ch.hsr.mixtape.domain.FeatureVector;
+import ch.hsr.mixtape.domain.Song;
 
 public class Test {
 
@@ -79,7 +79,7 @@ public class Test {
 	public static Song createSong(int[] input) {
 
 		Song song = new Song();
-		Feature f = new Feature("foo feature", input.length, new FooMapper());
+		Feature2 f = new Feature2("foo feature", input.length, new FooMapper());
 		f.addWindowValues(input);
 		int maxValue = f.maxValue();
 		

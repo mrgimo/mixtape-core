@@ -3,18 +3,18 @@ package ch.hsr.mixtape.distancefunction;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import ch.hsr.mixtape.data.Feature;
-import ch.hsr.mixtape.data.Song;
 import ch.hsr.mixtape.distancefunction.skew.LcpBuilder;
 import ch.hsr.mixtape.distancefunction.skew.SuffixArrayBuilder;
+import ch.hsr.mixtape.domain.Feature2;
+import ch.hsr.mixtape.domain.Song;
 
 public class LZ77 implements DistanceFunction {
 
 	@Override
 	public double distance(Song songX, Song songY) {
 
-		ArrayList<Feature> featuresX = songX.getFeatureVector().getFeatures();
-		ArrayList<Feature> featuresY = songY.getFeatureVector().getFeatures();
+		ArrayList<Feature2> featuresX = songX.getFeatureVector().getFeatures();
+		ArrayList<Feature2> featuresY = songY.getFeatureVector().getFeatures();
 
 		double[] distanceVector = new double[featuresX.size()];
 

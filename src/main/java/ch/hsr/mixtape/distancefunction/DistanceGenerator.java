@@ -2,7 +2,7 @@ package ch.hsr.mixtape.distancefunction;
 
 import java.util.ArrayList;
 
-import ch.hsr.mixtape.data.Song;
+import ch.hsr.mixtape.domain.Song;
 
 public class DistanceGenerator implements Runnable {
 	

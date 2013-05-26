@@ -2,14 +2,14 @@ package ch.hsr.mixtape.distancefunction;
 
 import java.util.ArrayList;
 
-import ch.hsr.mixtape.data.Feature;
-import ch.hsr.mixtape.data.Song;
+import ch.hsr.mixtape.domain.Feature2;
+import ch.hsr.mixtape.domain.Song;
 
 public class NCD {
 
 	public double distance(Song song1, Song song2) {
-		ArrayList<Feature> features1 = song1.getFeatureVector().getFeatures();
-		ArrayList<Feature> features2 = song2.getFeatureVector().getFeatures();
+		ArrayList<Feature2> features1 = song1.getFeatureVector().getFeatures();
+		ArrayList<Feature2> features2 = song2.getFeatureVector().getFeatures();
 
 		for (int i = 0; i < features1.size(); i++) {
 			double additionalBitsXY = compare(features1.get(i),
@@ -19,7 +19,7 @@ public class NCD {
 		return 0;
 	}
 
-	private double compare(Feature feature, Feature feature2) {
+	private double compare(Feature2 feature, Feature2 feature2) {
 		int[] windowValues1 = feature.windowValues();
 		int[] windowValues2 = feature2.windowValues();
 		int[] suffixArray1 = feature.getSuffixArray();
