@@ -1,4 +1,4 @@
-package ch.hsr.mixtape.distancefunction.skew;
+package ch.hsr.mixtape.metrics;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,7 +15,6 @@ public class KolmogorovDistanceTest {
 
 	@Test
 	public void testSameValues() {
-		
 		int[] input = new int[] { 2, 3, 4, 5, 6 , 1, 2, 3, 4, 5, 7, 2, 3, 4, 5, 7, 4, 5, 6, 7, 3, 2};
 		Song song = createSong(input, 7);
 

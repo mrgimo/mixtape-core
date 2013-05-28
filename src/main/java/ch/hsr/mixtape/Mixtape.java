@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 import org.apache.commons.math3.util.FastMath;
 
 import ch.hsr.mixtape.domain.Song;
-import ch.hsr.mixtape.features.harmonic.Feature;
+import ch.hsr.mixtape.features.FeatureExtractor;
 
 import com.google.common.collect.Lists;
 
@@ -31,14 +31,14 @@ public class Mixtape {
 		this.distanceMatrices = distanceMatrices;
 	}
 
-	private static Mixtape loadSongs(Collection<Feature<?>> features, Collection<File> pathsToSongs)
+	private static Mixtape loadSongs(Collection<FeatureExtractor<?>> features, Collection<File> pathsToSongs)
 			throws InterruptedException, ExecutionException, IOException {
 		List<File> songFiles = new FileFinder(pathsToSongs, createSongFileFilter()).find();
 		List<Song> songs = initSongs(songFiles);
 
-		List<FeatureExtractor<?>> extractors = initExtractors(features, songs.size());
+		List<FeatureProcessor<?>> extractors = initExtractors(features, songs.size());
 		for (Song song : songs)
-			new SampleLoader(song, extractors).load();
+			new SamplePublisher(song, extractors).publish();
 
 		return new Mixtape(songs, getDistanceMatrices(extractors));
 	}
@@ -69,15 +69,15 @@ public class Mixtape {
 		return songs;
 	}
 
-	private static List<FeatureExtractor<?>> initExtractors(Collection<Feature<?>> features, int numberOfSongs) {
-		List<FeatureExtractor<?>> extractors = Lists.newArrayListWithCapacity(features.size());
-		for (Feature<?> feature : features)
-			extractors.add(new FeatureExtractor<>(feature, numberOfSongs));
+	private static List<FeatureProcessor<?>> initExtractors(Collection<FeatureExtractor<?>> features, int numberOfSongs) {
+		List<FeatureProcessor<?>> extractors = Lists.newArrayListWithCapacity(features.size());
+		for (FeatureExtractor<?> feature : features)
+			extractors.add(new FeatureProcessor<>(feature, numberOfSongs));
 
 		return extractors;
 	}
 
-	private static double[][][] getDistanceMatrices(List<FeatureExtractor<?>> extractors) {
+	private static double[][][] getDistanceMatrices(List<FeatureProcessor<?>> extractors) {
 		double[][][] distanceMatrix = new double[extractors.size()][][];
 		for (int i = 0; i < extractors.size(); i++)
 			distanceMatrix[i] = getDistanceMatrix(extractors.get(i).getDistances());
@@ -134,7 +134,7 @@ public class Mixtape {
 	}
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
-		List<Feature<?>> features = Arrays.asList();
+		List<FeatureExtractor<?>> features = Arrays.asList();
 		List<File> files = Arrays.asList(new File("songs"));
 
 		Mixtape mixtape = Mixtape.loadSongs(features, files);

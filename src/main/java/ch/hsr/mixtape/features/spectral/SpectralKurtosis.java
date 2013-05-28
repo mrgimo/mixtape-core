@@ -13,29 +13,23 @@ public class SpectralKurtosis {
 	private double spectralCentroid;
 	private double spectralSpread;
 
-	public double extracFeature(double[] powerSpectrum,
-			double spectralCentroid, double spectralSpread) {
-
+	public double extracFeature(double[] powerSpectrum, double spectralCentroid, double spectralSpread) {
 		this.powerSpectrum = powerSpectrum;
 		this.spectralCentroid = spectralCentroid;
 		this.spectralSpread = spectralSpread;
 
-		double avgFourthOrderMoments = summateFourthOrderMoments()
-				/ powerSpectrum.length;
-
-		return avgKurtosis(avgFourthOrderMoments);
+		return avgKurtosis(summateFourthOrderMoments() / powerSpectrum.length);
 	}
 
 	private double avgKurtosis(double avgFourthOrderMoment) {
-		double fourthOrderspectralSpread = (spectralSpread * spectralSpread
-				* spectralSpread * spectralSpread);
+		double fourthOrderspectralSpread = (spectralSpread * spectralSpread * spectralSpread * spectralSpread);
 		if (fourthOrderspectralSpread != 0.0)
 			return avgFourthOrderMoment / fourthOrderspectralSpread;
-		return 0.0;
+		else
+			return 0.0;
 	}
 
 	private double summateFourthOrderMoments() {
-
 		double totalPower = summatePower(powerSpectrum);
 		double sum = 0.0;
 
@@ -45,18 +39,20 @@ public class SpectralKurtosis {
 				double thirdOrderMoment = (centroidDeviation
 						* centroidDeviation * centroidDeviation * centroidDeviation)
 						* powerSpectrum[i] / totalPower;
+
 				sum += thirdOrderMoment;
 			}
 		}
+
 		return sum;
 	}
 
 	private double summatePower(double[] powerSpectrum) {
 		double sum = 0.0;
-
-		for (int i = 0; i < powerSpectrum.length; i++) {
+		for (int i = 0; i < powerSpectrum.length; i++)
 			sum += powerSpectrum[i];
-		}
+
 		return sum;
 	}
+
 }

@@ -1,15 +1,21 @@
 package ch.hsr.mixtape.features.perceptual;
 
-public class MFCC {
+public class MelFrequencyCepstralCoefficients {
 
-	private final static int numberOfMelFilters = 23;
-	private final static int numberOfMFCCsPerFrame = 13;
+	private final static int numberOfFilters = 23;
+	private final static int numberOfCoefficientsPerFrame = 13;
 
 	private final static double LOWER_LIMIT_OF_FILTER = 133.3334;
 	private final static double FLOOR = -50;
 
-	public double[] extractFeature(double[] samples, double sampling_rate, double[] magnitudeSpectrum) throws Exception {
-		int[] fftBinIndices = calculateFftBinIndices(sampling_rate, magnitudeSpectrum.length);
+	private double sampleRate;
+
+	public MelFrequencyCepstralCoefficients(double sampleRate) {
+		this.sampleRate = sampleRate;
+	}
+
+	public double[] extractFeature(double[] samples, double[] magnitudeSpectrum) throws Exception {
+		int[] fftBinIndices = calculateFftBinIndices(sampleRate, magnitudeSpectrum.length);
 
 		double[] melFilter = melFilter(magnitudeSpectrum, fftBinIndices);
 		double[] nonLinearTransformation = nonLinearTransformation(melFilter);
@@ -19,12 +25,12 @@ public class MFCC {
 	}
 
 	private int[] calculateFftBinIndices(double samplingRate, int frameSize) {
-		int[] indices = new int[numberOfMelFilters + 2];
+		int[] indices = new int[numberOfFilters + 2];
 
 		indices[0] = (int) Math.round(LOWER_LIMIT_OF_FILTER / samplingRate * frameSize);
 		indices[indices.length - 1] = (int) (frameSize / 2);
 
-		for (int i = 1; i <= numberOfMelFilters; i++)
+		for (int i = 1; i <= numberOfFilters; i++)
 			indices[i] = (int) Math.round(calculateCenterFreuency(i, samplingRate) / samplingRate * frameSize);
 
 		return indices;
@@ -34,9 +40,7 @@ public class MFCC {
 		double mel0 = convertFrequencyToMelFrequency(LOWER_LIMIT_OF_FILTER);
 		double mel1 = convertFrequencyToMelFrequency(samplingRate / 2);
 
-		// take inverse mel of:
-		double temp = mel0 + ((mel1 - mel0) / (numberOfMelFilters + 1)) * indexOfMelFilters;
-		return calculateInverseMelFrequency(temp);
+		return calculateInverseMelFrequency(mel0 + ((mel1 - mel0) / (numberOfFilters + 1)) * indexOfMelFilters);
 	}
 
 	private double convertFrequencyToMelFrequency(double frequency) {
@@ -44,40 +48,35 @@ public class MFCC {
 	}
 
 	private double calculateInverseMelFrequency(double x) {
-		double temp = Math.pow(10, x / 2595) - 1;
-		return 700 * (temp);
+		return 700 * (Math.pow(10, x / 2595) - 1);
 	}
 
 	private double[] melFilter(double bin[], int fftBinIndices[]) {
-		double temp[] = new double[numberOfMelFilters + 2];
+		double[] temp = new double[numberOfFilters + 2];
+		for (int k = 1; k <= numberOfFilters; k++) {
+			double num1 = 0;
+			double num2 = 0;
 
-		for (int k = 1; k <= numberOfMelFilters; k++) {
-			double num1 = 0, num2 = 0;
-
-			for (int i = fftBinIndices[k - 1]; i <= fftBinIndices[k]; i++) {
+			for (int i = fftBinIndices[k - 1]; i <= fftBinIndices[k]; i++)
 				num1 += ((i - fftBinIndices[k - 1] + 1) / (fftBinIndices[k] - fftBinIndices[k - 1] + 1)) * bin[i];
-			}
 
-			for (int i = fftBinIndices[k] + 1; i <= fftBinIndices[k + 1]; i++) {
+			for (int i = fftBinIndices[k] + 1; i <= fftBinIndices[k + 1]; i++)
 				num2 += (1 - ((i - fftBinIndices[k]) / (fftBinIndices[k + 1] - fftBinIndices[k] + 1))) * bin[i];
-			}
 
 			temp[k] = num1 + num2;
 		}
 
-		double fbank[] = new double[numberOfMelFilters];
-		for (int i = 0; i < numberOfMelFilters; i++) {
-			fbank[i] = temp[i + 1];
-		}
+		double filterBank[] = new double[numberOfFilters];
+		for (int i = 0; i < numberOfFilters; i++)
+			filterBank[i] = temp[i + 1];
 
-		return fbank;
+		return filterBank;
 	}
 
-	private double[] nonLinearTransformation(double fbank[]) {
-		double f[] = new double[fbank.length];
-
-		for (int i = 0; i < fbank.length; i++) {
-			f[i] = Math.log(fbank[i]);
+	private double[] nonLinearTransformation(double[] filterBank) {
+		double[] f = new double[filterBank.length];
+		for (int i = 0; i < filterBank.length; i++) {
+			f[i] = Math.log(filterBank[i]);
 			if (f[i] < FLOOR)
 				f[i] = FLOOR;
 		}
@@ -86,15 +85,12 @@ public class MFCC {
 	}
 
 	private double[] calculateCepstralCoefficients(double f[]) {
-		double cepc[] = new double[numberOfMFCCsPerFrame];
+		double[] coefficients = new double[numberOfCoefficientsPerFrame];
+		for (int i = 0; i < coefficients.length; i++)
+			for (int j = 1; j <= numberOfFilters; j++)
+				coefficients[i] += f[j - 1] * Math.cos(Math.PI * i / numberOfFilters * (j - 0.5));
 
-		for (int i = 0; i < cepc.length; i++) {
-			for (int j = 1; j <= numberOfMelFilters; j++) {
-				cepc[i] += f[j - 1] * Math.cos(Math.PI * i / numberOfMelFilters * (j - 0.5));
-			}
-		}
-
-		return cepc;
+		return coefficients;
 	}
 
 }

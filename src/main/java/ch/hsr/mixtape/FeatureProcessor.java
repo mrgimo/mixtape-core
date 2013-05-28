@@ -7,22 +7,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import ch.hsr.mixtape.domain.Song;
-import ch.hsr.mixtape.features.harmonic.Feature;
+import ch.hsr.mixtape.features.FeatureExtractor;
 
 import com.google.common.collect.Lists;
 
-public class FeatureExtractor<T> {
+public class FeatureProcessor<T> {
 
 	private static final int ESTIMATED_NUMBER_OF_WINDOWS = 2048;
 
 	private static final ExecutorService executor = Executors.newCachedThreadPool();
 
-	private final Feature<T> feature;
+	private final FeatureExtractor<T> feature;
 	private final List<List<Future<T>>> tasks;
 
 	private final int numberOfSongs;
 
-	public FeatureExtractor(Feature<T> feature, int numberOfSongs) {
+	public FeatureProcessor(FeatureExtractor<T> feature, int numberOfSongs) {
 		this.feature = feature;
 		this.tasks = initTasks(numberOfSongs);
 
@@ -37,7 +37,7 @@ public class FeatureExtractor<T> {
 		return tasks;
 	}
 
-	public void extract(Song song, double[] window) {
+	public void process(Song song, double[] window) {
 		tasks.get(song.getId()).add(doExtract(window));
 	}
 
@@ -53,6 +53,10 @@ public class FeatureExtractor<T> {
 
 	public int getWindowSize() {
 		return feature.getWindowSize();
+	}
+
+	public int getWindowOverlap() {
+		return feature.getWindowOverlap();
 	}
 
 	public List<List<Future<Double>>> getDistances() {

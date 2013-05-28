@@ -1,4 +1,4 @@
-package ch.hsr.mixtape.features.aubio;
+package ch.hsr.mixtape.features.temporal;
 
 import java.io.BufferedReader;
 import java.io.IOException;

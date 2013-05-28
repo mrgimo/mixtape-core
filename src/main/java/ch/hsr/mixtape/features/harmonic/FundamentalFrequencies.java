@@ -12,31 +12,34 @@ import org.apache.commons.math3.transform.FastFourierTransformer;
 import org.apache.commons.math3.transform.TransformType;
 import org.apache.commons.math3.util.FastMath;
 
-import ch.hsr.mixtape.metrics.Metric;
-
 import com.google.common.math.DoubleMath;
 
-public class FundamentalFrequencies implements Feature<Integer[]> {
-
-	private static final double SAMPLE_RATE = 44100;
-
-	private static final int WINDOW_SIZE = 4096;
-	private static final int SPECTRUM_SIZE = WINDOW_SIZE / 2;
+public class FundamentalFrequencies {
 
 	private static final int PEAK_BANDWIDTH_IN_BINS = 16;
 
+	private double sampleRate;
+
+	private int windowSize;
+	private int spectrumSize;
+
 	private double[][] candidates;
+
 	private double[] gaussianFunction;
 	private double[] hannWindow;
 
-	public FundamentalFrequencies() {
+	public FundamentalFrequencies(double sampleRate, int windowSize) {
+		this.sampleRate = sampleRate;
+		this.windowSize = windowSize;
+		spectrumSize = windowSize / 2;
+
 		gaussianFunction = initGaussianFunction();
 		candidates = initCandidates();
-		hannWindow = initHannWindow(WINDOW_SIZE);
+		hannWindow = initHannWindow();
 	}
 
 	private double[][] initCandidates() {
-		double[][] candidates = new double[88][SPECTRUM_SIZE];
+		double[][] candidates = new double[88][spectrumSize];
 		for (int key = 0; key < candidates.length; key++)
 			candidates[key] = fundamental(frequencyToBin(pianoKeyToFrequency(key)));
 
@@ -44,7 +47,7 @@ public class FundamentalFrequencies implements Feature<Integer[]> {
 	}
 
 	private int frequencyToBin(double frequency) {
-		return DoubleMath.roundToInt(frequency * WINDOW_SIZE / SAMPLE_RATE,
+		return DoubleMath.roundToInt(frequency * windowSize / sampleRate,
 				RoundingMode.HALF_UP);
 	}
 
@@ -56,7 +59,7 @@ public class FundamentalFrequencies implements Feature<Integer[]> {
 	}
 
 	private double[] fundamental(int bin) {
-		double[] fundamental = new double[SPECTRUM_SIZE];
+		double[] fundamental = new double[spectrumSize];
 
 		int length;
 		int sourceBegin;
@@ -72,8 +75,8 @@ public class FundamentalFrequencies implements Feature<Integer[]> {
 			destinationBegin = bin - (PEAK_BANDWIDTH_IN_BINS / 2);
 		}
 
-		while (destinationBegin < SPECTRUM_SIZE) {
-			int rest = SPECTRUM_SIZE - destinationBegin;
+		while (destinationBegin < spectrumSize) {
+			int rest = spectrumSize - destinationBegin;
 			System.arraycopy(gaussianFunction, sourceBegin, fundamental, destinationBegin,
 					rest < length ? rest : length);
 			destinationBegin += bin;
@@ -97,21 +100,21 @@ public class FundamentalFrequencies implements Feature<Integer[]> {
 		return gaussian;
 	}
 
-	private double[] initHannWindow(int n) {
-		double[] hannWindow = new double[n];
-		for (int i = 0; i < n; i++)
-			hannWindow[i] = 0.5 * (1 - cos((2 * PI * i) / (n - 1)));
+	private double[] initHannWindow() {
+		double[] hannWindow = new double[windowSize];
+		for (int i = 0; i < windowSize; i++)
+			hannWindow[i] = 0.5 * (1 - cos((2 * PI * i) / (windowSize - 1)));
 
 		return hannWindow;
 	}
 
-	public Integer[] extract(double[] window) {
+	public int[] extract(double[] window) {
 		double[] frequencySpectrum = frequencySpectrum(window);
 
-		Integer[] fundamentals = new Integer[88];
+		int[] fundamentals = new int[88];
 		int numberOfFundamentals = 0;
 
-		double[] fundamental = new double[SPECTRUM_SIZE];
+		double[] fundamental = new double[spectrumSize];
 
 		double fitness = 0;
 		double fitnessGain = 1;
@@ -152,16 +155,16 @@ public class FundamentalFrequencies implements Feature<Integer[]> {
 	}
 
 	private double[] fftToFrequencySpectrum(Complex[] fft) {
-		double[] frequencySpectrum = new double[SPECTRUM_SIZE];
-		for (int i = 0; i < SPECTRUM_SIZE; i++)
+		double[] frequencySpectrum = new double[spectrumSize];
+		for (int i = 0; i < spectrumSize; i++)
 			frequencySpectrum[i] = fft[i].abs();
 
 		return frequencySpectrum;
 	}
 
 	private double[] hannWindow(double[] samples) {
-		double[] window = new double[WINDOW_SIZE];
-		for (int i = 0; i < WINDOW_SIZE; i++)
+		double[] window = new double[windowSize];
+		for (int i = 0; i < windowSize; i++)
 			window[i] = samples[i] * hannWindow[i];
 
 		return window;
@@ -185,14 +188,6 @@ public class FundamentalFrequencies implements Feature<Integer[]> {
 		}
 
 		return a / b;
-	}
-
-	public int getWindowSize() {
-		return WINDOW_SIZE;
-	}
-
-	public Metric<Integer[]> getMetric() {
-		return null;
 	}
 
 }
