@@ -58,8 +58,7 @@ public class SpectralFeaturesExtractor implements
 	@Override
 	public SpectralFeaturesOfSong postprocess(
 			List<SpectralFeaturesOfWindow> featuresOfWindows) {
-		spectralValueMapper.quantize(featuresOfWindows);
-		return null;
+		return spectralValueMapper.quantize(featuresOfWindows);
 	}
 
 	@Override
