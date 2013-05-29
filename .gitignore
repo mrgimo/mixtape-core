@@ -1,11 +1,18 @@
-# Folders #
+﻿# Binaries #
 target/
-_databases/
-
 *.class
-derby.log
+
+# Eclipse #
+.settings/
+.classpath
+.project
 
 # Package Files #
 *.jar
 *.war
 *.ear
+
+# Misc #
+*.mp3
+*.log
+_databases/

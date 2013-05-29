@@ -19,7 +19,7 @@ public class SamplePublisher {
 	private final static int MIN_SAMPLE_BUFFER_SIZE = 8192;
 
 	private final Song song;
-	private final List<FeatureProcessor<?>> subscribers;
+	private final List<FeatureProcessor<?, ?>> subscribers;
 
 	private double[] sampleBuffer;
 
@@ -29,7 +29,7 @@ public class SamplePublisher {
 	private final AudioChannel channel;
 	private final ByteBuffer byteBuffer;
 
-	public SamplePublisher(Song song, List<FeatureProcessor<?>> subscribers) {
+	public SamplePublisher(Song song, List<FeatureProcessor<?, ?>> subscribers) {
 		this.song = song;
 		this.subscribers = subscribers;
 
@@ -46,9 +46,9 @@ public class SamplePublisher {
 		return channel.getProperties().getFrameSizeInBytes() * maxWindowSize;
 	}
 
-	private int getMaxWindowSize(Collection<FeatureProcessor<?>> subscribers) {
+	private int getMaxWindowSize(Collection<FeatureProcessor<?, ?>> subscribers) {
 		int maxWindowSize = 0;
-		for (FeatureProcessor<?> subscriber : subscribers)
+		for (FeatureProcessor<?, ?> subscriber : subscribers)
 			if (maxWindowSize < subscriber.getWindowSize())
 				maxWindowSize = subscriber.getWindowSize();
 
@@ -110,7 +110,7 @@ public class SamplePublisher {
 
 	private void publishSamples() {
 		for (int i = 0; i < readPositions.length; i++) {
-			FeatureProcessor<?> subscriber = subscribers.get(i);
+			FeatureProcessor<?, ?> subscriber = subscribers.get(i);
 
 			int size = subscriber.getWindowSize();
 			int hop = size - subscriber.getWindowOverlap();
@@ -136,7 +136,7 @@ public class SamplePublisher {
 
 	private void publishRemainingSamples() {
 		for (int i = 0; i < readPositions.length; i++) {
-			FeatureProcessor<?> subscriber = subscribers.get(i);
+			FeatureProcessor<?, ?> subscriber = subscribers.get(i);
 
 			int position = readPositions[i];
 			int size = subscriber.getWindowSize();

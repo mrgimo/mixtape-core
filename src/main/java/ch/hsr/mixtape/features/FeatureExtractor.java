@@ -1,12 +1,14 @@
 package ch.hsr.mixtape.features;
 
-import ch.hsr.mixtape.metrics.Metric;
+import java.util.List;
 
-public interface FeatureExtractor<T> {
+public interface FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> {
 
-	T extract(double[] window);
+	FeaturesOfWindow extractFrom(double[] windowOfSamples);
 
-	Metric<T> getMetric();
+	FeaturesOfSong postprocess(List<FeaturesOfWindow> featuresOfWindows);
+
+	double distanceBetween(FeaturesOfSong x, FeaturesOfSong y);
 
 	int getWindowSize();
 

@@ -13,6 +13,10 @@ import org.apache.commons.math3.util.FastMath;
 
 import ch.hsr.mixtape.domain.Song;
 import ch.hsr.mixtape.features.FeatureExtractor;
+import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesExtractor;
+import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesExtractor;
+import ch.hsr.mixtape.features.spectral.SpectralFeaturesExtractor;
+import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
 
 import com.google.common.collect.Lists;
 
@@ -22,21 +26,21 @@ public class Mixtape {
 			".mp3"
 	};
 
-	private final Collection<Song> songs;
+	private final List<Song> songs;
 
 	private final double[][][] distanceMatrices;
 
-	private Mixtape(Collection<Song> songs, double[][][] distanceMatrices) {
+	private Mixtape(List<Song> songs, double[][][] distanceMatrices) {
 		this.songs = songs;
 		this.distanceMatrices = distanceMatrices;
 	}
 
-	private static Mixtape loadSongs(Collection<FeatureExtractor<?>> features, Collection<File> pathsToSongs)
+	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> features, Collection<File> pathsToSongs)
 			throws InterruptedException, ExecutionException, IOException {
 		List<File> songFiles = new FileFinder(pathsToSongs, createSongFileFilter()).find();
 		List<Song> songs = initSongs(songFiles);
 
-		List<FeatureProcessor<?>> extractors = initExtractors(features, songs.size());
+		List<FeatureProcessor<?, ?>> extractors = initExtractors(features, songs.size());
 		for (Song song : songs)
 			new SamplePublisher(song, extractors).publish();
 
@@ -69,18 +73,23 @@ public class Mixtape {
 		return songs;
 	}
 
-	private static List<FeatureProcessor<?>> initExtractors(Collection<FeatureExtractor<?>> features, int numberOfSongs) {
-		List<FeatureProcessor<?>> extractors = Lists.newArrayListWithCapacity(features.size());
-		for (FeatureExtractor<?> feature : features)
+	private static List<FeatureProcessor<?, ?>> initExtractors(Collection<FeatureExtractor<?, ?>> features,
+			int numberOfSongs) {
+		List<FeatureProcessor<?, ?>> extractors = Lists.newArrayListWithCapacity(features.size());
+		for (FeatureExtractor<?, ?> feature : features)
 			extractors.add(new FeatureProcessor<>(feature, numberOfSongs));
 
 		return extractors;
 	}
 
-	private static double[][][] getDistanceMatrices(List<FeatureProcessor<?>> extractors) {
-		double[][][] distanceMatrix = new double[extractors.size()][][];
-		for (int i = 0; i < extractors.size(); i++)
-			distanceMatrix[i] = getDistanceMatrix(extractors.get(i).getDistances());
+	private static double[][][] getDistanceMatrices(List<FeatureProcessor<?, ?>> featureProcessors) {
+		double[][][] distanceMatrix = new double[featureProcessors.size()][][];
+		for (int i = 0; i < featureProcessors.size(); i++) {
+			FeatureProcessor<?, ?> featureProcessor = featureProcessors.get(i);
+			featureProcessor.postprocess();
+
+			distanceMatrix[i] = getDistanceMatrix(featureProcessor.getDistances());
+		}
 
 		return distanceMatrix;
 	}
@@ -129,16 +138,38 @@ public class Mixtape {
 		return FastMath.sqrt(distance);
 	}
 
-	public Collection<Song> getSongs() {
+	public List<Song> getSongs() {
 		return songs;
 	}
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
-		List<FeatureExtractor<?>> features = Arrays.asList();
+		List<FeatureExtractor<?, ?>> featureExtractors = Arrays.asList(
+				new HarmonicFeaturesExtractor(),
+				new SpectralFeaturesExtractor(),
+				new PerceptualFeaturesExtractor(),
+				new TemporalFeaturesExtractor());
+
 		List<File> files = Arrays.asList(new File("songs"));
 
-		Mixtape mixtape = Mixtape.loadSongs(features, files);
-		System.out.println(mixtape.getSongs());
+		Mixtape mixtape = Mixtape.loadSongs(featureExtractors, files);
+
+		List<Song> songs = mixtape.getSongs();
+
+		Song songX = songs.get(4);
+		Song songY = songs.get(2);
+
+		double[] weighting = new double[] {
+				0.4,
+				0.9,
+				0.1,
+				0.0
+		};
+
+		double distance = mixtape.distanceBetween(songX, songY, weighting);
+
+		System.out.println("Distance between '" + songX + "' and '" + songY + "' with weighting  '" + weighting
+				+ "' is '"
+				+ distance + "'.");
 	}
 
 }

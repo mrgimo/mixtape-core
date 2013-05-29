@@ -51,7 +51,7 @@ public class SinusoidalHarmonicModel {
 	}
 
 	private int[] getPeaks(double[] powerSpectrum) {
-		return null;
+		return new int[0];
 	}
 
 }

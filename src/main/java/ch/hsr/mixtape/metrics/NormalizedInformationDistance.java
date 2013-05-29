@@ -1,53 +1,30 @@
 package ch.hsr.mixtape.metrics;
 
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
 import org.apache.commons.math3.util.FastMath;
 
 import com.google.common.primitives.Ints;
 
-public class NormalizedInformationDistance implements Metric<Integer> {
+public class NormalizedInformationDistance {
 
 	private SuffixArrayBuilder sABuilder = new SuffixArrayBuilder();
 	private LongestCommonPrefixBuilder lcpBuilder = new LongestCommonPrefixBuilder();
 
-	public double distanceBetween(List<Future<Integer>> x, List<Future<Integer>> y) {
-		int[] windowValuesX = evaluate(x);
-		int[] windowValuesY = evaluate(y);
+	public double distanceBetween(int[] x, int[] y) {
+		int maxValueX = Ints.max(x);
+		int maxValueY = Ints.max(y);
 
-		int maxValueX = Ints.max(windowValuesX);
-		int maxValueY = Ints.max(windowValuesY);
-
-		int zX = compressedSize(windowValuesX, maxValueX);
-		int zY = compressedSize(windowValuesY, maxValueY);
+		int zX = compressedSize(x, maxValueX);
+		int zY = compressedSize(y, maxValueY);
 
 		int maxValueXY = FastMath.max(maxValueX, maxValueY);
 
-		int zXY = compressedCombindedSize(windowValuesX, windowValuesY, maxValueXY);
-		int zYX = compressedCombindedSize(windowValuesY, windowValuesX, maxValueXY);
+		int zXY = compressedCombindedSize(x, y, maxValueXY);
+		int zYX = compressedCombindedSize(y, x, maxValueXY);
 
 		if (zX > zY)
 			return (double) (zX - (zY - zYX)) / zX;
 		else
 			return (double) (zY - (zX - zXY)) / zY;
-	}
-
-	private int[] evaluate(List<Future<Integer>> futures) {
-		int[] evaluation = new int[futures.size()];
-		for (int i = 0; i < evaluation.length; i++)
-			evaluation[i] = evaluate(futures.get(i));
-
-		return evaluation;
-	}
-
-	private Integer evaluate(Future<Integer> future) {
-		try {
-			return future.get();
-		} catch (InterruptedException | ExecutionException e) {
-			return 1;
-		}
 	}
 
 	private int compressedSize(int[] values, int maxValue) {
@@ -56,8 +33,10 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 
 		int lz77Triples = 0;
 		for (int pos = 0; pos < values.length;) {
-			int firstMatchingSuffix = findFirstMatchingSuffix(values[pos], sA, lcp, values);
-			int match = findBestInternalMatch(values, pos, firstMatchingSuffix, sA, lcp) + 1;
+			int firstMatchingSuffix = findFirstMatchingSuffix(values[pos], sA,
+					lcp, values);
+			int match = findBestInternalMatch(values, pos, firstMatchingSuffix,
+					sA, lcp) + 1;
 
 			pos += match;
 			lz77Triples++;
@@ -66,7 +45,8 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 		return lz77Triples;
 	}
 
-	private int compressedCombindedSize(int[] valuesX, int[] valuesY, int maxValue) {
+	private int compressedCombindedSize(int[] valuesX, int[] valuesY,
+			int maxValue) {
 		int[] saX = sABuilder.buildSuffixArray(valuesX, maxValue);
 		int[] saY = sABuilder.buildSuffixArray(valuesY, maxValue);
 
@@ -75,13 +55,16 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 
 		int lz77Triples = 0;
 		for (int posX = 0; posX < valuesX.length;) {
-			int firstMatchingSuffixX = findFirstMatchingSuffix(valuesX[posX], saX, lcpX, valuesX);
-			int bestMatchX = firstMatchingSuffixX != -1 ?
-					findBestInternalMatch(valuesX, posX, firstMatchingSuffixX, saX, lcpX) : 0;
+			int firstMatchingSuffixX = findFirstMatchingSuffix(valuesX[posX],
+					saX, lcpX, valuesX);
+			int bestMatchX = firstMatchingSuffixX != -1 ? findBestInternalMatch(
+					valuesX, posX, firstMatchingSuffixX, saX, lcpX) : 0;
 
-			int firstMatchingSuffixY = findFirstMatchingSuffix(valuesX[posX], saY, lcpY, valuesY);
-			int bestMatchY = firstMatchingSuffixY != -1 ?
-					findBestMatch(valuesX, posX, firstMatchingSuffixY, saY, lcpY, valuesY) : 0;
+			int firstMatchingSuffixY = findFirstMatchingSuffix(valuesX[posX],
+					saY, lcpY, valuesY);
+			int bestMatchY = firstMatchingSuffixY != -1 ? findBestMatch(
+					valuesX, posX, firstMatchingSuffixY, saY, lcpY, valuesY)
+					: 0;
 
 			posX += FastMath.max(bestMatchX, bestMatchY) + 1;
 			lz77Triples++;
@@ -90,12 +73,14 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 		return lz77Triples;
 	}
 
-	private int findBestInternalMatch(int[] values, int pos, int firstMatchingSuffix, int[] sA, int[] lcp) {
+	private int findBestInternalMatch(int[] values, int pos,
+			int firstMatchingSuffix, int[] sA, int[] lcp) {
 		int matches = 0;
 		int sAIndex = firstMatchingSuffix;
 
 		while (morePossibleMatches(values.length, pos, sAIndex, sA, matches)) {
-			if (legitSuffix(pos, matches, sA[sAIndex]) && equal(values, pos, sA, matches, sAIndex))
+			if (legitSuffix(pos, matches, sA[sAIndex])
+					&& equal(values, pos, sA, matches, sAIndex))
 				matches++;
 			else if (hasMoreSuffixCandidates(sAIndex, sA, lcp, matches))
 				sAIndex++;
@@ -106,7 +91,8 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 		return matches;
 	}
 
-	private boolean equal(int[] values, int pos, int[] sA, int matches, int sAIndex) {
+	private boolean equal(int[] values, int pos, int[] sA, int matches,
+			int sAIndex) {
 		return values[pos + matches] == values[sA[sAIndex] + matches];
 	}
 
@@ -114,7 +100,8 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 		return sAIndex > pos + matches;
 	}
 
-	private int findBestMatch(int[] valuesX, int posX, int firstMatchingSuffixY, int[] saY, int[] lcpY, int[] valuesY) {
+	private int findBestMatch(int[] valuesX, int posX,
+			int firstMatchingSuffixY, int[] saY, int[] lcpY, int[] valuesY) {
 		int matches = 1;
 		int sAIndexY = firstMatchingSuffixY;
 
@@ -131,27 +118,33 @@ public class NormalizedInformationDistance implements Metric<Integer> {
 		return matches;
 	}
 
-	private boolean morePossibleSuffixYMatches(int[] saY, int[] valuesY, int matches, int sAIndexY) {
+	private boolean morePossibleSuffixYMatches(int[] saY, int[] valuesY,
+			int matches, int sAIndexY) {
 		return saY[sAIndexY] + matches < valuesY.length;
 	}
 
-	private boolean equal(int[] valuesX, int posX, int sAIndexY, int[] saY, int[] valuesY, int matches) {
+	private boolean equal(int[] valuesX, int posX, int sAIndexY, int[] saY,
+			int[] valuesY, int matches) {
 		return valuesY[saY[sAIndexY] + matches] == valuesX[posX + matches];
 	}
 
-	private boolean morePossibleMatches(int lengthValues, int pos, int sAIndex, int[] sA, int matches) {
-		return pos + matches < lengthValues && sA[sAIndex] + matches < lengthValues;
+	private boolean morePossibleMatches(int lengthValues, int pos, int sAIndex,
+			int[] sA, int matches) {
+		return pos + matches < lengthValues
+				&& sA[sAIndex] + matches < lengthValues;
 	}
 
 	private boolean hasMoreValuesX(int lengthValuesX, int posX, int matches) {
 		return posX + matches < lengthValuesX;
 	}
 
-	private boolean hasMoreSuffixCandidates(int sAIndex, int[] sA, int[] lcp, int matches) {
+	private boolean hasMoreSuffixCandidates(int sAIndex, int[] sA, int[] lcp,
+			int matches) {
 		return sAIndex + 1 < sA.length && lcp[sAIndex + 1] >= matches;
 	}
 
-	private int findFirstMatchingSuffix(int value, int[] sA, int[] lcp, int[] values) {
+	private int findFirstMatchingSuffix(int value, int[] sA, int[] lcp,
+			int[] values) {
 		int posLeft = 0;
 		int posRight = sA.length - 1;
 

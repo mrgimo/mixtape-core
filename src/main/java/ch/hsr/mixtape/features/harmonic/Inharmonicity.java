@@ -9,7 +9,6 @@ public class Inharmonicity {
 	}
 
 	public double extract(double[] frequencySpectrum, int[] fundamentals, int[] harmonics) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

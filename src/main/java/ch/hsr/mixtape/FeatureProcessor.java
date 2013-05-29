@@ -2,6 +2,7 @@ package ch.hsr.mixtape;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -11,52 +12,78 @@ import ch.hsr.mixtape.features.FeatureExtractor;
 
 import com.google.common.collect.Lists;
 
-public class FeatureProcessor<T> {
+public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 
 	private static final int ESTIMATED_NUMBER_OF_WINDOWS = 2048;
 
 	private static final ExecutorService executor = Executors.newCachedThreadPool();
 
-	private final FeatureExtractor<T> feature;
-	private final List<List<Future<T>>> tasks;
+	private final FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor;
+
+	private final List<List<Future<FeaturesOfWindow>>> featuresOfWindows;
+	private final List<Future<FeaturesOfSong>> featuresOfSongs;
 
 	private final int numberOfSongs;
 
-	public FeatureProcessor(FeatureExtractor<T> feature, int numberOfSongs) {
-		this.feature = feature;
-		this.tasks = initTasks(numberOfSongs);
-
+	public FeatureProcessor(FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor, int numberOfSongs) {
+		this.featureExtractor = featureExtractor;
+		this.featuresOfWindows = initExtractionTasks(numberOfSongs);
+		this.featuresOfSongs = Lists.newArrayListWithCapacity(numberOfSongs);
 		this.numberOfSongs = numberOfSongs;
 	}
 
-	private List<List<Future<T>>> initTasks(int numberOfSongs) {
-		List<List<Future<T>>> tasks = Lists.newArrayListWithCapacity(numberOfSongs);
+	private List<List<Future<FeaturesOfWindow>>> initExtractionTasks(int numberOfSongs) {
+		List<List<Future<FeaturesOfWindow>>> extractionTasks = Lists.newArrayListWithCapacity(numberOfSongs);
 		for (int i = 0; i < numberOfSongs; i++)
-			tasks.add(Lists.<Future<T>> newArrayListWithExpectedSize(ESTIMATED_NUMBER_OF_WINDOWS));
+			extractionTasks.add(Lists
+					.<Future<FeaturesOfWindow>> newArrayListWithExpectedSize(ESTIMATED_NUMBER_OF_WINDOWS));
 
-		return tasks;
+		return extractionTasks;
 	}
 
 	public void process(Song song, double[] window) {
-		tasks.get(song.getId()).add(doExtract(window));
+		featuresOfWindows.get(song.getId()).add(doExtract(window));
 	}
 
-	private Future<T> doExtract(final double[] window) {
-		return executor.submit(new Callable<T>() {
+	private Future<FeaturesOfWindow> doExtract(final double[] window) {
+		return executor.submit(new Callable<FeaturesOfWindow>() {
 
-			public T call() throws Exception {
-				return feature.extract(window);
+			public FeaturesOfWindow call() throws Exception {
+				return featureExtractor.extractFrom(window);
 			}
 
 		});
 	}
 
 	public int getWindowSize() {
-		return feature.getWindowSize();
+		return featureExtractor.getWindowSize();
 	}
 
 	public int getWindowOverlap() {
-		return feature.getWindowOverlap();
+		return featureExtractor.getWindowOverlap();
+	}
+
+	public void postprocess() {
+		for (List<Future<FeaturesOfWindow>> featuresOfWindow : featuresOfWindows)
+			featuresOfSongs.add(postprocess(featuresOfWindow));
+	}
+
+	private Future<FeaturesOfSong> postprocess(final List<Future<FeaturesOfWindow>> futures) {
+		return executor.submit(new Callable<FeaturesOfSong>() {
+
+			public FeaturesOfSong call() throws Exception {
+				List<FeaturesOfWindow> featuresOfWindows = Lists.newArrayListWithCapacity(futures.size());
+				for (Future<FeaturesOfWindow> future : futures)
+					try {
+						featuresOfWindows.add(future.get());
+					} catch (InterruptedException | ExecutionException exception) {
+						continue;
+					}
+
+				return featureExtractor.postprocess(featuresOfWindows);
+			}
+
+		});
 	}
 
 	public List<List<Future<Double>>> getDistances() {
@@ -70,16 +97,20 @@ public class FeatureProcessor<T> {
 	private List<Future<Double>> getDistances(int x) {
 		List<Future<Double>> distances = Lists.newArrayListWithCapacity(x);
 		for (int y = 0; y < x; y++)
-			distances.add(distanceBetween(tasks.get(x), tasks.get(y)));
+			distances.add(distanceBetween(featuresOfSongs.get(x), featuresOfSongs.get(y)));
 
 		return distances;
 	}
 
-	private Future<Double> distanceBetween(final List<Future<T>> x, final List<Future<T>> y) {
+	private Future<Double> distanceBetween(final Future<FeaturesOfSong> x, final Future<FeaturesOfSong> y) {
 		return executor.submit(new Callable<Double>() {
 
 			public Double call() throws Exception {
-				return feature.getMetric().distanceBetween(x, y);
+				try {
+					return featureExtractor.distanceBetween(x.get(), y.get());
+				} catch (InterruptedException | ExecutionException exception) {
+					return Double.NaN;
+				}
 			}
 
 		});
