@@ -35,12 +35,12 @@ public class Mixtape {
 		this.distanceMatrices = distanceMatrices;
 	}
 
-	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> features, Collection<File> pathsToSongs)
+	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> featuresExtractors, Collection<File> pathsToSongs)
 			throws InterruptedException, ExecutionException, IOException {
 		List<File> songFiles = new FileFinder(pathsToSongs, createSongFileFilter()).find();
 		List<Song> songs = initSongs(songFiles);
 
-		List<FeatureProcessor<?, ?>> extractors = initExtractors(features, songs.size());
+		List<FeatureProcessor<?, ?>> extractors = initExtractors(featuresExtractors, songs.size());
 		for (Song song : songs)
 			new SamplePublisher(song, extractors).publish();
 
@@ -73,11 +73,11 @@ public class Mixtape {
 		return songs;
 	}
 
-	private static List<FeatureProcessor<?, ?>> initExtractors(Collection<FeatureExtractor<?, ?>> features,
+	private static List<FeatureProcessor<?, ?>> initExtractors(Collection<FeatureExtractor<?, ?>> featuresExtractors,
 			int numberOfSongs) {
-		List<FeatureProcessor<?, ?>> extractors = Lists.newArrayListWithCapacity(features.size());
-		for (FeatureExtractor<?, ?> feature : features)
-			extractors.add(new FeatureProcessor<>(feature, numberOfSongs));
+		List<FeatureProcessor<?, ?>> extractors = Lists.newArrayListWithCapacity(featuresExtractors.size());
+		for (FeatureExtractor<?, ?> featuresExtractor : featuresExtractors)
+			extractors.add(new FeatureProcessor<>(featuresExtractor, numberOfSongs));
 
 		return extractors;
 	}
