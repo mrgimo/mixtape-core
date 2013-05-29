@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.commons.math3.transform.FastFourierTransformer;
 
 import ch.hsr.mixtape.features.FeatureExtractor;
-import ch.hsr.mixtape.features.spectral.valueMapper.SpectralValueMapper;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
 import ch.hsr.mixtape.processing.MathUtils;
 
@@ -22,7 +21,7 @@ public class SpectralFeaturesExtractor implements
 	private SpectralSpread spectralSpread = new SpectralSpread();
 	private SpectralSkewness spectralSkewness = new SpectralSkewness();
 	
-	private SpectralValueMapper spectralValueMapper = new SpectralValueMapper();
+	private SpectralQuantizer spectralValueMapper = new SpectralQuantizer();
 
 	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
 	

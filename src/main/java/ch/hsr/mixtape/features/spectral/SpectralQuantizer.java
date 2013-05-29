@@ -1,11 +1,9 @@
-package ch.hsr.mixtape.features.spectral.valueMapper;
+package ch.hsr.mixtape.features.spectral;
 
 import java.util.List;
 
-import ch.hsr.mixtape.features.spectral.SpectralFeaturesOfSong;
-import ch.hsr.mixtape.features.spectral.SpectralFeaturesOfWindow;
 
-public class SpectralValueMapper {
+public class SpectralQuantizer {
 	
 	
 	public SpectralFeaturesOfSong quantize(List<SpectralFeaturesOfWindow> featuresOfWindows) {
