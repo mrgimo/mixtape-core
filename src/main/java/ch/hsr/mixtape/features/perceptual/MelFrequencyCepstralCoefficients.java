@@ -14,7 +14,7 @@ public class MelFrequencyCepstralCoefficients {
 		this.sampleRate = sampleRate;
 	}
 
-	public double[] extractFeature(double[] samples, double[] magnitudeSpectrum) throws Exception {
+	public double[] extractFeature(double[] samples, double[] magnitudeSpectrum) {
 		int[] fftBinIndices = calculateFftBinIndices(sampleRate, magnitudeSpectrum.length);
 
 		double[] melFilter = melFilter(magnitudeSpectrum, fftBinIndices);

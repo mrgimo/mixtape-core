@@ -8,45 +8,39 @@ import ch.hsr.mixtape.processing.MathUtils;
 
 public class PerceptualFeaturesExtractor implements
 		FeatureExtractor<PerceptualFeaturesOfWindow, PerceptualFeaturesOfSong> {
-	
 
 	private static final int WINDOW_SIZE = 512;
 	private static final int WINDOW_OVERLAP = 0;
 	private static final double SAMPLE_RATE = 44100;
-	
+
 	private static final int PERCEPTUAL_FEATURES_DIMENSION = 12;
-	
+
 	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
 	private PerceptualQuantizer perceptualQuantizer = new PerceptualQuantizer();
-	
-	private MelFrequencyCepstralCoefficients melFrequencyCepstralCoefficients = new MelFrequencyCepstralCoefficients(SAMPLE_RATE);
+
+	private MelFrequencyCepstralCoefficients melFrequencyCepstralCoefficients = new MelFrequencyCepstralCoefficients(
+			SAMPLE_RATE);
 
 	@Override
 	public PerceptualFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		PerceptualFeaturesOfWindow perceptualFeaturesOfWindow = new PerceptualFeaturesOfWindow();
-		
+
 		double[] magnitudeSpectrum = getMagnitudeSpectrum(windowOfSamples);
-		
-		try {
-			double[] mfccs = melFrequencyCepstralCoefficients.extractFeature(windowOfSamples, magnitudeSpectrum);
-			
-			perceptualFeaturesOfWindow.mfcc1 = mfccs[1];
-			perceptualFeaturesOfWindow.mfcc2 = mfccs[2];
-			perceptualFeaturesOfWindow.mfcc3 = mfccs[3];
-			perceptualFeaturesOfWindow.mfcc4 = mfccs[4];
-			perceptualFeaturesOfWindow.mfcc5 = mfccs[5];
-			perceptualFeaturesOfWindow.mfcc6 = mfccs[6];
-			perceptualFeaturesOfWindow.mfcc7 = mfccs[7];
-			perceptualFeaturesOfWindow.mfcc8 = mfccs[8];
-			perceptualFeaturesOfWindow.mfcc9 = mfccs[9];
-			perceptualFeaturesOfWindow.mfcc10 = mfccs[10];
-			perceptualFeaturesOfWindow.mfcc11 = mfccs[11];
-			perceptualFeaturesOfWindow.mfcc12 = mfccs[12];
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		
+		double[] mfccs = melFrequencyCepstralCoefficients.extractFeature(windowOfSamples, magnitudeSpectrum);
+
+		perceptualFeaturesOfWindow.mfcc1 = mfccs[1];
+		perceptualFeaturesOfWindow.mfcc2 = mfccs[2];
+		perceptualFeaturesOfWindow.mfcc3 = mfccs[3];
+		perceptualFeaturesOfWindow.mfcc4 = mfccs[4];
+		perceptualFeaturesOfWindow.mfcc5 = mfccs[5];
+		perceptualFeaturesOfWindow.mfcc6 = mfccs[6];
+		perceptualFeaturesOfWindow.mfcc7 = mfccs[7];
+		perceptualFeaturesOfWindow.mfcc8 = mfccs[8];
+		perceptualFeaturesOfWindow.mfcc9 = mfccs[9];
+		perceptualFeaturesOfWindow.mfcc10 = mfccs[10];
+		perceptualFeaturesOfWindow.mfcc11 = mfccs[11];
+		perceptualFeaturesOfWindow.mfcc12 = mfccs[12];
+
 		return perceptualFeaturesOfWindow;
 	}
 
@@ -57,9 +51,9 @@ public class PerceptualFeaturesExtractor implements
 
 	@Override
 	public double distanceBetween(PerceptualFeaturesOfSong x, PerceptualFeaturesOfSong y) {
-		
+
 		double[] distances = new double[PERCEPTUAL_FEATURES_DIMENSION];
-		
+
 		distances[0] = nid.distanceBetween(x.mfcc1, y.mfcc1);
 		distances[1] = nid.distanceBetween(x.mfcc2, y.mfcc2);
 		distances[2] = nid.distanceBetween(x.mfcc3, y.mfcc3);
@@ -72,7 +66,7 @@ public class PerceptualFeaturesExtractor implements
 		distances[9] = nid.distanceBetween(x.mfcc10, y.mfcc10);
 		distances[10] = nid.distanceBetween(x.mfcc11, y.mfcc11);
 		distances[11] = nid.distanceBetween(x.mfcc12, y.mfcc12);
-		
+
 		return MathUtils.vectorLength(distances);
 	}
 
