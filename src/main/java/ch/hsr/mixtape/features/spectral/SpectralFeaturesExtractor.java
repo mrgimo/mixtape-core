@@ -2,8 +2,6 @@ package ch.hsr.mixtape.features.spectral;
 
 import java.util.List;
 
-import org.apache.commons.math3.transform.FastFourierTransformer;
-
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
 import ch.hsr.mixtape.processing.MathUtils;
@@ -21,7 +19,7 @@ public class SpectralFeaturesExtractor implements
 	private SpectralSpread spectralSpread = new SpectralSpread();
 	private SpectralSkewness spectralSkewness = new SpectralSkewness();
 	
-	private SpectralQuantizer spectralValueMapper = new SpectralQuantizer();
+	private SpectralQuantizer spectralQuantizer = new SpectralQuantizer();
 
 	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
 	
@@ -57,7 +55,7 @@ public class SpectralFeaturesExtractor implements
 	@Override
 	public SpectralFeaturesOfSong postprocess(
 			List<SpectralFeaturesOfWindow> featuresOfWindows) {
-		return spectralValueMapper.quantize(featuresOfWindows);
+		return spectralQuantizer.quantize(featuresOfWindows);
 	}
 
 	@Override
