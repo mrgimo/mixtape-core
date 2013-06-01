@@ -1,6 +1,5 @@
 package ch.hsr.mixtape.features.spectral;
 
-import org.apache.commons.math3.util.FastMath;
 
 public class SpectralCentroid {
 
@@ -9,15 +8,19 @@ public class SpectralCentroid {
 		double weightedTotal = 0.0;
 
 		for (int i = 0; i < powerSpectrum.length; i++) {
-			weightedTotal += i * Math.sqrt(powerSpectrum[i] * powerSpectrum[i]);
+			weightedTotal += frequency(i, powerSpectrum.length) * powerSpectrum[i];
 			// take sqrt for better scaling with increased power
-			total += FastMath.sqrt(powerSpectrum[i] * powerSpectrum[i]);
+			total += powerSpectrum[i];
 		}
 
 		if (total != 0.0)
 			return weightedTotal / total;
 		else
 			return 0.0;
+	}
+
+	private double frequency(int i, int length) {
+		return (double)(i* 44100) / length;
 	}
 
 }

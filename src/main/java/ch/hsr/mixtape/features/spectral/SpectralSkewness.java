@@ -8,40 +8,27 @@ package ch.hsr.mixtape.features.spectral;
 
 public class SpectralSkewness {
 
-	private double[] powerSpectrum;
-	private double spectralCentroid;
-	private double spectralSpread;
 
 	public double extractFeature(double[] powerSpectrum, double spectralCentroid, double spectralSpread) {
-		this.powerSpectrum = powerSpectrum;
-		this.spectralCentroid = spectralCentroid;
-		this.spectralSpread = spectralSpread;
 
-		double avgThirdOrderMoment = summateThirdOrderMoments() / powerSpectrum.length;
-		double avgSkewness = getAvgSkewness(avgThirdOrderMoment);
-
-		return avgSkewness;
+		double avgThirdOrderDeviation = summateThirdOrderMoments(powerSpectrum, spectralCentroid) / summatePower(powerSpectrum);
+		
+		return calculateSkewness(avgThirdOrderDeviation, spectralSpread);
 	}
 
-	private double getAvgSkewness(double avgThirdOrderMoment) {
+	private double calculateSkewness(double avgThirdOrderMoment, double spectralSpread) {
 		double thirdOrderSpectralSpread = spectralSpread * spectralSpread * spectralSpread;
-		if (thirdOrderSpectralSpread != 0.0)
-			return avgThirdOrderMoment / thirdOrderSpectralSpread;
 
-		return 0.0;
+		return thirdOrderSpectralSpread != 0.0 ? avgThirdOrderMoment / thirdOrderSpectralSpread : 0.0;
 	}
 
-	private double summateThirdOrderMoments() {
-		double totalPower = summatePower(powerSpectrum);
+	private double summateThirdOrderMoments(double[] powerSpectrum, double spectralCentroid) {
 		double sum = 0.0;
 
-		if (totalPower != 0.0) {
 			for (int i = 0; i < powerSpectrum.length; i++) {
-				double centroidDeviation = i - spectralCentroid;
-				double thirdOrderMoment = (centroidDeviation * centroidDeviation * centroidDeviation)
-						* powerSpectrum[i] / totalPower;
-				sum += thirdOrderMoment;
-			}
+				double centroidDeviation = frequency(i, powerSpectrum.length) - spectralCentroid;
+				sum += (centroidDeviation * centroidDeviation * centroidDeviation)
+						* powerSpectrum[i];
 		}
 
 		return sum;
@@ -53,6 +40,10 @@ public class SpectralSkewness {
 			sum += powerSpectrum[i];
 
 		return sum;
+	}
+	
+	private double frequency(int i, int length) {
+		return (double)(i* 44100) / length;
 	}
 
 }
