@@ -1,5 +1,7 @@
 package ch.hsr.mixtape.features.spectral;
 
+import ch.hsr.mixtape.processing.MathUtils;
+
 /*
  * measure for the flatness of a distribution around its mean value
  * k = 3 -> normal distribution
@@ -13,7 +15,7 @@ public class SpectralKurtosis {
 			double spectralCentroid, double spectralSpread) {
 
 		double avgFourthOrderDeviation = summateFourthOrderMoments(
-				powerSpectrum, spectralCentroid) / summatePower(powerSpectrum);
+				powerSpectrum, spectralCentroid) / MathUtils.sum(powerSpectrum);
 
 		return calculateKurtosis(avgFourthOrderDeviation, spectralSpread);
 	}
@@ -32,7 +34,7 @@ public class SpectralKurtosis {
 		double sum = 0.0;
 
 		for (int i = 0; i < powerSpectrum.length; i++) {
-			double centroidDeviation = frequency(i, powerSpectrum.length)
+			double centroidDeviation = MathUtils.frequency(i, powerSpectrum.length)
 					- spectralCentroid;
 			double thirdOrderMoment = (centroidDeviation * centroidDeviation
 					* centroidDeviation * centroidDeviation)
@@ -44,15 +46,4 @@ public class SpectralKurtosis {
 		return sum;
 	}
 
-	private double summatePower(double[] powerSpectrum) {
-		double sum = 0.0;
-		for (int i = 0; i < powerSpectrum.length; i++)
-			sum += powerSpectrum[i];
-
-		return sum;
-	}
-
-	private double frequency(int i, int length) {
-		return (double) (i * 44100) / length;
-	}
 }

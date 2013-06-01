@@ -1,10 +1,12 @@
 package ch.hsr.mixtape.features.harmonic;
 
+import ch.hsr.mixtape.processing.MathUtils;
+
 public class Noisiness {
 
 	public double extract(int[] harmonics, double[] powerSpectrum) {
 
-		double totalEnergy = summatePower(powerSpectrum);
+		double totalEnergy = MathUtils.sum(powerSpectrum);
 		double noiseEngergy = 0.0;
 
 		for (int i = 0; i < powerSpectrum.length; i++)
@@ -20,14 +22,6 @@ public class Noisiness {
 			if (harmonics[i] == i)
 				return true;
 		return false;
-	}
-
-	private double summatePower(double[] powerSpectrum) {
-		double sum = 0.0;
-		for (int i = 0; i < powerSpectrum.length; i++)
-			sum += powerSpectrum[i];
-
-		return sum;
 	}
 
 }
