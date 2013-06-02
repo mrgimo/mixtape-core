@@ -1,5 +1,7 @@
 package ch.hsr.mixtape.features.spectral;
 
+import ch.hsr.mixtape.MathUtils;
+
 /*
  * measure for the flatness of a distribution around its mean value
  * k = 3 -> normal distribution
@@ -9,48 +11,37 @@ package ch.hsr.mixtape.features.spectral;
 
 public class SpectralKurtosis {
 
-	private double[] powerSpectrum;
-	private double spectralCentroid;
-	private double spectralSpread;
+	public double extracFeature(double[] powerSpectrum,
+			double spectralCentroid, double spectralSpread) {
 
-	public double extracFeature(double[] powerSpectrum, double spectralCentroid, double spectralSpread) {
-		this.powerSpectrum = powerSpectrum;
-		this.spectralCentroid = spectralCentroid;
-		this.spectralSpread = spectralSpread;
+		double avgFourthOrderDeviation = summateFourthOrderMoments(
+				powerSpectrum, spectralCentroid) / MathUtils.sum(powerSpectrum);
 
-		return avgKurtosis(summateFourthOrderMoments() / powerSpectrum.length);
+		return calculateKurtosis(avgFourthOrderDeviation, spectralSpread);
 	}
 
-	private double avgKurtosis(double avgFourthOrderMoment) {
-		double fourthOrderspectralSpread = (spectralSpread * spectralSpread * spectralSpread * spectralSpread);
-		if (fourthOrderspectralSpread != 0.0)
-			return avgFourthOrderMoment / fourthOrderspectralSpread;
-		else
-			return 0.0;
+	private double calculateKurtosis(double avgFourthOrderMoment,
+			double spectralSpread) {
+		double fourthOrderspectralSpread = (spectralSpread * spectralSpread
+				* spectralSpread * spectralSpread);
+
+		return fourthOrderspectralSpread != 0.0 ? avgFourthOrderMoment
+				/ fourthOrderspectralSpread : 0.0;
 	}
 
-	private double summateFourthOrderMoments() {
-		double totalPower = summatePower(powerSpectrum);
+	private double summateFourthOrderMoments(double[] powerSpectrum,
+			double spectralCentroid) {
 		double sum = 0.0;
 
-		if (totalPower != 0.0) {
-			for (int i = 0; i < powerSpectrum.length; i++) {
-				double centroidDeviation = i - spectralCentroid;
-				double thirdOrderMoment = (centroidDeviation
-						* centroidDeviation * centroidDeviation * centroidDeviation)
-						* powerSpectrum[i] / totalPower;
+		for (int i = 0; i < powerSpectrum.length; i++) {
+			double centroidDeviation = MathUtils.binToFrequency(i, 44100, powerSpectrum.length)
+					- spectralCentroid;
+			double thirdOrderMoment = (centroidDeviation * centroidDeviation
+					* centroidDeviation * centroidDeviation)
+					* powerSpectrum[i];
 
-				sum += thirdOrderMoment;
-			}
+			sum += thirdOrderMoment;
 		}
-
-		return sum;
-	}
-
-	private double summatePower(double[] powerSpectrum) {
-		double sum = 0.0;
-		for (int i = 0; i < powerSpectrum.length; i++)
-			sum += powerSpectrum[i];
 
 		return sum;
 	}

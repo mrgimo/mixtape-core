@@ -30,26 +30,25 @@ public class SpectralQuantizer {
 
 
 	private int quantizeSpread(double spectralSpread) {
-		return (int) (spectralSpread * 100 + 1);
+		return (int) (spectralSpread / 100);
 	}
 
 
 	private int quantizeSkewness(double spectralSkewness) {
-		return  (int) (spectralSkewness + 10000);
+		return  (int) (spectralSkewness / 100);
 	}
 
 
 	private int quantizeKurtosis(double spectralKurtosis) {
-		return (int) (spectralKurtosis / 1000 + 1);
+		return (int) (spectralKurtosis / 100);
 	}
 
 
 	private int quantizeCentroid(double spectralCentroid) {
-		return (int) (spectralCentroid * 10 + 1);
+		return (int) (spectralCentroid / 100);
 	}
 
 
-	//TODO: find good value
 	private int quantizeOddToEvenRatio(double spectralOddToEvenRatio) {
 		return (int) spectralOddToEvenRatio;
 	}
