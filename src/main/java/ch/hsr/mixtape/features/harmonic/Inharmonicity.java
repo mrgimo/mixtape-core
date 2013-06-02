@@ -1,43 +1,31 @@
 package ch.hsr.mixtape.features.harmonic;
 
+import static ch.hsr.mixtape.MathUtils.square;
+import static ch.hsr.mixtape.MathUtils.*;
+
 public class Inharmonicity {
 
-	private double sampleRate;
+	public double extract(double[] powerSpectrum, int binOfFundamental, int[] binsOfHarmonics) {
+		double totalEnergy = sumOfSquares(powerSpectrum);
 
-	public Inharmonicity(double sampleRate) {
-		this.sampleRate = sampleRate;
-	}
-
-	public double extract(double[] frequencySpectrum, int[] fundamentals, int[] harmonics) {
-		return 0;
-	}
-
-	public double extract(double[] powerSpectrum, double fundamentalFrequency, int[] harmonics) {
-		double totalEnergy = summateEnergy(powerSpectrum);
 		double weightedInharmony = 0.0;
-		for (int i = 0; i < harmonics.length; i++) {
-			weightedInharmony += frequencyDeviation(fundamentalFrequency, harmonics[i], powerSpectrum.length)
-					* powerSpectrum[harmonics[i]]
-					* powerSpectrum[harmonics[i]];
+		for (int i = 0; i < binsOfHarmonics.length; i++) {
+			int binOfHarmonic = binsOfHarmonics[i];
+			int deviationInBins = deviationInBins(binOfFundamental, binOfHarmonic);
+
+			weightedInharmony += deviationInBins * square(powerSpectrum[binOfHarmonic]);
 		}
 
 		// TODO: formula says 2 * weightedInharmony, why? :)?
-		return totalEnergy != 0.0 ? (2 * weightedInharmony) / (fundamentalFrequency * totalEnergy) : 0;
+		return totalEnergy != 0.0 ? (2 * weightedInharmony) / (binOfFundamental * totalEnergy) : 0;
 	}
 
-	private double frequencyDeviation(double fundamentalFrequency, int indexOfHarmonic, int lengthOfPowerSpectrum) {
-		double frequencyMulitplicator = sampleRate / lengthOfPowerSpectrum;
-		double deviation = indexOfHarmonic * frequencyMulitplicator - indexOfHarmonic * fundamentalFrequency;
-
-		return Math.sqrt(deviation * deviation);
-	}
-
-	private double summateEnergy(double[] powerSpectrum) {
-		double sum = 0.0;
-		for (int i = 0; i < powerSpectrum.length; i++)
-			sum += powerSpectrum[i] * powerSpectrum[i];
-
-		return sum;
+	private int deviationInBins(int binOfFundamental, int binOfHarmonic) {
+		int mod = binOfHarmonic % binOfFundamental;
+		if (mod > binOfFundamental / 2)
+			return mod - binOfFundamental / 2;
+		else
+			return mod;
 	}
 
 }

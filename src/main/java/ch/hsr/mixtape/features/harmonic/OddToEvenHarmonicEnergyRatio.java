@@ -1,20 +1,19 @@
 package ch.hsr.mixtape.features.harmonic;
 
+import static ch.hsr.mixtape.MathUtils.square;
+
 public class OddToEvenHarmonicEnergyRatio {
 
 	public double extract(double[] powerSpectrum, int[] harmonics) {
-		double sumEven = 0.0;
-		double sumOdd = 0.0;
+		double sumOfEvenHarmonics = 0.0;
+		double sumOfOddHarmonics = 0.0;
 
-		for (int i = 0; i < harmonics.length; i++) {
-			int frequency = harmonics[i];
-			if (frequency % 2 == 0)
-				sumEven += powerSpectrum[frequency] * powerSpectrum[frequency];
-			else
-				sumOdd += powerSpectrum[frequency] * powerSpectrum[frequency];
+		for (int i = 0; i < harmonics.length - 1; i += 2) {
+			sumOfEvenHarmonics += square(powerSpectrum[harmonics[i]]);
+			sumOfEvenHarmonics += square(powerSpectrum[harmonics[i + 1]]);
 		}
 
-		return sumEven != 0.0 ? sumOdd / sumEven : 0;
+		return sumOfEvenHarmonics != 0.0 ? sumOfOddHarmonics / sumOfEvenHarmonics : 0;
 	}
 
 }

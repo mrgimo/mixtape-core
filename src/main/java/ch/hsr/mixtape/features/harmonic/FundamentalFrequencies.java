@@ -1,54 +1,39 @@
 package ch.hsr.mixtape.features.harmonic;
 
-import static java.lang.Math.PI;
-import static java.lang.Math.cos;
-
-import java.math.RoundingMode;
 import java.util.Arrays;
 
-import org.apache.commons.math3.complex.Complex;
-import org.apache.commons.math3.transform.DftNormalization;
-import org.apache.commons.math3.transform.FastFourierTransformer;
-import org.apache.commons.math3.transform.TransformType;
 import org.apache.commons.math3.util.FastMath;
 
-import com.google.common.math.DoubleMath;
+import ch.hsr.mixtape.MathUtils;
 
 public class FundamentalFrequencies {
 
 	private static final int PEAK_BANDWIDTH_IN_BINS = 16;
-
-	private double sampleRate;
 
 	private int windowSize;
 	private int spectrumSize;
 
 	private double[][] candidates;
 
-	private double[] gaussianFunction;
-	private double[] hannWindow;
-
-	public FundamentalFrequencies(double sampleRate, int windowSize) {
-		this.sampleRate = sampleRate;
+	public FundamentalFrequencies(int windowSize) {
 		this.windowSize = windowSize;
-		spectrumSize = windowSize / 2;
+		spectrumSize = MathUtils.spectrumSize(windowSize);
 
-		gaussianFunction = initGaussianFunction();
 		candidates = initCandidates();
-		hannWindow = initHannWindow();
 	}
 
 	private double[][] initCandidates() {
+		double[] gaussianFunction = gaussianFunction();
+
 		double[][] candidates = new double[88][spectrumSize];
 		for (int key = 0; key < candidates.length; key++)
-			candidates[key] = fundamental(frequencyToBin(pianoKeyToFrequency(key)));
+			candidates[key] = fundamental(pianoKeyToBin(key), gaussianFunction);
 
 		return candidates;
 	}
 
-	private int frequencyToBin(double frequency) {
-		return DoubleMath.roundToInt(frequency * windowSize / sampleRate,
-				RoundingMode.HALF_UP);
+	private int pianoKeyToBin(double key) {
+		return MathUtils.frequencyToBin(pianoKeyToFrequency(key), 44100, windowSize);
 	}
 
 	private double pianoKeyToFrequency(double key) {
@@ -58,7 +43,7 @@ public class FundamentalFrequencies {
 		return Math.pow(2, (key - 48.0) / 12.0) * 440;
 	}
 
-	private double[] fundamental(int bin) {
+	private double[] fundamental(int bin, double[] gaussianFunction) {
 		double[] fundamental = new double[spectrumSize];
 
 		int length;
@@ -77,15 +62,15 @@ public class FundamentalFrequencies {
 
 		while (destinationBegin < spectrumSize) {
 			int rest = spectrumSize - destinationBegin;
-			System.arraycopy(gaussianFunction, sourceBegin, fundamental, destinationBegin,
-					rest < length ? rest : length);
+			System.arraycopy(gaussianFunction, sourceBegin, fundamental, destinationBegin, rest < length ? rest
+					: length);
 			destinationBegin += bin;
 		}
 
 		return fundamental;
 	}
 
-	private double[] initGaussianFunction() {
+	private double[] gaussianFunction() {
 		double[] gaussian = new double[PEAK_BANDWIDTH_IN_BINS];
 
 		double sigma = PEAK_BANDWIDTH_IN_BINS * 0.125;
@@ -94,23 +79,12 @@ public class FundamentalFrequencies {
 
 		int middle = (int) halfBandwith;
 		for (int x = 0; x < halfBandwith; x++)
-			gaussian[middle - x] = gaussian[middle + x] = FastMath.exp(x * x
-					* factor);
+			gaussian[middle - x] = gaussian[middle + x] = FastMath.exp(x * x * factor);
 
 		return gaussian;
 	}
 
-	private double[] initHannWindow() {
-		double[] hannWindow = new double[windowSize];
-		for (int i = 0; i < windowSize; i++)
-			hannWindow[i] = 0.5 * (1 - cos((2 * PI * i) / (windowSize - 1)));
-
-		return hannWindow;
-	}
-
-	public int[] extract(double[] window) {
-		double[] frequencySpectrum = frequencySpectrum(window);
-
+	public int[] extract(double[] frequencySpectrum) {
 		int[] fundamentals = new int[88];
 		int numberOfFundamentals = 0;
 
@@ -125,7 +99,7 @@ public class FundamentalFrequencies {
 						frequencySpectrum);
 
 			int argMax = argMax(fitnesses);
-			fundamentals[numberOfFundamentals++] = argMax;
+			fundamentals[numberOfFundamentals++] = pianoKeyToBin(argMax);
 
 			fitness += fitnesses[argMax];
 			fitnessGain = fitnesses[argMax];
@@ -143,31 +117,6 @@ public class FundamentalFrequencies {
 				argMax = i;
 
 		return argMax;
-	}
-
-	private double[] frequencySpectrum(double[] samples) {
-		return fftToFrequencySpectrum(fft(hannWindow(samples)));
-	}
-
-	public static Complex[] fft(double... f) {
-		return new FastFourierTransformer(DftNormalization.STANDARD).transform(
-				f, TransformType.FORWARD);
-	}
-
-	private double[] fftToFrequencySpectrum(Complex[] fft) {
-		double[] frequencySpectrum = new double[spectrumSize];
-		for (int i = 0; i < spectrumSize; i++)
-			frequencySpectrum[i] = fft[i].abs();
-
-		return frequencySpectrum;
-	}
-
-	private double[] hannWindow(double[] samples) {
-		double[] window = new double[windowSize];
-		for (int i = 0; i < windowSize; i++)
-			window[i] = samples[i] * hannWindow[i];
-
-		return window;
 	}
 
 	private double[] eachMax(double[] a, double[] b) {

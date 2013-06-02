@@ -2,9 +2,9 @@ package ch.hsr.mixtape.features.perceptual;
 
 import java.util.List;
 
+import ch.hsr.mixtape.MathUtils;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
-import ch.hsr.mixtape.processing.MathUtils;
 
 public class PerceptualFeaturesExtractor implements
 		FeatureExtractor<PerceptualFeaturesOfWindow, PerceptualFeaturesOfSong> {
@@ -25,7 +25,7 @@ public class PerceptualFeaturesExtractor implements
 	public PerceptualFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		PerceptualFeaturesOfWindow perceptualFeaturesOfWindow = new PerceptualFeaturesOfWindow();
 
-		double[] magnitudeSpectrum = getMagnitudeSpectrum(windowOfSamples);
+		double[] magnitudeSpectrum = MathUtils.frequencySpectrum(windowOfSamples);
 		double[] mfccs = melFrequencyCepstralCoefficients.extractFeature(windowOfSamples, magnitudeSpectrum);
 
 		perceptualFeaturesOfWindow.mfcc1 = mfccs[1];
@@ -78,10 +78,6 @@ public class PerceptualFeaturesExtractor implements
 	@Override
 	public int getWindowOverlap() {
 		return WINDOW_OVERLAP;
-	}
-
-	private double[] getMagnitudeSpectrum(double[] windowOfSamples) {
-		return MathUtils.fft(windowOfSamples);
 	}
 
 }

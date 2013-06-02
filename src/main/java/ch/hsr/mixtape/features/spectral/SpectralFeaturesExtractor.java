@@ -2,9 +2,9 @@ package ch.hsr.mixtape.features.spectral;
 
 import java.util.List;
 
+import ch.hsr.mixtape.MathUtils;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
-import ch.hsr.mixtape.processing.MathUtils;
 
 public class SpectralFeaturesExtractor implements
 		FeatureExtractor<SpectralFeaturesOfWindow, SpectralFeaturesOfSong> {
@@ -18,11 +18,11 @@ public class SpectralFeaturesExtractor implements
 	private SpectralOddToEvenRatio spectralOddToEvenRatio = new SpectralOddToEvenRatio();
 	private SpectralSpread spectralSpread = new SpectralSpread();
 	private SpectralSkewness spectralSkewness = new SpectralSkewness();
-	
+
 	private SpectralQuantizer spectralQuantizer = new SpectralQuantizer();
 
 	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
-	
+
 	@Override
 	public SpectralFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		SpectralFeaturesOfWindow spectralFeaturesOfWindows = new SpectralFeaturesOfWindow();
@@ -62,13 +62,13 @@ public class SpectralFeaturesExtractor implements
 	public double distanceBetween(SpectralFeaturesOfSong x,
 			SpectralFeaturesOfSong y) {
 		double[] spectralDistances = new double[SPECTRAL_FEATURES_DIMENSION];
-		
+
 		spectralDistances[0] = nid.distanceBetween(x.spectralCentroid, y.spectralCentroid);
 		spectralDistances[1] = nid.distanceBetween(x.spectralKurtosis, y.spectralKurtosis);
 		spectralDistances[2] = nid.distanceBetween(x.spectralOddToEvenRatio, y.spectralOddToEvenRatio);
 		spectralDistances[3] = nid.distanceBetween(x.spectralSkewness, y.spectralSkewness);
 		spectralDistances[4] = nid.distanceBetween(x.spectralSpread, y.spectralSpread);
-		
+
 		return MathUtils.vectorLength(spectralDistances);
 	}
 
@@ -83,8 +83,7 @@ public class SpectralFeaturesExtractor implements
 	}
 
 	private double[] getPowerSpectrum(double[] samples) {
-		double[] fft = MathUtils.fft(samples);
-		return MathUtils.multiply(fft, fft);
+		return MathUtils.square(MathUtils.frequencySpectrum(samples));
 	}
 
 }
