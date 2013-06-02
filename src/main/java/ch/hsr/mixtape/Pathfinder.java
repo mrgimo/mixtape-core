@@ -12,8 +12,10 @@ public class Pathfinder {
 		sortByFirstSong(chosenSongs);
 		List<Song> playList = new ArrayList<Song>();
 
-		if (chosenSongs.size() > 0)
+		if (chosenSongs.size() > 1)
 			playList.add(chosenSongs.get(0));
+		else
+			System.out.println("ATM u need atleast 2 chosen songz, gimme more songs!");
 
 		for (int i = 1; i < chosenSongs.size(); i++) {
 			extendPlaylist(mixtape, playList, chosenSongs.get(i), availableSongs, weighting);
