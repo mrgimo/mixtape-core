@@ -36,7 +36,6 @@ public class Pathfinder {
 							mixtape, weighting));
 	}
 
-	
 	// TODO: possible to remove songs in playlist from available songs ? -> get
 	// rid of playlist.contains(songToadd)
 
@@ -121,7 +120,10 @@ public class Pathfinder {
 				return -1;
 
 			if (distanceXtoFirst == distanceYtoFirst)
-				return x.getId() < y.getId() ? -1 : 1;
+				if (x.getId() == y.getId())
+					return 0;
+				else
+					return x.getId() < y.getId() ? -1 : 1;
 
 			else
 				return 1;
