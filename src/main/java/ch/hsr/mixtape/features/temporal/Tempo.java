@@ -38,11 +38,6 @@ public class Tempo {
 	BeatTracking beatTracking;
 
 	/**
-	 * Spectral frame, index 0 represents the phase and index 1 the norm.
-	 */
-	double[][] fftgrain;
-
-	/**
 	 * Onset detection function value.
 	 */
 	double[] onsetFunctionValue;
@@ -123,7 +118,6 @@ public class Tempo {
 		step = windowLength / 4;
 		this.hopSize = hopSize;
 		dfframe = new double[windowLength];
-		fftgrain = new double[2][bufferSize];
 		out = new double[step];
 		phaseVocoder = new PhaseVocoder(bufferSize, hopSize);
 		peakPicker = new PeakPicker();
@@ -141,10 +135,9 @@ public class Tempo {
 	 * <b>Methodname in aubio:</b> aubio_tempo_do
 	 * </p>
 	 */
-	public double[] extractTempo(double[] input) {
+	public double[] extractTempo(boolean silent, double[][] fftgrain) {
 		double[] output = new double[2];
 		double[] thresholded;
-		fftgrain = phaseVocoder.computeSpectralFrame(input);
 		onsetFunctionValue = onsetDetection.call(fftgrain);
 		/* execute every overlap_size*step */
 		if (blockPos == step - 1) {
@@ -170,9 +163,8 @@ public class Tempo {
 				/* set tactus */
 				output[0] = out[i] - Math.floor(out[i]);
 				/* test for silence */
-				if (!detectSilence(input, silence))
-					lastBeat = totalFrames
-							+ (int) Math.floor(output[0] * hopSize + 0.5);
+				if (!silent)
+					lastBeat = totalFrames + (int) Math.floor(output[0] * hopSize + 0.5);
 			}
 		}
 		totalFrames += hopSize;
