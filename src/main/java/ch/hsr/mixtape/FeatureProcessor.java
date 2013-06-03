@@ -57,8 +57,7 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 	}
 
 	public void postprocess(Song song) {
-		Collection<Future<FeaturesOfWindow>> futures = featuresOfWindows.get(song);
-
+		Collection<Future<FeaturesOfWindow>> futures = Lists.newArrayList(featuresOfWindows.get(song));
 		featuresOfWindows.removeAll(song);
 		featuresOfSongs.put(song, postprocess(futures));
 	}
