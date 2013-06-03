@@ -30,27 +30,32 @@ public class SpectralQuantizer {
 
 
 	private int quantizeSpread(double spectralSpread) {
-		return (int) (spectralSpread / 100);
+//		System.out.println("spread: " + ( (spectralSpread / 100 + 1)));
+		return (int) (spectralSpread / 100) + 1;
 	}
 
 
 	private int quantizeSkewness(double spectralSkewness) {
-		return  (int) (spectralSkewness / 100);
+//		System.out.println("skewness " + ( (spectralSkewness * 10 + 1)));
+		return  (int) (spectralSkewness * 10) + 100;
 	}
 
 
 	private int quantizeKurtosis(double spectralKurtosis) {
-		return (int) (spectralKurtosis / 100);
+//		System.out.println("kurtosis: " + ( (spectralKurtosis * 10)));
+		return (int) (spectralKurtosis * 10) + 1;
 	}
 
 
 	private int quantizeCentroid(double spectralCentroid) {
-		return (int) (spectralCentroid / 100);
+//		System.out.println("centroid: " + ( (spectralCentroid / 100)));
+		return (int) (spectralCentroid / 100) + 1;
 	}
 
 
 	private int quantizeOddToEvenRatio(double spectralOddToEvenRatio) {
-		return (int) spectralOddToEvenRatio;
+//		System.out.println("odd to even: " + ( (spectralOddToEvenRatio * 100 + 1)));
+		return (int) spectralOddToEvenRatio * 100 + 1;
 	}
 	
 

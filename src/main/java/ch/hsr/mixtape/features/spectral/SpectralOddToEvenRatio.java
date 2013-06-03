@@ -12,7 +12,8 @@ public class SpectralOddToEvenRatio {
 			else
 				sumOddFrequencies += powerSpectrum[i] * powerSpectrum[i];
 
-		return sumOddFrequencies / sumEvenFrequencies;
+		//TODO: what to return if evenFrequency is 0 ? infinite?
+		return sumEvenFrequencies != 0.0 ? sumOddFrequencies / sumEvenFrequencies : sumOddFrequencies;
 	}
 
 }

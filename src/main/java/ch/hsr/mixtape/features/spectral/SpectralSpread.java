@@ -17,7 +17,7 @@ public class SpectralSpread {
 			}
 		}
 
-		return FastMath.sqrt(totalSpread / totalPower);
+		return totalPower != 0.0 ? FastMath.sqrt(totalSpread / totalPower) : 0;
 	}
 
 }

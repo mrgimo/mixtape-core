@@ -45,7 +45,7 @@ public class PerceptualQuantizer {
 	}
 
 	private int quantizeMfcc(double mfcc) {
-		return (int) ((mfcc + 100) * 10);
+		return (int) ((mfcc + 100) * 10 + 1);
 	}
 	
 	

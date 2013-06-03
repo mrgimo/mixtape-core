@@ -13,8 +13,9 @@ public class SpectralSkewness {
 	public double extractFeature(double[] powerSpectrum,
 			double spectralCentroid, double spectralSpread) {
 
-		double avgThirdOrderDeviation = summateThirdOrderMoments(powerSpectrum,
-				spectralCentroid) / MathUtils.sum(powerSpectrum);
+		double totalPower = MathUtils.sum(powerSpectrum);
+		double avgThirdOrderDeviation = totalPower != 0.0 ? summateThirdOrderMoments(powerSpectrum,
+				spectralCentroid) / totalPower : 0;
 
 		return calculateSkewness(avgThirdOrderDeviation, spectralSpread);
 	}

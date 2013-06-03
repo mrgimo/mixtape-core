@@ -116,7 +116,8 @@ public class Mixtape {
 
 	public double distanceBetween(Song songX, Song songY) {
 		double[] weighting = new double[distances.size()];
-		fill(weighting, 1);
+//		fill(weighting, 1);
+		weighting[0] = 1;
 
 		return distanceBetween(songX, songY, weighting);
 	}
@@ -135,10 +136,10 @@ public class Mixtape {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
 		List<FeatureExtractor<?, ?>> featureExtractors = Arrays.asList(
-				new HarmonicFeaturesExtractor(),
+//				new HarmonicFeaturesExtractor(),
 				new SpectralFeaturesExtractor(),
-				new PerceptualFeaturesExtractor(),
-				new TemporalFeaturesExtractor());
+				new PerceptualFeaturesExtractor());
+//				new TemporalFeaturesExtractor());
 
 		List<File> files = Arrays.asList(new File("songs"));
 

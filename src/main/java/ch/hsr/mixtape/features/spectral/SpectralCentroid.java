@@ -15,7 +15,7 @@ public class SpectralCentroid {
 			total += powerSpectrum[i];
 		}
 
-		return total != 0 ? weightedTotal / total : 0.0;
+		return total != 0.0 ? weightedTotal / total : 0.0;
 	}
 
 }
