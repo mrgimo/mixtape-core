@@ -42,10 +42,13 @@ public class Pathfinder {
 	public void extendPlaylist(Mixtape mixtape, List<Song> playList,
 			Song addedSong, List<Song> availableSongs, double[] weighting) {
 
-		Song lastSongInPlaylist = playList.get(playList.size() - 1);
+		Song firstSongInPlaylist = playList.get(playList.size() - 1);
+		Song lastSongInPlaylist = firstSongInPlaylist;
 
-		double currentDistanceToAddedSong = mixtape.distanceBetween(
+		double distanceFirstToAddedSong = mixtape.distanceBetween(
 				lastSongInPlaylist, addedSong, weighting);
+
+		double currentDistanceToAddedSong = distanceFirstToAddedSong;
 
 		boolean closerSongFound = false;
 
@@ -59,10 +62,15 @@ public class Pathfinder {
 				double distanceToLastSong = mixtape.distanceBetween(song,
 						lastSongInPlaylist, weighting);
 
+				double distanceFirstToCurrentSong = mixtape.distanceBetween(
+						firstSongInPlaylist, song, weighting);
+
 				if (!playList.contains(song)
-						&& isCloserSong(distanceToAddedSong,
+						&& isMoreSuitable(distanceToAddedSong,
 								currentDistanceToAddedSong, distanceToLastSong,
-								currentDistanceToLastSong)) {
+								currentDistanceToLastSong,
+								distanceFirstToAddedSong,
+								distanceFirstToCurrentSong)) {
 
 					lastSongInPlaylist = song;
 					currentDistanceToAddedSong = distanceToAddedSong;
@@ -87,12 +95,14 @@ public class Pathfinder {
 		return currentDistanceToLastSong != Double.POSITIVE_INFINITY;
 	}
 
-	private boolean isCloserSong(double distanceToAddedSong,
+	private boolean isMoreSuitable(double distanceToAddedSong,
 			double currentDistanceToAddedSong, double distanceToLastSong,
-			double currentDistanceToLastSong) {
+			double currentDistanceToLastSong, double distanceFirstToAddedSong,
+			double distanceFirstToCurrentSong) {
 
 		return distanceToAddedSong < currentDistanceToAddedSong
-				&& distanceToLastSong < currentDistanceToLastSong;
+				&& distanceToLastSong < currentDistanceToLastSong
+				&& distanceFirstToCurrentSong < distanceFirstToAddedSong;
 	}
 
 	private class SortByFirstSong implements Comparator<Song> {
