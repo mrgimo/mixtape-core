@@ -1,5 +1,8 @@
 package ch.hsr.mixtape;
 
+import static ch.hsr.mixtape.MathUtils.square;
+import static java.util.Arrays.fill;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -7,7 +10,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -19,8 +23,7 @@ import ch.hsr.mixtape.features.spectral.SpectralFeaturesExtractor;
 import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
 
 import com.google.common.collect.Lists;
-
-import static java.util.Arrays.*;
+import com.google.common.collect.Table;
 
 public class Mixtape {
 
@@ -28,26 +31,39 @@ public class Mixtape {
 			".mp3"
 	};
 
+	private static final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime()
+			.availableProcessors());
+
 	private final List<Song> songs;
 
-	private final double[][][] distanceMatrices;
+	private final List<Table<Song, Song, Double>> distances;
 
-	private Mixtape(List<Song> songs, double[][][] distanceMatrices) {
+	private Mixtape(List<Song> songs, List<Table<Song, Song, Double>> distances) {
 		this.songs = songs;
-		this.distanceMatrices = distanceMatrices;
+		this.distances = distances;
 	}
 
 	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> featuresExtractors,
 			Collection<File> pathsToSongs)
 			throws InterruptedException, ExecutionException, IOException {
 		List<File> songFiles = new FileFinder(pathsToSongs, createSongFileFilter()).find();
+		System.out.println("Processing " + songFiles.size() + " songs.");
 		List<Song> songs = initSongs(songFiles);
 
-		List<FeatureProcessor<?, ?>> extractors = initExtractors(featuresExtractors, songs.size());
-		for (Song song : songs)
-			new SamplePublisher(song, extractors).publish();
+		List<FeatureProcessor<?, ?>> processors = initExtractors(featuresExtractors, songs.size());
+		for (Song song : songs) {
+			System.out.println("Processing song '" + song.getFilePath() + "'.");
 
-		return new Mixtape(songs, getDistanceMatrices(extractors));
+			new SamplePublisher(song, processors).publish();
+			for (FeatureProcessor<?, ?> processor : processors)
+				processor.postprocess(song);
+
+			System.out.println("before gc " + Runtime.getRuntime().freeMemory());
+			Runtime.getRuntime().gc();
+			System.out.println("after gc " + Runtime.getRuntime().freeMemory());
+		}
+
+		return new Mixtape(songs, getDistances(processors, songs));
 	}
 
 	private static FileFilter createSongFileFilter() {
@@ -80,70 +96,35 @@ public class Mixtape {
 			int numberOfSongs) {
 		List<FeatureProcessor<?, ?>> extractors = Lists.newArrayListWithCapacity(featuresExtractors.size());
 		for (FeatureExtractor<?, ?> featuresExtractor : featuresExtractors)
-			extractors.add(new FeatureProcessor<>(featuresExtractor, numberOfSongs));
+			extractors.add(new FeatureProcessor<>(featuresExtractor, executor));
 
 		return extractors;
 	}
 
-	private static double[][][] getDistanceMatrices(List<FeatureProcessor<?, ?>> featureProcessors) {
-		double[][][] distanceMatrix = new double[featureProcessors.size()][][];
-		for (int i = 0; i < featureProcessors.size(); i++) {
-			FeatureProcessor<?, ?> featureProcessor = featureProcessors.get(i);
-			featureProcessor.postprocess();
+	private static List<Table<Song, Song, Double>> getDistances(List<FeatureProcessor<?, ?>> featureProcessors,
+			Collection<Song> songs) {
+		System.out.println("Calculating distances.");
+		List<Table<Song, Song, Double>> distances = Lists.newArrayList();
 
-			distanceMatrix[i] = getDistanceMatrix(featureProcessor.getDistances());
+		for (FeatureProcessor<?, ?> featureProcessor : featureProcessors) {
+			distances.add(featureProcessor.getDistances(songs));
+			Runtime.getRuntime().gc();
 		}
-
-		return distanceMatrix;
-	}
-
-	private static double[][] getDistanceMatrix(List<List<Future<Double>>> distances) {
-		double[][] distanceMatrix = new double[distances.size()][];
-		for (int x = 0; x < distances.size(); x++)
-			distanceMatrix[x] = getDistanceVector(distances.get(x));
-
-		return distanceMatrix;
-	}
-
-	private static double[] getDistanceVector(List<Future<Double>> distances) {
-		double[] distanceVector = new double[distances.size()];
-		for (int y = 0; y < distances.size(); y++)
-			distanceVector[y] = tryGet(distances.get(y));
-
-		return distanceVector;
-	}
-
-	private static Double tryGet(Future<Double> future) {
-		try {
-			return future.get();
-		} catch (InterruptedException | ExecutionException exception) {
-			return Double.NaN;
-		}
+		
+		return distances;
 	}
 
 	public double distanceBetween(Song songX, Song songY) {
-		double[] weighting = new double[distanceMatrices.length];
+		double[] weighting = new double[distances.size()];
 		fill(weighting, 1);
 
 		return distanceBetween(songX, songY, weighting);
 	}
 
 	public double distanceBetween(Song songX, Song songY, double[] weighting) {
-		int x = songX.getId();
-		int y = songY.getId();
-
-		if (x > y)
-			return distanceBetween(x, y, weighting);
-		else if (x < y)
-			return distanceBetween(y, x, weighting);
-		else
-			return 0;
-	}
-
-	private double distanceBetween(int x, int y, double[] weighting) {
 		double distance = 0;
-		for (int i = 0; i < distanceMatrices.length; i++)
-			distance += distanceMatrices[i][x][y] * distanceMatrices[i][x][y] * weighting[i];
+		for (int i = 0; i < distances.size(); i++)
+			distance += square(distances.get(i).get(songX, songY)) * weighting[i];
 
 		return FastMath.sqrt(distance);
 	}
@@ -168,19 +149,12 @@ public class Mixtape {
 		System.out.println("Finished in " + (System.currentTimeMillis() - start) * 0.001 + " seconds.");
 		System.out.println();
 
-		List<Song> songs = mixtape.getSongs();
-
-		for (Song songX : songs) {
-			for (Song songY : songs) {
-				String x = new File(songX.getFilePath()).getName();
-				String y = new File(songY.getFilePath()).getName();
-
-				double distance = mixtape.distanceBetween(songX, songY);
-
-				System.out.println("Distance between '" + x + "' and '" + y + "' is '" + distance + "'.");
+		for (Song songX : mixtape.getSongs()) {
+			for (Song songY : mixtape.getSongs()) {
+				System.out.println(songX.getFilePath() + " to " + songY.getFilePath() + " = "
+						+ mixtape.distanceBetween(songX, songY));
 			}
 			System.out.println();
 		}
 	}
-
 }

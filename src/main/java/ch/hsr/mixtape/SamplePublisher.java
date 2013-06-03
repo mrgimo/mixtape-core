@@ -16,8 +16,6 @@ import com.google.common.primitives.Ints;
 
 public class SamplePublisher {
 
-	private final static int MIN_SAMPLE_BUFFER_SIZE = 8192;
-
 	private final Song song;
 	private final List<FeatureProcessor<?, ?>> subscribers;
 
@@ -33,7 +31,7 @@ public class SamplePublisher {
 		this.song = song;
 		this.subscribers = subscribers;
 
-		sampleBuffer = new double[max(MIN_SAMPLE_BUFFER_SIZE, getMaxWindowSize(subscribers))];
+		sampleBuffer = new double[getMaxWindowSize(subscribers)];
 
 		writePosition = 0;
 		readPositions = new int[subscribers.size()];

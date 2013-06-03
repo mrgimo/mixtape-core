@@ -10,6 +10,9 @@ public class NormalizedInformationDistance {
 	private LongestCommonPrefixBuilder lcpBuilder = new LongestCommonPrefixBuilder();
 
 	public double distanceBetween(int[] x, int[] y) {
+		if(x.length == 0 || y.length == 0)
+			return 1;
+		
 		int maxValueX = Ints.max(x);
 		int maxValueY = Ints.max(y);
 
