@@ -102,13 +102,13 @@ public class PhaseVocoder {
 	 */
 	public double[][] computeSpectralFrame(double[] in) {
 		/* slide */
-		swapBuffers(data, dataold, in, windowSize, hopSize);
+		//swapBuffers(data, dataold, in, windowSize, hopSize);
 		/* windowing */
-		DoubleArrayUtils.weight(data, w);
+		DoubleArrayUtils.weight(in, w);
 		/* shift */
-		DoubleArrayUtils.shift(data);
+		DoubleArrayUtils.shift(in);
 		/* calculate fft */
-		return fft.forward(data);
+		return fft.forward(in);
 	}
 
 	/**
@@ -203,12 +203,9 @@ public class PhaseVocoder {
 	 */
 	public static void swapBuffers(double[] data, double[] dataold,
 			double[] datanew, int windowSize, int hopSize) {
-		for (int i = 0; i < windowSize - hopSize; i++)
-			data[i] = dataold[i];
-		for (int i = 0; i < hopSize; i++)
-			data[windowSize - hopSize + i] = datanew[i];
-		for (int i = 0; i < windowSize - hopSize; i++)
-			dataold[i] = data[i + hopSize];
+		System.arraycopy(dataold, 0, data, 0, windowSize - hopSize);
+		System.arraycopy(datanew, 0, data, windowSize - hopSize, hopSize);
+		System.arraycopy(data, hopSize, dataold, 0, windowSize-hopSize);
 	}
 
 }
