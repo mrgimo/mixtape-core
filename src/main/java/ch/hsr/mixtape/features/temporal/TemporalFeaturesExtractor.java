@@ -36,7 +36,7 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 
 	private static final double SILENCE = -90.0;
 
-	private PhaseVocoder phaseVocoder;
+	private PhaseVocoder phaseVocoder = new PhaseVocoder(WINDOW_SIZE, WINDOW_SIZE - WINDOW_OVERLAP);
 
 	public TemporalFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		TemporalFeaturesOfWindow temporalFeaturesOfWindow = new TemporalFeaturesOfWindow();
@@ -56,10 +56,11 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 	}
 
 	public TemporalFeaturesOfSong postprocess(List<TemporalFeaturesOfWindow> featuresOfWindows) {
-		double[][] bpms = new double[0][0];
-		double[][] confidences = new double[0][0];
-
 		Tempo[] tempos = initTempos();
+
+		double[][] bpms = new double[tempos.length][featuresOfWindows.size()];
+		double[][] confidences = new double[tempos.length][featuresOfWindows.size()];
+
 		for (int i = 0; i < tempos.length; i++) {
 			Tempo tempo = tempos[i];
 			for (int j = 0; j < featuresOfWindows.size(); j++) {
