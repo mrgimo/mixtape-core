@@ -65,7 +65,7 @@ public class SamplePublisher {
 	}
 
 	private boolean readSamples() throws IOException {
-		if (channel.read(byteBuffer) != -1)
+		if (channel.read(byteBuffer) == -1)
 			return false;
 
 		byteBuffer.flip();

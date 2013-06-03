@@ -20,6 +20,8 @@ import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
 
 import com.google.common.collect.Lists;
 
+import static java.util.Arrays.*;
+
 public class Mixtape {
 
 	private static final String[] ALLOWED_SUFFIXES = {
@@ -35,7 +37,8 @@ public class Mixtape {
 		this.distanceMatrices = distanceMatrices;
 	}
 
-	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> featuresExtractors, Collection<File> pathsToSongs)
+	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> featuresExtractors,
+			Collection<File> pathsToSongs)
 			throws InterruptedException, ExecutionException, IOException {
 		List<File> songFiles = new FileFinder(pathsToSongs, createSongFileFilter()).find();
 		List<Song> songs = initSongs(songFiles);
@@ -118,6 +121,13 @@ public class Mixtape {
 		}
 	}
 
+	public double distanceBetween(Song songX, Song songY) {
+		double[] weighting = new double[distanceMatrices.length];
+		fill(weighting, 1);
+
+		return distanceBetween(songX, songY, weighting);
+	}
+
 	public double distanceBetween(Song songX, Song songY, double[] weighting) {
 		int x = songX.getId();
 		int y = songY.getId();
@@ -151,25 +161,26 @@ public class Mixtape {
 
 		List<File> files = Arrays.asList(new File("songs"));
 
+		long start = System.currentTimeMillis();
+
+		System.out.println("Loading songs...");
 		Mixtape mixtape = Mixtape.loadSongs(featureExtractors, files);
+		System.out.println("Finished in " + (System.currentTimeMillis() - start) * 0.001 + " seconds.");
+		System.out.println();
 
 		List<Song> songs = mixtape.getSongs();
 
-		Song songX = songs.get(4);
-		Song songY = songs.get(2);
+		for (Song songX : songs) {
+			for (Song songY : songs) {
+				String x = new File(songX.getFilePath()).getName();
+				String y = new File(songY.getFilePath()).getName();
 
-		double[] weighting = new double[] {
-				0.4,
-				0.9,
-				0.1,
-				0.0
-		};
+				double distance = mixtape.distanceBetween(songX, songY);
 
-		double distance = mixtape.distanceBetween(songX, songY, weighting);
-
-		System.out.println("Distance between '" + songX + "' and '" + songY + "' with weighting  '" + weighting
-				+ "' is '"
-				+ distance + "'.");
+				System.out.println("Distance between '" + x + "' and '" + y + "' is '" + distance + "'.");
+			}
+			System.out.println();
+		}
 	}
 
 }
