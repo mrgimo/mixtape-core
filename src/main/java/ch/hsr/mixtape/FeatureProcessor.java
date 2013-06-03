@@ -24,7 +24,7 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 	private final FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor;
 
 	private Multimap<Song, Future<FeaturesOfWindow>> featuresOfWindows = ArrayListMultimap.create();
-	private Map<Song, Future<FeaturesOfSong>> featuresOfSongs = Maps.newHashMap();
+	private Map<Song, FeaturesOfSong> featuresOfSongs = Maps.newHashMap();
 
 	private ExecutorService executor;
 
@@ -57,51 +57,37 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 	}
 
 	public void postprocess(Song song) {
-		Collection<Future<FeaturesOfWindow>> futures = Lists.newArrayList(featuresOfWindows.get(song));
-		featuresOfWindows.removeAll(song);
+		Collection<Future<FeaturesOfWindow>> futures = featuresOfWindows.get(song);
 		featuresOfSongs.put(song, postprocess(futures));
+		featuresOfWindows.removeAll(song);
 	}
 
-	private Future<FeaturesOfSong> postprocess(final Collection<Future<FeaturesOfWindow>> futures) {
-		return executor.submit(new Callable<FeaturesOfSong>() {
-
-			public FeaturesOfSong call() throws Exception {
-				List<FeaturesOfWindow> featuresOfWindows = Lists.newArrayListWithCapacity(futures.size());
-				for (Future<FeaturesOfWindow> future : futures)
-					try {
-						featuresOfWindows.add(future.get());
-					} catch (InterruptedException | ExecutionException exception) {
-						throw new RuntimeException(exception);
-					}
-
-				return featureExtractor.postprocess(featuresOfWindows);
+	private FeaturesOfSong postprocess(final Collection<Future<FeaturesOfWindow>> futures) {
+		List<FeaturesOfWindow> featuresOfWindows = Lists.newArrayListWithCapacity(futures.size());
+		for (Future<FeaturesOfWindow> future : futures)
+			try {
+				featuresOfWindows.add(future.get());
+			} catch (InterruptedException | ExecutionException exception) {
+				throw new RuntimeException(exception);
 			}
 
-		});
+		return featureExtractor.postprocess(featuresOfWindows);
 	}
 
 	public Table<Song, Song, Double> getDistances(Collection<Song> songs) {
 		Table<Song, Song, Double> distances = HashBasedTable.create();
 		for (Song songX : songs) {
 			for (Song songY : songs) {
-				Future<FeaturesOfSong> featuresOfSongX = featuresOfSongs.get(songX);
-				Future<FeaturesOfSong> featuresOfSongY = featuresOfSongs.get(songY);
+				FeaturesOfSong featuresOfSongX = featuresOfSongs.get(songX);
+				FeaturesOfSong featuresOfSongY = featuresOfSongs.get(songY);
 
-				distances.put(songX, songY, distanceBetween(featuresOfSongX, featuresOfSongY));
+				distances.put(songX, songY, featureExtractor.distanceBetween(featuresOfSongX, featuresOfSongY));
 			}
 		}
 
 		featuresOfSongs = null;
 
 		return distances;
-	}
-
-	private double distanceBetween(final Future<FeaturesOfSong> x, final Future<FeaturesOfSong> y) {
-		try {
-			return featureExtractor.distanceBetween(x.get(), y.get());
-		} catch (InterruptedException | ExecutionException exception) {
-			throw new RuntimeException(exception);
-		}
 	}
 
 }
