@@ -66,11 +66,11 @@ public class Mixtape {
 		for (int x = 0; x < songs.size(); x++) {
 			Song songX = songs.get(x);
 			String nameX = "'" + new File(songX.getFilePath()).getName() + "'";
-			System.out.println("Processing song '" + nameX + "'.");
+			System.out.println("Processing song " + nameX + ".");
 
 			publisher.publish(songX);
 
-			System.out.println("Postprocessing song '" + nameX + "'.");
+			System.out.println("Postprocessing song " + nameX + ".");
 			for (FeatureProcessor<?, ?> processor : processors)
 				processor.postprocess(songX);
 
@@ -92,7 +92,8 @@ public class Mixtape {
 				for (int i = 0; i < results.size(); i++)
 					distances[x][y][i] = results.get(i);
 
-				System.out.println("distances between " + nameX + " and " + nameY + " = " + Arrays.toString(distances[x][y]));
+				System.out.println("distances between " + nameX + " and " + nameY + " = "
+						+ Arrays.toString(distances[x][y]));
 			}
 
 			System.out.println("2. before gc " + Runtime.getRuntime().freeMemory());
