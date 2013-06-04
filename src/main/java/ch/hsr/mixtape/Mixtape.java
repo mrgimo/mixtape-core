@@ -1,6 +1,7 @@
 package ch.hsr.mixtape;
 
 import static ch.hsr.mixtape.MathUtils.square;
+import static java.util.Arrays.fill;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -118,8 +119,7 @@ public class Mixtape {
 
 	public double distanceBetween(Song songX, Song songY) {
 		double[] weighting = new double[distances.size()];
-		// fill(weighting, 1);
-		weighting[0] = 1;
+		 fill(weighting, 1);
 
 		return distanceBetween(songX, songY, weighting);
 	}
