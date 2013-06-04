@@ -9,10 +9,8 @@ public class Harmonics {
 	private static final int MAX_DEVIATION_IN_BINS = 10;
 
 	public int[] extract(double[] frequencySpectrum, int binOfFundamental) {
-		int numberOfHarmonics = frequencySpectrum.length / binOfFundamental;
-		int[] binsOfHarmonics = new int[numberOfHarmonics];
-
-		for (int i = 0; i < numberOfHarmonics; i++) {
+		int[] binsOfHarmonics = new int[(frequencySpectrum.length - 1) / binOfFundamental - 1];
+		for (int i = 0; i < binsOfHarmonics.length; i++) {
 			int binOfHarmonic = (i + 2) * binOfFundamental;
 
 			int from = max(binOfHarmonic - MAX_DEVIATION_IN_BINS, 0);
@@ -20,10 +18,7 @@ public class Harmonics {
 
 			int argMax = argMax(frequencySpectrum, from, to);
 
-			binsOfHarmonics[i] = (frequencySpectrum[argMax] == frequencySpectrum[from]
-					&& frequencySpectrum[argMax] == frequencySpectrum[to])
-					? binOfHarmonic
-					: argMax;
+			binsOfHarmonics[i] = frequencySpectrum[argMax] == frequencySpectrum[binOfHarmonic] ? binOfHarmonic : argMax;
 		}
 
 		return binsOfHarmonics;

@@ -1,7 +1,6 @@
 package ch.hsr.mixtape;
 
 import static ch.hsr.mixtape.MathUtils.square;
-import static java.util.Arrays.fill;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -63,7 +62,10 @@ public class Mixtape {
 			System.out.println("after gc " + Runtime.getRuntime().freeMemory());
 		}
 
-		return new Mixtape(songs, getDistances(processors, songs));
+		List<Table<Song, Song, Double>> distances = getDistances(processors, songs);
+		executor.shutdown();
+
+		return new Mixtape(songs, distances);
 	}
 
 	private static FileFilter createSongFileFilter() {
@@ -110,13 +112,13 @@ public class Mixtape {
 			distances.add(featureProcessor.getDistances(songs));
 			Runtime.getRuntime().gc();
 		}
-		
+
 		return distances;
 	}
 
 	public double distanceBetween(Song songX, Song songY) {
 		double[] weighting = new double[distances.size()];
-//		fill(weighting, 1);
+		// fill(weighting, 1);
 		weighting[0] = 1;
 
 		return distanceBetween(songX, songY, weighting);
@@ -136,10 +138,11 @@ public class Mixtape {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
 		List<FeatureExtractor<?, ?>> featureExtractors = Arrays.asList(
-//				new HarmonicFeaturesExtractor(),
+				new HarmonicFeaturesExtractor(),
 				new SpectralFeaturesExtractor(),
-				new PerceptualFeaturesExtractor());
-//				new TemporalFeaturesExtractor());
+				new PerceptualFeaturesExtractor(),
+				new TemporalFeaturesExtractor()
+				);
 
 		List<File> files = Arrays.asList(new File("songs"));
 
@@ -152,7 +155,8 @@ public class Mixtape {
 
 		for (Song songX : mixtape.getSongs()) {
 			for (Song songY : mixtape.getSongs()) {
-				System.out.println(songX.getFilePath() + " to " + songY.getFilePath() + " = "
+				System.out.println(new File(songX.getFilePath()).getName() + " to "
+						+ new File(songY.getFilePath()).getName() + " = "
 						+ mixtape.distanceBetween(songX, songY));
 			}
 			System.out.println();
