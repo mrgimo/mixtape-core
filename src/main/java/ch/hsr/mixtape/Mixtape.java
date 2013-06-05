@@ -2,7 +2,6 @@ package ch.hsr.mixtape;
 
 import static ch.hsr.mixtape.MathUtils.square;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.apache.commons.math3.util.FastMath.sqrt;
 
 import java.io.File;
@@ -11,19 +10,24 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import ch.hsr.mixtape.domain.Song;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesExtractor;
 import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesExtractor;
 import ch.hsr.mixtape.features.spectral.SpectralFeaturesExtractor;
-import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.google.common.util.concurrent.ForwardingBlockingQueue;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 
 public class Mixtape {
 
@@ -32,7 +36,31 @@ public class Mixtape {
 	};
 
 	private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
-	private static final ListeningExecutorService executor = listeningDecorator(newFixedThreadPool(AVAILABLE_PROCESSORS));
+
+	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues.newArrayBlockingQueue(AVAILABLE_PROCESSORS);
+	private static final ListeningExecutorService executor = listeningDecorator(
+			MoreExecutors.getExitingExecutorService(
+					new ThreadPoolExecutor(
+							AVAILABLE_PROCESSORS,
+							AVAILABLE_PROCESSORS,
+							1,
+							TimeUnit.MINUTES,
+							new ForwardingBlockingQueue<Runnable>() {
+
+								protected BlockingQueue<Runnable> delegate() {
+									return TASK_QUEUE;
+								}
+
+								public boolean offer(Runnable runnable) {
+									try {
+										put(runnable);
+										return true;
+									} catch (InterruptedException exception) {
+										return false;
+									}
+								}
+
+							})));
 
 	private final List<Song> songs;
 
@@ -53,7 +81,7 @@ public class Mixtape {
 		List<FeatureProcessor<?, ?>> processors = initExtractors(featuresExtractors, songs.size());
 		double[][][] distances = calcDistances(songs, processors);
 
-		executor.shutdown();
+	//	executor.shutdown();
 
 		return new Mixtape(songs, distances);
 	}
@@ -163,10 +191,10 @@ public class Mixtape {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
 		List<FeatureExtractor<?, ?>> featureExtractors = Arrays.asList(
-				new HarmonicFeaturesExtractor(),
-				new SpectralFeaturesExtractor(),
-				new PerceptualFeaturesExtractor(),
-				new TemporalFeaturesExtractor()
+				new HarmonicFeaturesExtractor()
+				, new SpectralFeaturesExtractor()
+				, new PerceptualFeaturesExtractor()
+				// ,new TemporalFeaturesExtractor()
 				);
 
 		List<File> files = Arrays.asList(new File("songs"));

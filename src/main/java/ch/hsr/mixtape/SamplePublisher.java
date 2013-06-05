@@ -132,7 +132,8 @@ public class SamplePublisher {
 	}
 
 	private double[] resetSampleBuffer(double[] sampleBuffer, int minReadPosition) {
-		return copyOfRange(sampleBuffer, minReadPosition, minReadPosition + sampleBuffer.length);
+		System.arraycopy(sampleBuffer, minReadPosition, sampleBuffer, minReadPosition, sampleBuffer.length - minReadPosition);
+		return sampleBuffer;
 	}
 
 	private void publishRemainingSamples(Song song, double[] sampleBuffer, int[] readPositions) {
