@@ -50,19 +50,19 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 	}
 
 	private ListenableFuture<FeaturesOfSong> postprocess(final List<ListenableFuture<FeaturesOfWindow>> futures) {
-		ListenableFuture<FeaturesOfSong> task = executor.submit(new Callable<FeaturesOfSong>() {
+		return executor.submit(new Callable<FeaturesOfSong>() {
 
 			public FeaturesOfSong call() throws Exception {
 				System.out.println("calling postprocess");
 				FeaturesOfSong featuresOfSong = featureExtractor.postprocess(evaluate(futures));
+
 				futures.clear();
+				Runtime.getRuntime().gc();
 		
 				return featuresOfSong;
 			}
 
 		});
-
-		return task;
 	}
 
 	private List<FeaturesOfWindow> evaluate(List<ListenableFuture<FeaturesOfWindow>> futures) {
