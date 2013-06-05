@@ -5,6 +5,7 @@ import java.util.List;
 import ch.hsr.mixtape.MathUtils;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
+import static ch.hsr.mixtape.MathUtils.*;
 
 public class SpectralFeaturesExtractor implements
 		FeatureExtractor<SpectralFeaturesOfWindow, SpectralFeaturesOfSong> {
@@ -28,13 +29,15 @@ public class SpectralFeaturesExtractor implements
 		SpectralFeaturesOfWindow spectralFeaturesOfWindows = new SpectralFeaturesOfWindow();
 
 		double[] powerSpectrum = getPowerSpectrum(windowOfSamples);
+		double totalPower = sum(powerSpectrum);
+		
 
 		spectralFeaturesOfWindows.spectralCentroid = spectralCentroid
-				.extractFeature(windowOfSamples, powerSpectrum);
+				.extractFeature(windowOfSamples, powerSpectrum, totalPower);
 
 		spectralFeaturesOfWindows.spectralSpread = spectralSpread
 				.extractFeature(powerSpectrum,
-						spectralFeaturesOfWindows.spectralCentroid);
+						spectralFeaturesOfWindows.spectralCentroid, totalPower);
 
 		spectralFeaturesOfWindows.spectralOddToEvenRatio = spectralOddToEvenRatio
 				.extractFeature(powerSpectrum);
@@ -42,12 +45,12 @@ public class SpectralFeaturesExtractor implements
 		spectralFeaturesOfWindows.spectralSkewness = spectralSkewness
 				.extractFeature(powerSpectrum,
 						spectralFeaturesOfWindows.spectralCentroid,
-						spectralFeaturesOfWindows.spectralSpread);
+						spectralFeaturesOfWindows.spectralSpread, totalPower);
 
 		spectralFeaturesOfWindows.spectralKurtosis = spectralKurtosis
 				.extracFeature(powerSpectrum,
 						spectralFeaturesOfWindows.spectralCentroid,
-						spectralFeaturesOfWindows.spectralSpread);
+						spectralFeaturesOfWindows.spectralSpread, totalPower);
 
 		return spectralFeaturesOfWindows;
 	}
@@ -69,7 +72,7 @@ public class SpectralFeaturesExtractor implements
 		spectralDistances[3] = nid.distanceBetween(x.spectralSkewness, y.spectralSkewness);
 		spectralDistances[4] = nid.distanceBetween(x.spectralSpread, y.spectralSpread);
 
-		return MathUtils.vectorLength(spectralDistances);
+		return vectorLength(spectralDistances);
 	}
 
 	@Override
@@ -83,7 +86,7 @@ public class SpectralFeaturesExtractor implements
 	}
 
 	private double[] getPowerSpectrum(double[] samples) {
-		return MathUtils.square(MathUtils.frequencySpectrum(samples));
+		return square(MathUtils.frequencySpectrum(samples));
 	}
 
 }
