@@ -1,5 +1,7 @@
 package ch.hsr.mixtape.features.spectral;
 
+import static ch.hsr.mixtape.MathUtils.binToFrequency;
+
 /*
  * skewness = 0 -> symmetric
  * skewness < 0 -> more energy on the right
@@ -8,54 +10,35 @@ package ch.hsr.mixtape.features.spectral;
 
 public class SpectralSkewness {
 
-	private double[] powerSpectrum;
-	private double spectralCentroid;
-	private double spectralSpread;
-
 	public double extractFeature(double[] powerSpectrum,
-			double spectralCentroid, double spectralSpread) {
-		this.powerSpectrum = powerSpectrum;
-		this.spectralCentroid = spectralCentroid;
-		this.spectralSpread = spectralSpread;
+			double spectralCentroid, double spectralSpread, double totalPower) {
 
-		double avgThirdOrderMoment = summateThirdOrderMoments()
-				/ powerSpectrum.length;
-		double avgSkewness = getAvgSkewness(avgThirdOrderMoment);
+		double avgThirdOrderDeviation = totalPower != 0.0 ? summateThirdOrderMoments(powerSpectrum,
+				spectralCentroid) / totalPower : 0;
 
-		return avgSkewness;
+		return calculateSkewness(avgThirdOrderDeviation, spectralSpread);
 	}
 
-	private double getAvgSkewness(double avgThirdOrderMoment) {
-		
-			double thirdOrderSpectralSpread = spectralSpread * spectralSpread * spectralSpread;
-			if(thirdOrderSpectralSpread != 0.0)
-			return avgThirdOrderMoment
-					/ thirdOrderSpectralSpread;
-			return 0.0;
+	private double calculateSkewness(double avgThirdOrderMoment,
+			double spectralSpread) {
+		double thirdOrderSpectralSpread = spectralSpread * spectralSpread
+				* spectralSpread;
+
+		return thirdOrderSpectralSpread != 0.0 ? avgThirdOrderMoment
+				/ thirdOrderSpectralSpread : 0.0;
 	}
 
-	private double summateThirdOrderMoments() {
-
-		double totalPower = summatePower(powerSpectrum);
-		double sum = 0.0;
-		
-		if(totalPower != 0.0 ) {
-			for (int i = 0; i < powerSpectrum.length; i++) {
-				double centroidDeviation = i - spectralCentroid;
-				double thirdOrderMoment = (centroidDeviation * centroidDeviation * centroidDeviation)
-						* powerSpectrum[i] / totalPower;
-				sum += thirdOrderMoment;
-			}
-		}
-		return sum;
-	}
-
-	private double summatePower(double[] powerSpectrum) {
+	private double summateThirdOrderMoments(double[] powerSpectrum,
+			double spectralCentroid) {
 		double sum = 0.0;
 
 		for (int i = 0; i < powerSpectrum.length; i++) {
-			sum += powerSpectrum[i];
+			double centroidDeviation = binToFrequency(i, 44100, powerSpectrum.length)
+					- spectralCentroid;
+			sum += (centroidDeviation * centroidDeviation * centroidDeviation)
+					* powerSpectrum[i];
 		}
+
 		return sum;
 	}
 

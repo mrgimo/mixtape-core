@@ -314,11 +314,9 @@ public class PlaylistService {
 	 * @return If no song is found -1 is returned.
 	 * @throws UninitializedPlaylistException
 	 */
-	private int findIndexOfSongById(long songId)
-			throws UninitializedPlaylistException {
+	private int findIndexOfSongById(long songId) throws UninitializedPlaylistException {
 		if (!initialized)
-			throw new UninitializedPlaylistException(
-					"Playlist has not been initialized.");
+			throw new UninitializedPlaylistException("Playlist has not been initialized.");
 
 		for (int i = 0; i < nextSongs.size(); i++) {
 			if (nextSongs.get(i).getId() == songId)

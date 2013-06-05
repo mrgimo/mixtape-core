@@ -15,13 +15,11 @@ import ch.hsr.mixtape.model.Song;
  */
 public class QueryService {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(QueryService.class);
+	private static final Logger log = LoggerFactory.getLogger(QueryService.class);
 
 	public ArrayList<Song> findSongsByTerm(String term) {
 		// TODO: implement db query
-		ArrayList<Song> availableSongs = ApplicationFactory
-				.getDatabaseManager().getDummyDatabase();
+		ArrayList<Song> availableSongs = ApplicationFactory.getDatabaseManager().getDummyDatabase();
 
 		ArrayList<Song> foundSongs = new ArrayList<Song>();
 
@@ -30,8 +28,7 @@ public class QueryService {
 
 		if (!cleanTerm.isEmpty())
 			for (Song s : availableSongs)
-				if (s.getTitle().toLowerCase().contains(cleanTerm)
-						|| s.getArtist().toLowerCase().contains(cleanTerm)
+				if (s.getTitle().toLowerCase().contains(cleanTerm) || s.getArtist().toLowerCase().contains(cleanTerm)
 						|| s.getAlbum().toLowerCase().contains(cleanTerm))
 					foundSongs.add(s);
 

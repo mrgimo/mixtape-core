@@ -1,32 +1,22 @@
 package ch.hsr.mixtape.features.spectral;
 
+import static ch.hsr.mixtape.MathUtils.binToFrequency;
+
+import org.apache.commons.math3.util.FastMath;
+
 public class SpectralSpread {
 
-	public double extractFeature(double[] powerSpectrum, double spectralCentroid) {
-
+	public double extractFeature(double[] powerSpectrum, double spectralCentroid, double totalPower) {
 		double totalSpread = 0.0;
-		double totalPower = summatePower(powerSpectrum);
-		
-		if(totalPower != 0.0){
+
+		if (totalPower != 0.0) {
 			for (int i = 0; i < powerSpectrum.length; i++) {
-				double spectralDeviation = i - spectralCentroid;
-				totalSpread += Math
-						.sqrt((spectralDeviation * spectralDeviation)
-								* powerSpectrum[i] / totalPower);
+				double spectralDeviation = binToFrequency(i, 44100, powerSpectrum.length) - spectralCentroid;
+				totalSpread += spectralDeviation * spectralDeviation * powerSpectrum[i];
 			}
 		}
 
-
-		return totalSpread / powerSpectrum.length;
-	}
-
-	private double summatePower(double[] powerSpectrum) {
-		double sum = 0.0;
-
-		for (int i = 0; i < powerSpectrum.length; i++) {
-			sum += powerSpectrum[i];
-		}
-		return sum;
+		return totalPower != 0.0 ? FastMath.sqrt(totalSpread / totalPower) : 0;
 	}
 
 }

@@ -10,7 +10,7 @@ import ch.hsr.mixtape.model.SystemStatus;
 public class SystemService {
 
 	private SystemStatus systemStatus;
-	
+
 	public SystemService() {
 		systemStatus = new SystemStatus();
 	}
@@ -18,5 +18,5 @@ public class SystemService {
 	public SystemStatus getSystemStatus() {
 		return systemStatus;
 	}
-	
+
 }

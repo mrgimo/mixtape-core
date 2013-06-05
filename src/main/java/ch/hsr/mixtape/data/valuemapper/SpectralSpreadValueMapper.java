@@ -2,6 +2,7 @@ package ch.hsr.mixtape.data.valuemapper;
 
 
 
+
 public class SpectralSpreadValueMapper implements ValueMapper {
 	
 	/*
