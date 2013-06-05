@@ -36,36 +36,32 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 public class Mixtape {
 
-	private static final String[] ALLOWED_SUFFIXES = {
-			".mp3"
-	};
+	private static final String[] ALLOWED_SUFFIXES = { ".mp3" };
 
-	private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
+	private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime()
+			.availableProcessors();
 
-	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues.newArrayBlockingQueue(AVAILABLE_PROCESSORS);
-	private static final ListeningExecutorService executor = listeningDecorator(
-			MoreExecutors.getExitingExecutorService(
-					new ThreadPoolExecutor(
-							AVAILABLE_PROCESSORS,
-							AVAILABLE_PROCESSORS,
-							1,
-							TimeUnit.MINUTES,
-							new ForwardingBlockingQueue<Runnable>() {
+	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues
+			.newArrayBlockingQueue(AVAILABLE_PROCESSORS);
+	private static final ListeningExecutorService executor = listeningDecorator(MoreExecutors
+			.getExitingExecutorService(new ThreadPoolExecutor(
+					AVAILABLE_PROCESSORS, AVAILABLE_PROCESSORS, 1,
+					TimeUnit.MINUTES, new ForwardingBlockingQueue<Runnable>() {
 
-								protected BlockingQueue<Runnable> delegate() {
-									return TASK_QUEUE;
-								}
+						protected BlockingQueue<Runnable> delegate() {
+							return TASK_QUEUE;
+						}
 
-								public boolean offer(Runnable runnable) {
-									try {
-										put(runnable);
-										return true;
-									} catch (InterruptedException exception) {
-										return false;
-									}
-								}
+						public boolean offer(Runnable runnable) {
+							try {
+								put(runnable);
+								return true;
+							} catch (InterruptedException exception) {
+								return false;
+							}
+						}
 
-							})));
+					})));
 
 	private final List<Song> songs;
 
@@ -76,14 +72,17 @@ public class Mixtape {
 		this.distances = distances;
 	}
 
-	private static Mixtape loadSongs(Collection<FeatureExtractor<?, ?>> featuresExtractors,
-			Collection<File> pathsToSongs)
-			throws InterruptedException, ExecutionException, IOException {
-		List<File> songFiles = new FileFinder(pathsToSongs, createSongFileFilter()).find();
+	private static Mixtape loadSongs(
+			Collection<FeatureExtractor<?, ?>> featuresExtractors,
+			Collection<File> pathsToSongs) throws InterruptedException,
+			ExecutionException, IOException {
+		List<File> songFiles = new FileFinder(pathsToSongs,
+				createSongFileFilter()).find();
 		System.out.println("Processing " + songFiles.size() + " songs.");
 		List<Song> songs = initSongs(songFiles);
 
-		List<FeatureProcessor<?, ?>> processors = initExtractors(featuresExtractors, songs.size());
+		List<FeatureProcessor<?, ?>> processors = initExtractors(
+				featuresExtractors, songs.size());
 		double[][][] distances = calcDistances(songs, processors);
 
 		// executor.shutdown();
@@ -91,9 +90,11 @@ public class Mixtape {
 		return new Mixtape(songs, distances);
 	}
 
-	private static double[][][] calcDistances(List<Song> songs, List<FeatureProcessor<?, ?>> processors)
-			throws IOException, InterruptedException, ExecutionException {
-		double[][][] distances = new double[songs.size()][songs.size()][processors.size()];
+	private static double[][][] calcDistances(List<Song> songs,
+			List<FeatureProcessor<?, ?>> processors) throws IOException,
+			InterruptedException, ExecutionException {
+		double[][][] distances = new double[songs.size()][songs.size()][processors
+				.size()];
 
 		List<ListenableFuture<Double>> futures = Lists.newArrayList();
 		
@@ -111,7 +112,8 @@ public class Mixtape {
 
 			for (int y = 0; y < x; y++) {
 				Song songY = songs.get(y);
-				String nameY = "'" + new File(songY.getFilePath()).getName() + "'";
+				String nameY = "'" + new File(songY.getFilePath()).getName()
+						+ "'";
 
 				System.out.println("Calculating distance between " + nameX + " and " + nameY + ".");
 				for (int i = 0; i < processors.size(); i++) {
@@ -121,7 +123,6 @@ public class Mixtape {
 				}
 
 			}
-
 		}
 
 		Futures.allAsList(futures).get();
@@ -156,7 +157,8 @@ public class Mixtape {
 	}
 
 	private static boolean hasSuffix(File file, String allowedSuffix) {
-		return file.getName().toLowerCase().endsWith(allowedSuffix.toLowerCase());
+		return file.getName().toLowerCase()
+				.endsWith(allowedSuffix.toLowerCase());
 	}
 
 	private static List<Song> initSongs(List<File> songFiles) {
@@ -167,9 +169,11 @@ public class Mixtape {
 		return songs;
 	}
 
-	private static List<FeatureProcessor<?, ?>> initExtractors(Collection<FeatureExtractor<?, ?>> featuresExtractors,
+	private static List<FeatureProcessor<?, ?>> initExtractors(
+			Collection<FeatureExtractor<?, ?>> featuresExtractors,
 			int numberOfSongs) {
-		List<FeatureProcessor<?, ?>> extractors = Lists.newArrayListWithCapacity(featuresExtractors.size());
+		List<FeatureProcessor<?, ?>> extractors = Lists
+				.newArrayListWithCapacity(featuresExtractors.size());
 		for (FeatureExtractor<?, ?> featuresExtractor : featuresExtractors)
 			extractors.add(new FeatureProcessor<>(featuresExtractor, executor));
 
@@ -197,12 +201,13 @@ public class Mixtape {
 		return songs;
 	}
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
+	public static void main(String[] args) throws InterruptedException,
+			ExecutionException, IOException {
 		List<FeatureExtractor<?, ?>> featureExtractors = Arrays.asList(
-				new HarmonicFeaturesExtractor()
-				, new SpectralFeaturesExtractor()
-				, new PerceptualFeaturesExtractor()
-				// ,new TemporalFeaturesExtractor()
+				new HarmonicFeaturesExtractor(),
+				new SpectralFeaturesExtractor(),
+				new PerceptualFeaturesExtractor()
+		// ,new TemporalFeaturesExtractor()
 				);
 
 		List<File> files = Arrays.asList(new File("songs"));
@@ -211,7 +216,8 @@ public class Mixtape {
 
 		System.out.println("Loading songs...");
 		Mixtape mixtape = Mixtape.loadSongs(featureExtractors, files);
-		System.out.println("Finished in " + (System.currentTimeMillis() - start) * 0.001 + " seconds.");
+		System.out.println("Finished in "
+				+ (System.currentTimeMillis() - start) * 0.001 + " seconds.");
 		System.out.println();
 		System.out.println();
 

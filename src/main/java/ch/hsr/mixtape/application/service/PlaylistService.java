@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.application.DummyData;
+import ch.hsr.mixtape.application.service.PlaylistStreamService.Streamer;
 import ch.hsr.mixtape.exception.PlaylistChangedException;
 import ch.hsr.mixtape.exception.UninitializedPlaylistException;
 import ch.hsr.mixtape.model.PlaylistSettings;
@@ -29,7 +30,9 @@ public class PlaylistService {
 
 	private PlaylistSettings settings;
 
-	private ArrayList<Song> songs;
+	private Song currentlyPlaying;
+
+	private ArrayList<Song> nextSongs;
 
 	public PlaylistService() {
 		lock = new ReentrantReadWriteLock(true);
@@ -56,7 +59,7 @@ public class PlaylistService {
 			lock.writeLock().lock();
 			LOG.debug("Acquired Write-Lock in `initializePlaylist`.");
 
-			songs = DummyData.getDummyPlaylist();
+			nextSongs = DummyData.getDummyPlaylist();
 			initialized = true;
 
 			return initialized;
@@ -66,20 +69,90 @@ public class PlaylistService {
 		}
 	}
 
-	public ArrayList<Song> getCurrentPlaylist()
+	/**
+	 * 
+	 * @param streamer
+	 *            This parameter is only to make sure, that advance can be
+	 *            called by the streamer.
+	 * @return 
+	 * @throws UninitializedPlaylistException
+	 */
+	public Song advance(Streamer streamer)
 			throws UninitializedPlaylistException {
 		try {
-			lock.readLock().lock();
-			LOG.debug("Acquired Read-Lock in `getCurrentPlaylist`.");
+			lock.writeLock().lock();
+			LOG.debug("Acquired Read-Lock in `getCurrentSong`.");
 
 			if (!initialized)
 				throw new UninitializedPlaylistException(
 						"No playlist available. You have to create a playlist first.");
 
-			return songs;
+			if (nextSongs.isEmpty())
+				throw new UninitializedPlaylistException(
+						"No more songs in playlist. Please create a new playlist "
+								+ "or add a wish to the current one.");
+
+			currentlyPlaying = nextSongs.remove(0);
+
+			// TODO: listening-subscriber-handling?
+
+			return currentlyPlaying;
+		} finally {
+			lock.writeLock().unlock();
+			LOG.debug("Released Read-Lock in `getCurrentSong`.");
+		}
+	}
+
+	public Song getCurrentSong() throws UninitializedPlaylistException {
+		try {
+			lock.readLock().lock();
+			LOG.debug("Acquired Read-Lock in `getCurrentSong`.");
+
+			if (!initialized)
+				throw new UninitializedPlaylistException(
+						"No playlist available. You have to create a playlist first.");
+
+			return currentlyPlaying;
 		} finally {
 			lock.readLock().unlock();
-			LOG.debug("Released Read-Lock in `getCurrentPlaylist`.");
+			LOG.debug("Released Read-Lock in `getCurrentSong`.");
+		}
+	}
+
+	public ArrayList<Song> getNextSongs() throws UninitializedPlaylistException {
+		try {
+			lock.readLock().lock();
+			LOG.debug("Acquired Read-Lock in `getNextSongs`.");
+
+			if (!initialized)
+				throw new UninitializedPlaylistException(
+						"No playlist available. You have to create a playlist first.");
+
+			return nextSongs;
+		} finally {
+			lock.readLock().unlock();
+			LOG.debug("Released Read-Lock in `getNextSongs`.");
+		}
+	}
+
+	public ArrayList<Song> getNextNSongs(int n)
+			throws UninitializedPlaylistException {
+		try {
+			lock.readLock().lock();
+			LOG.debug("Acquired Read-Lock in `getNextNSongs`.");
+
+			if (!initialized)
+				throw new UninitializedPlaylistException(
+						"No playlist available. You have to create a playlist first.");
+
+			ArrayList<Song> upcoming = new ArrayList<Song>(n);
+			for (int i = 0; i < n; i++)
+				upcoming.add(nextSongs.get(i));
+
+			return upcoming;
+		} finally {
+			lock.readLock().unlock();
+			LOG.debug("Released Read-Lock in `getNextNSongs`.");
 		}
 	}
 
@@ -136,9 +209,9 @@ public class PlaylistService {
 								+ "due to changed playlist. Try again after updating "
 								+ "your playlist view.");
 
-			Song song = songs.remove(oldPosition);
-			songs.add(newPosition, song);
-			DummyData.initializeSimilarities(songs);
+			Song song = nextSongs.remove(oldPosition);
+			nextSongs.add(newPosition, song);
+			DummyData.initializeSimilarities(nextSongs);
 
 			return true;
 		} finally {
@@ -178,7 +251,7 @@ public class PlaylistService {
 								DummyData.getDummySongSimilarity(data.get(i),
 										data.get(i - 1)));
 					data.get(i).setUserWish(true);
-					songs.add(data.get(i));
+					nextSongs.add(data.get(i));
 					LOG.debug("Added wish (songId " + songId + ").");
 					return true;
 				}
@@ -212,8 +285,8 @@ public class PlaylistService {
 				throw new UninitializedPlaylistException(
 						"Uninitialized playlist. You have to create a playlist first.");
 
-			if (songs.get(songPosition).getId() == songId) {
-				Song song = songs.remove(songPosition);
+			if (nextSongs.get(songPosition).getId() == songId) {
+				Song song = nextSongs.remove(songPosition);
 				LOG.debug("Removed song " + song.getTitle() + " (songId "
 						+ songId + ").");
 				return true;
@@ -245,8 +318,8 @@ public class PlaylistService {
 		if (!initialized)
 			throw new UninitializedPlaylistException("Playlist has not been initialized.");
 
-		for (int i = 0; i < songs.size(); i++) {
-			if (songs.get(i).getId() == songId)
+		for (int i = 0; i < nextSongs.size(); i++) {
+			if (nextSongs.get(i).getId() == songId)
 				return i;
 		}
 		return -1;

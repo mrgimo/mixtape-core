@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import ch.hsr.mixtape.application.SongTagExtractor;
 
@@ -48,8 +49,13 @@ public class Song {
 
 	private String artist;
 
+	@Transient
 	private boolean userWish;
 
+	@Transient
+	private boolean inStreamQueue;
+	
+	@Transient
 	private SongSimilarity songSimilarity;
 
 	private static Random random = new Random(); // TODO: remove as soon as
@@ -210,11 +216,24 @@ public class Song {
 		this.userWish = userWish;
 	}
 
+	public boolean isInStreamQueue() {
+		return inStreamQueue;
+	}
+
+	public void setInStreamQueue(boolean inStreamQueue) {
+		this.inStreamQueue = inStreamQueue;
+	}
+
 	@Override
 	public int hashCode() {
 		return title.hashCode();
 	}
 
+	@Override
+	public boolean equals(Object anObject) {
+		return this.id == ((Song) anObject).id;
+	}
+	
 	@Override
 	public String toString() {
 		return "===========\nFilepath: " + filepath + "\nTitle: " + title

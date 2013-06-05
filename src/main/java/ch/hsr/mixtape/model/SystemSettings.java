@@ -66,8 +66,7 @@ public class SystemSettings {
 	}
 
 	/**
-	 * @return Returns true if password change was successful. If hashing or
-	 *         UTF-8 encoding of password fails, false is returned.
+	 * @deprecated
 	 */
 	public boolean changePassword(String password, String repeat) {
 		if (password.isEmpty() || !password.equals(repeat))
@@ -81,6 +80,9 @@ public class SystemSettings {
 		}
 	}
 
+	/**
+	 * @deprecated
+	 */
 	private String hashPassword(String password)
 			throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		MessageDigest digest = MessageDigest.getInstance("SHA-256");
