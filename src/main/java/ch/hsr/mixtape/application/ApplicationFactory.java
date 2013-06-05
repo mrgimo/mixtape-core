@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.application.service.PlaylistService;
+import ch.hsr.mixtape.application.service.PlaylistStreamService;
 import ch.hsr.mixtape.application.service.QueryService;
 import ch.hsr.mixtape.application.service.SystemService;
 import ch.hsr.mixtape.model.SystemSettings;
@@ -15,10 +16,12 @@ public class ApplicationFactory {
 
 	private static final Logger LOG = LoggerFactory
 			.getLogger(ApplicationFactory.class);
-	
+
 	private static DatabaseManager databaseManager;
 
 	private static PlaylistService playlistService;
+
+	private static PlaylistStreamService playlistStreamService;
 
 	private static QueryService queryService;
 
@@ -43,6 +46,15 @@ public class ApplicationFactory {
 		return playlistService;
 	}
 
+	public static PlaylistStreamService getPlaylistStreamService() {
+		if (playlistStreamService == null) {
+			LOG.debug("Initializing PlaylistStreamService");
+			playlistStreamService = new PlaylistStreamService();
+		}
+
+		return playlistStreamService;
+	}
+
 	public static QueryService getQueryService() {
 		if (queryService == null) {
 			LOG.debug("Initializing QueryService");
@@ -61,14 +73,12 @@ public class ApplicationFactory {
 		return systemService;
 	}
 
-	/**
-	 * @deprecated
-	 */
 	public static SystemSettings getSystemSettings() /* throws FirstRunException */{
+		// TODO: implement for FirstRun
 		// if (systemSettings == null) {
 		// EntityManager em = getDatabaseManager().getEntityManager();
-		// TypedQuery<SystemSettings> query =
-		// em.createNamedQuery("getAllSystemSettings", SystemSettings.class);
+		// TypedQuery<SystemSettings> query = em.createNamedQuery(
+		// "getAllSystemSettings", SystemSettings.class);
 		// try {
 		// systemSettings = query.getSingleResult();
 		// if (systemSettings == null)
@@ -77,7 +87,6 @@ public class ApplicationFactory {
 		// throw new FirstRunException();
 		// }
 		// }
-
 		return systemSettings;
 	}
 }

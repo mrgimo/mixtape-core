@@ -6,6 +6,5 @@ _databases/
 derby.log
 
 # Package Files #
-*.jar
 *.war
 *.ear
