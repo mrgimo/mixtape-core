@@ -1,8 +1,10 @@
 package ch.hsr.mixtape.features.perceptual;
 
+import static ch.hsr.mixtape.MathUtils.frequencySpectrum;
+import static ch.hsr.mixtape.MathUtils.vectorLength;
+
 import java.util.List;
 
-import ch.hsr.mixtape.MathUtils;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
 
@@ -25,7 +27,7 @@ public class PerceptualFeaturesExtractor implements
 	public PerceptualFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		PerceptualFeaturesOfWindow perceptualFeaturesOfWindow = new PerceptualFeaturesOfWindow();
 
-		double[] magnitudeSpectrum = MathUtils.frequencySpectrum(windowOfSamples);
+		double[] magnitudeSpectrum = frequencySpectrum(windowOfSamples);
 		double[] mfccs = melFrequencyCepstralCoefficients.extractFeature(windowOfSamples, magnitudeSpectrum);
 
 		perceptualFeaturesOfWindow.mfcc1 = mfccs[1];
@@ -67,7 +69,7 @@ public class PerceptualFeaturesExtractor implements
 		distances[10] = nid.distanceBetween(x.mfcc11, y.mfcc11);
 		distances[11] = nid.distanceBetween(x.mfcc12, y.mfcc12);
 
-		return MathUtils.vectorLength(distances);
+		return vectorLength(distances);
 	}
 
 	@Override
