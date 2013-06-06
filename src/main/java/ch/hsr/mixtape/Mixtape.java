@@ -208,7 +208,7 @@ public class Mixtape {
 				new HarmonicFeaturesExtractor(),
 				new SpectralFeaturesExtractor(),
 				new PerceptualFeaturesExtractor()
-		// ,new TemporalFeaturesExtractor()
+		 ,new TemporalFeaturesExtractor()
 				);
 
 		List<File> files = Arrays.asList(new File("songs"));

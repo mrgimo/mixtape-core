@@ -46,7 +46,7 @@ public class Pathfinder {
 		Song lastSongInPlaylist = firstSongInPlaylist;
 
 		double distanceFirstToAddedSong = mixtape.distanceBetween(
-				lastSongInPlaylist, addedSong, weighting);
+				lastSongInPlaylist.getId(), addedSong.getId(), weighting);
 
 		double currentDistanceToAddedSong = distanceFirstToAddedSong;
 
@@ -57,13 +57,13 @@ public class Pathfinder {
 			double currentDistanceToLastSong = Double.POSITIVE_INFINITY;
 
 			for (Song song : availableSongs) {
-				double distanceToAddedSong = mixtape.distanceBetween(song,
-						addedSong, weighting);
-				double distanceToLastSong = mixtape.distanceBetween(song,
-						lastSongInPlaylist, weighting);
+				double distanceToAddedSong = mixtape.distanceBetween(song.getId(),
+						addedSong.getId(), weighting);
+				double distanceToLastSong = mixtape.distanceBetween(song.getId(),
+						lastSongInPlaylist.getId(), weighting);
 
 				double distanceFirstToCurrentSong = mixtape.distanceBetween(
-						firstSongInPlaylist, song, weighting);
+						firstSongInPlaylist.getId(), song.getId(), weighting);
 
 				if (!playList.contains(song)
 						&& isMoreSuitable(distanceToAddedSong,
@@ -121,9 +121,9 @@ public class Pathfinder {
 		@Override
 		public int compare(Song x, Song y) {
 
-			double distanceXtoFirst = mixtape.distanceBetween(x, firstSong,
+			double distanceXtoFirst = mixtape.distanceBetween(x.getId(), firstSong.getId(),
 					weighting);
-			double distanceYtoFirst = mixtape.distanceBetween(y, firstSong,
+			double distanceYtoFirst = mixtape.distanceBetween(y.getId(), firstSong.getId(),
 					weighting);
 
 			if (distanceXtoFirst < distanceYtoFirst)
