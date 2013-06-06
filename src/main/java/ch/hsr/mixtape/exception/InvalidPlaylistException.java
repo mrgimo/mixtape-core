@@ -6,11 +6,11 @@ package ch.hsr.mixtape.exception;
  * 
  * @author Stefan Derungs
  */
-public class UninitializedPlaylistException extends Exception {
+public class InvalidPlaylistException extends Exception {
 
 	private static final long serialVersionUID = -1408878395329623413L;
 
-	public UninitializedPlaylistException(String s) {
+	public InvalidPlaylistException(String s) {
 		super(s);
 	}
 

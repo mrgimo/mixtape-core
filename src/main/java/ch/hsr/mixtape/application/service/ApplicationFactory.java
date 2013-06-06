@@ -1,12 +1,8 @@
-package ch.hsr.mixtape.application;
+package ch.hsr.mixtape.application.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.service.PlaylistService;
-import ch.hsr.mixtape.application.service.PlaylistStreamService;
-import ch.hsr.mixtape.application.service.QueryService;
-import ch.hsr.mixtape.application.service.SystemService;
 import ch.hsr.mixtape.model.SystemSettings;
 
 /**
@@ -17,7 +13,7 @@ public class ApplicationFactory {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(ApplicationFactory.class);
 
-	private static DatabaseManager databaseManager;
+	private static DatabaseService databaseService;
 
 	private static PlaylistService playlistService;
 
@@ -29,12 +25,12 @@ public class ApplicationFactory {
 
 	private static SystemSettings systemSettings;
 
-	public static DatabaseManager getDatabaseManager() {
-		if (databaseManager == null) {
-			databaseManager = new DatabaseManager();
+	public static DatabaseService getDatabaseService() {
+		if (databaseService == null) {
+			databaseService = new DatabaseService();
 		}
 
-		return databaseManager;
+		return databaseService;
 	}
 
 	public static PlaylistService getPlaylistService() {

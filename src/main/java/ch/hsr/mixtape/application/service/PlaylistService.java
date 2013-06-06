@@ -1,16 +1,19 @@
 package ch.hsr.mixtape.application.service;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.ApplicationFactory;
-import ch.hsr.mixtape.application.DummyData;
-import ch.hsr.mixtape.application.service.PlaylistStreamService.Streamer;
+import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.exception.PlaylistChangedException;
-import ch.hsr.mixtape.exception.UninitializedPlaylistException;
+import ch.hsr.mixtape.model.Playlist;
+import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.PlaylistSettings;
 import ch.hsr.mixtape.model.Song;
 
@@ -24,152 +27,125 @@ public class PlaylistService {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(PlaylistService.class);
 
-	private ReentrantReadWriteLock lock;
+	private static final DatabaseService DB = ApplicationFactory
+			.getDatabaseService();
 
-	private boolean initialized = false;
+	private ReentrantReadWriteLock playlistLock;
 
-	private PlaylistSettings settings;
+	private ReentrantLock subscriberLock;
 
-	private Song currentlyPlaying;
+	private Playlist playlist;
 
-	private ArrayList<Song> nextSongs;
+	private ArrayList<PlaylistSubscriber> subscribers;
 
 	public PlaylistService() {
-		lock = new ReentrantReadWriteLock(true);
+		playlistLock = new ReentrantReadWriteLock(true);
+		subscriberLock = new ReentrantLock(true);
+		playlist = new Playlist();
+		subscribers = new ArrayList<PlaylistSubscriber>();
 		LOG.debug("Initialized PlaylistManager...");
 	}
 
-	public boolean createPlaylist(PlaylistSettings settings) {
+	/**
+	 * Add subscriber if not already subscribed.
+	 */
+	public void subscribeToPlaylist(PlaylistSubscriber subscriber) {
 		try {
-			lock.writeLock().lock();
-			LOG.debug("Acquired Write-Lock in `createNewPlaylist`.");
+			subscriberLock.lock();
+			LOG.debug("Acquired Write-Lock in `subscribeToPlaylist`.");
 
-			this.settings = settings;
-			boolean result = initializePlaylist();
-
-			return result;
+			if (!subscribers.contains(subscriber))
+				subscribers.add(subscriber);
 		} finally {
-			lock.writeLock().unlock();
-			LOG.debug("Released Write-Lock in `createNewPlaylist`.");
-		}
-	}
-
-	private boolean initializePlaylist() {
-		try {
-			lock.writeLock().lock();
-			LOG.debug("Acquired Write-Lock in `initializePlaylist`.");
-
-			nextSongs = DummyData.getDummyPlaylist();
-			initialized = true;
-
-			return initialized;
-		} finally {
-			lock.writeLock().unlock();
-			LOG.debug("Released Write-Lock in `initializePlaylist`.");
+			subscriberLock.unlock();
+			LOG.debug("Released Write-Lock in `subscribeToPlaylist`.");
 		}
 	}
 
 	/**
-	 * 
-	 * @param streamer
-	 *            This parameter is only to make sure, that advance can be
-	 *            called by the streamer.
-	 * @return 
-	 * @throws UninitializedPlaylistException
+	 * Remove subscriber if present.
 	 */
-	public Song advance(Streamer streamer)
-			throws UninitializedPlaylistException {
+	public void unsubscribeFromPlaylist(PlaylistSubscriber subscriber) {
 		try {
-			lock.writeLock().lock();
-			LOG.debug("Acquired Read-Lock in `getCurrentSong`.");
+			subscriberLock.lock();
+			LOG.debug("Acquired Write-Lock in `unsubscribeFromPlaylist`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"No playlist available. You have to create a playlist first.");
-
-			if (nextSongs.isEmpty())
-				throw new UninitializedPlaylistException(
-						"No more songs in playlist. Please create a new playlist "
-								+ "or add a wish to the current one.");
-
-			currentlyPlaying = nextSongs.remove(0);
-
-			// TODO: listening-subscriber-handling?
-
-			return currentlyPlaying;
+			subscribers.remove(subscriber);
 		} finally {
-			lock.writeLock().unlock();
-			LOG.debug("Released Read-Lock in `getCurrentSong`.");
+			subscriberLock.unlock();
+			LOG.debug("Released Write-Lock in `unsubscribeFromPlaylist`.");
 		}
 	}
 
-	public Song getCurrentSong() throws UninitializedPlaylistException {
+	private void persistPlaylistAndNotifySubscribers() {
+		DB.persist(playlist, Playlist.class);
+
+		for (PlaylistSubscriber ps : subscribers)
+			ps.notifyPlaylistChanged();
+	}
+
+	public void createPlaylist(PlaylistSettings settings) {
 		try {
-			lock.readLock().lock();
-			LOG.debug("Acquired Read-Lock in `getCurrentSong`.");
+			playlistLock.writeLock().lock();
+			LOG.debug("Acquired Write-Lock in `createNewPlaylist`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"No playlist available. You have to create a playlist first.");
+			playlist = new Playlist();
+			playlist.resetPlaylist(settings);
 
-			return currentlyPlaying;
+			persistPlaylistAndNotifySubscribers();
 		} finally {
-			lock.readLock().unlock();
-			LOG.debug("Released Read-Lock in `getCurrentSong`.");
+			playlistLock.writeLock().unlock();
+			LOG.debug("Released Write-Lock in `createNewPlaylist`.");
 		}
 	}
 
-	public ArrayList<Song> getNextSongs() throws UninitializedPlaylistException {
+	/**
+	 * Returns a clone of the current playlist.
+	 * 
+	 * @throws InvalidPlaylistException
+	 */
+	public Playlist getPlaylist() throws InvalidPlaylistException {
 		try {
-			lock.readLock().lock();
-			LOG.debug("Acquired Read-Lock in `getNextSongs`.");
+			playlistLock.readLock().lock();
+			LOG.debug("Acquired Read-Lock in `getPlaylist`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"No playlist available. You have to create a playlist first.");
+			ensurePlaylistIsInitialized();
 
-			return nextSongs;
+			return playlist.clone();
 		} finally {
-			lock.readLock().unlock();
-			LOG.debug("Released Read-Lock in `getNextSongs`.");
+			playlistLock.readLock().unlock();
+			LOG.debug("Released Read-Lock in `getPlaylist`.");
 		}
 	}
 
-	public ArrayList<Song> getNextNSongs(int n)
-			throws UninitializedPlaylistException {
+	public PlaylistSettings getPlaylistSettings()
+			throws InvalidPlaylistException {
 		try {
-			lock.readLock().lock();
-			LOG.debug("Acquired Read-Lock in `getNextNSongs`.");
+			playlistLock.readLock().lock();
+			LOG.debug("Acquired Read-Lock in `getPlaylistSettings`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"No playlist available. You have to create a playlist first.");
+			ensurePlaylistIsInitialized();
 
-			ArrayList<Song> upcoming = new ArrayList<Song>(n);
-			for (int i = 0; i < n; i++)
-				upcoming.add(nextSongs.get(i));
-
-			return upcoming;
+			return playlist.getSettings();
 		} finally {
-			lock.readLock().unlock();
-			LOG.debug("Released Read-Lock in `getNextNSongs`.");
+			playlistLock.readLock().unlock();
+			LOG.debug("Released Read-Lock in `getPlaylistSettings`.");
 		}
 	}
 
-	public PlaylistSettings getCurrentPlaylistSettings()
-			throws UninitializedPlaylistException {
+	public void advance() throws InvalidPlaylistException {
 		try {
-			lock.readLock().lock();
-			LOG.debug("Acquired Read-Lock in `getCurrentPlaylist`.");
+			playlistLock.writeLock().lock();
+			LOG.debug("Acquired Read-Lock in `advance`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"No playlist available. You have to create a playlist first.");
+			ensurePlaylistIsInitialized();
 
-			return settings;
+			playlist.advance();
+
+			persistPlaylistAndNotifySubscribers();
 		} finally {
-			lock.readLock().unlock();
-			LOG.debug("Released Read-Lock in `getCurrentPlaylistSettings`.");
+			playlistLock.writeLock().unlock();
+			LOG.debug("Released Read-Lock in `advance`.");
 		}
 	}
 
@@ -182,42 +158,35 @@ public class PlaylistService {
 	 *            check the playlist has not changed since the last request.
 	 * @param newPosition
 	 *            The songs new position.
+	 * @return
 	 * @return True if oldPosition equals newPosition and no sorting is needed
 	 *         or if sorting successful.
-	 * @throws UninitializedPlaylistException
+	 * @throws InvalidPlaylistException
 	 * @throws PlaylistChangedException
 	 *             Is thrown if the given oldPosition does not match with the
 	 *             songs current position.
 	 */
-	public boolean alterSorting(long songId, int oldPosition, int newPosition)
-			throws UninitializedPlaylistException, PlaylistChangedException {
+	public void alterSorting(long songId, int oldPosition, int newPosition)
+			throws InvalidPlaylistException, PlaylistChangedException {
 		try {
-			// TODO: persist the playlist change also to database?
-			lock.writeLock().lock();
-			LOG.debug("Acquired Write-Lock in `switchSorting`.");
+			playlistLock.writeLock().lock();
+			LOG.debug("Acquired Write-Lock in `alterSorting`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"No playlist available. You have to create a playlist first.");
+			ensurePlaylistIsInitialized();
 
-			if (oldPosition == newPosition)
-				return true;
+			playlist.alterSorting(songId, oldPosition, newPosition);
 
-			if (findIndexOfSongById(songId) != oldPosition)
-				throw new PlaylistChangedException(
-						"Song position did not match. Resorting song in playlist failed "
-								+ "due to changed playlist. Try again after updating "
-								+ "your playlist view.");
-
-			Song song = nextSongs.remove(oldPosition);
-			nextSongs.add(newPosition, song);
-			DummyData.initializeSimilarities(nextSongs);
-
-			return true;
+			updatePlaylistItems();
+			persistPlaylistAndNotifySubscribers();
+			LOG.debug("Resorted song with id " + songId + ".");
 		} finally {
-			lock.writeLock().unlock();
-			LOG.debug("Released Write-Lock in `switchSorting`.");
+			playlistLock.writeLock().unlock();
+			LOG.debug("Released Write-Lock in `alterSorting`.");
 		}
+	}
+
+	private void updatePlaylistItems() {
+		playlist.getItems();
 	}
 
 	/**
@@ -227,74 +196,69 @@ public class PlaylistService {
 	 * @param songId
 	 *            The song to be added.
 	 * @return True if adding succeeds. False else.
-	 * @throws UninitializedPlaylistException
+	 * @throws InvalidPlaylistException
+	 * @throws EntityNotFoundException
+	 *             If song could not be found in database.
 	 */
-	public boolean addWish(long songId) throws UninitializedPlaylistException {
+	public void addWish(long songId) throws InvalidPlaylistException,
+			EntityNotFoundException {
 		try {
-			lock.writeLock().lock();
-			LOG.debug("Acquired Write-Lock in `placeWish`.");
+			playlistLock.writeLock().lock();
+			LOG.debug("Acquired Write-Lock in `addWish`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"Uninitialized playlist. You have to create a playlist first.");
-
-			LOG.debug("Looking for id: " + songId);
+			ensurePlaylistIsInitialized();
+			Song song = mapSong(songId);
 
 			// TODO do path-finding and add song at appropriate place
+			PlaylistItem lastItem;
+			List<PlaylistItem> playlistItems = playlist.getItems();
+			if (!playlistItems.isEmpty())
+				lastItem = playlistItems.get(playlistItems.size() - 1);
+			else
+				lastItem = null;
 
-			ArrayList<Song> data = ApplicationFactory.getDatabaseManager()
-					.getDummyDatabase();
-			for (int i = 0; i < data.size(); i++) {
-				if (data.get(i).getId() == songId) {
-					if (i > 0)
-						data.get(i).setSongSimilarity(
-								DummyData.getDummySongSimilarity(data.get(i),
-										data.get(i - 1)));
-					data.get(i).setUserWish(true);
-					nextSongs.add(data.get(i));
-					LOG.debug("Added wish (songId " + songId + ").");
-					return true;
-				}
-			}
-			return false;
+			// ArrayList<PlaylistItem> items = Pathfinder.findPath(song,
+			// lastItem,
+			// playlist.getSettings());
+			// playlist.addAllItems(items);
+			//
+			// DistanceUpdater.updatePlaylistDistances(playlist);
+
+			updatePlaylistItems();
+			persistPlaylistAndNotifySubscribers();
+			LOG.debug("Added wish:" + song.getTitle() + ".");
 		} finally {
-			lock.writeLock().unlock();
-			LOG.debug("Released Write-Lock in `placeWish`.");
+			playlistLock.writeLock().unlock();
+			LOG.debug("Released Write-Lock in `addWish`.");
 		}
 	}
 
 	/**
 	 * @param songId
 	 *            The song to be removed.
-	 * @param songPosition
+	 * @param expectedSongPosition
 	 *            This position is provided to double check the playlist has not
 	 *            changed since the last request.
 	 * @return True if removing succeeds.
-	 * @throws UninitializedPlaylistException
+	 * @throws InvalidPlaylistException
 	 * @throws PlaylistChangedException
 	 *             Is thrown if either the given songPosition does not match
 	 *             with the songId or the songPosition does not exist at all.
 	 */
-	public boolean removeSong(long songId, int songPosition)
-			throws UninitializedPlaylistException, PlaylistChangedException {
+	public void removeSong(long songId, int expectedSongPosition)
+			throws InvalidPlaylistException, PlaylistChangedException {
 		try {
-			lock.writeLock().lock();
+			playlistLock.writeLock().lock();
 			LOG.debug("Acquired Write-Lock in `removeSong`.");
 
-			if (!initialized)
-				throw new UninitializedPlaylistException(
-						"Uninitialized playlist. You have to create a playlist first.");
+			ensurePlaylistIsInitialized();
 
-			if (nextSongs.get(songPosition).getId() == songId) {
-				Song song = nextSongs.remove(songPosition);
-				LOG.debug("Removed song " + song.getTitle() + " (songId "
-						+ songId + ").");
-				return true;
-			} else {
-				throw new PlaylistChangedException(
-						"Song position did not match. Removing song from playlist failed "
-								+ "due to changed playlist. Try again after updating "
-								+ "your playlist view.");
+			PlaylistItem removed;
+			if ((removed = playlist.removeItem(songId)) != null) {
+				updatePlaylistItems();
+				persistPlaylistAndNotifySubscribers();
+				LOG.debug("Removed song " + removed.getCurrent().getTitle()
+						+ " from playlist.");
 			}
 		} catch (IndexOutOfBoundsException e) {
 			PlaylistChangedException ex = new PlaylistChangedException(
@@ -303,26 +267,31 @@ public class PlaylistService {
 			ex.addSuppressed(e);
 			throw ex;
 		} finally {
-			lock.writeLock().unlock();
+			playlistLock.writeLock().unlock();
 			LOG.debug("Released Write-Lock in `removeSong`.");
 		}
 	}
 
 	/**
-	 * Searches the current playlist for a songId.
-	 * 
-	 * @return If no song is found -1 is returned.
-	 * @throws UninitializedPlaylistException
+	 * @throws InvalidPlaylistException
 	 */
-	private int findIndexOfSongById(long songId) throws UninitializedPlaylistException {
-		if (!initialized)
-			throw new UninitializedPlaylistException("Playlist has not been initialized.");
+	private void ensurePlaylistIsInitialized() throws InvalidPlaylistException {
+		if (!playlist.isInitialized())
+			throw new InvalidPlaylistException(
+					"Uninitialized playlist. You have to create a playlist first.");
+	}
 
-		for (int i = 0; i < nextSongs.size(); i++) {
-			if (nextSongs.get(i).getId() == songId)
-				return i;
-		}
-		return -1;
+	/**
+	 * @throws EntityNotFoundException
+	 *             If song could not be found in database.
+	 */
+	private Song mapSong(long songId) throws EntityNotFoundException {
+		LOG.debug("Looking for song id: " + songId);
+		Song song = DB.findObjectById(songId, Song.class);
+		if (song == null)
+			throw new EntityNotFoundException("The song with id " + songId
+					+ " was not found.");
+		return song;
 	}
 
 }

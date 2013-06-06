@@ -18,9 +18,8 @@ import javax.sound.sampled.AudioInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.application.AudioConverter;
-import ch.hsr.mixtape.exception.UninitializedPlaylistException;
+import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Song;
 
 public class PlaylistStreamService {
@@ -273,8 +272,8 @@ public class PlaylistStreamService {
 				notifyEndOfStream();
 		}
 
-		private boolean nextSongIsSame() throws UninitializedPlaylistException {
-			ArrayList<Song> nextSongs = playlistService.getNextSongs();
+		private boolean nextSongIsSame() throws InvalidPlaylistException {
+			ArrayList<Song> nextSongs = null; //playlistService.getItems();
 			if (nextSongs.isEmpty()) {
 				next = null;
 				return true;
