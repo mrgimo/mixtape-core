@@ -26,7 +26,7 @@ import ch.hsr.mixtape.application.SongTagExtractor;
 		@NamedQuery(name = "getAllSongs", query = "SELECT s FROM Song s"),
 		@NamedQuery(name = "getNewSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NULL"),
 		@NamedQuery(name = "getAnalysedSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NOT NULL"),
-		@NamedQuery(name = "findSongsByTerm", query = "SELECT s FROM Song s WHERE s.title LIKE '%:term%' OR s.artist LIKE '%:term%' s.album LIKE '%:term%' ") })
+		@NamedQuery(name = "findSongsByTerm", query = "SELECT s FROM Song s WHERE s.title LIKE :term OR s.artist LIKE :term OR s.album LIKE :term") })
 @Entity
 public class Song {
 

@@ -4,9 +4,6 @@ import java.util.List;
 
 import javax.persistence.TypedQuery;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -16,16 +13,17 @@ import ch.hsr.mixtape.model.Song;
  */
 public class QueryService {
 
-	private static final Logger LOG = LoggerFactory
-			.getLogger(QueryService.class);
-
 	private static final DatabaseService DB = ApplicationFactory
 			.getDatabaseService();
+	
+	private static final int MAX_QUERY_RESULTS = 20;
 
 	public List<Song> findSongsByTerm(String term) {
-		String cleanTerm = term.toLowerCase().trim();
-		TypedQuery<Song> query = DB.getEntityManager().createNamedQuery("findSongsByTerm", Song.class);
+		String cleanTerm = "%" + term.toLowerCase().trim() + "%";
+		TypedQuery<Song> query = DB.getEntityManager().createNamedQuery(
+				"findSongsByTerm", Song.class);
 		query.setParameter("term", cleanTerm);
+		query.setMaxResults(MAX_QUERY_RESULTS);
 		return query.getResultList();
 	}
 
