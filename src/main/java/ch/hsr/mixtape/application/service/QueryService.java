@@ -15,15 +15,20 @@ public class QueryService {
 
 	private static final DatabaseService DB = ApplicationFactory
 			.getDatabaseService();
-	
+
 	private static final int MAX_QUERY_RESULTS = 20;
 
-	public List<Song> findSongsByTerm(String term) {
+	public List<Song> findSongsByTerm(String term, int maxResults) {
 		String cleanTerm = "%" + term.toLowerCase().trim() + "%";
 		TypedQuery<Song> query = DB.getEntityManager().createNamedQuery(
 				"findSongsByTerm", Song.class);
 		query.setParameter("term", cleanTerm);
-		query.setMaxResults(MAX_QUERY_RESULTS);
+
+		if (maxResults > 0 && maxResults <= MAX_QUERY_RESULTS)
+			query.setMaxResults(maxResults);
+		else
+			query.setMaxResults(MAX_QUERY_RESULTS);
+
 		return query.getResultList();
 	}
 
