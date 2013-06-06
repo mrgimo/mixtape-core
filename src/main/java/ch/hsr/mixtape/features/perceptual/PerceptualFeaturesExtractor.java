@@ -3,7 +3,7 @@ package ch.hsr.mixtape.features.perceptual;
 import static ch.hsr.mixtape.MathUtils.frequencySpectrum;
 import static ch.hsr.mixtape.MathUtils.vectorLength;
 
-import java.util.List;
+import java.util.Iterator;
 
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
@@ -47,7 +47,7 @@ public class PerceptualFeaturesExtractor implements
 	}
 
 	@Override
-	public PerceptualFeaturesOfSong postprocess(List<PerceptualFeaturesOfWindow> featuresOfWindows) {
+	public PerceptualFeaturesOfSong postprocess(Iterator<PerceptualFeaturesOfWindow> featuresOfWindows) {
 		return perceptualQuantizer.quantize(featuresOfWindows);
 	}
 

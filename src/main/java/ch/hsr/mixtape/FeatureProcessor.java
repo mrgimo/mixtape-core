@@ -1,16 +1,12 @@
 package ch.hsr.mixtape;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 import ch.hsr.mixtape.domain.Song;
 import ch.hsr.mixtape.features.FeatureExtractor;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -19,10 +15,10 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 
 	private final FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor;
 
-	private ArrayListMultimap<Song, ListenableFuture<FeaturesOfWindow>> featuresOfWindows = ArrayListMultimap.create();
+	private Map<Song, EvaluatingIterator<FeaturesOfWindow>> featuresOfWindows = Maps.newHashMap();
 	private Map<Song, ListenableFuture<FeaturesOfSong>> featuresOfSongs = Maps.newHashMap();
 
-	private ListeningExecutorService executor;
+	private final ListeningExecutorService executor;
 
 	public FeatureProcessor(FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor,
 			ListeningExecutorService executor) {
@@ -31,7 +27,13 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 	}
 
 	public void process(Song song, double[] windowOfSamples) {
-		featuresOfWindows.put(song, doExtract(windowOfSamples));
+		EvaluatingIterator<FeaturesOfWindow> iterator = featuresOfWindows.get(song);
+		ListenableFuture<FeaturesOfWindow> future = doExtract(windowOfSamples);
+
+		if (iterator != null)
+			iterator.put(future);
+		else
+			initNewSong(song, future);
 	}
 
 	private ListenableFuture<FeaturesOfWindow> doExtract(final double[] window) {
@@ -44,36 +46,28 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 		});
 	}
 
-	public void postprocess(final Song song) {
-		List<ListenableFuture<FeaturesOfWindow>> futures = featuresOfWindows.get(song);
-		featuresOfSongs.put(song, postprocess(futures));
+	private void initNewSong(Song song, ListenableFuture<FeaturesOfWindow> future) {
+		EvaluatingIterator<FeaturesOfWindow> newIterator = new EvaluatingIterator<>(future);
+
+		featuresOfWindows.put(song, newIterator);
+		featuresOfSongs.put(song, postprocess(song, newIterator));
 	}
 
-	private ListenableFuture<FeaturesOfSong> postprocess(final List<ListenableFuture<FeaturesOfWindow>> futures) {
+	public void postprocess(final Song song) {
+		featuresOfWindows.get(song).finish();
+	}
+
+	private ListenableFuture<FeaturesOfSong> postprocess(final Song song, final Iterator<FeaturesOfWindow> iterator) {
 		return executor.submit(new Callable<FeaturesOfSong>() {
 
 			public FeaturesOfSong call() throws Exception {
 				System.out.println("calling postprocess");
-				FeaturesOfSong featuresOfSong = featureExtractor.postprocess(evaluate(futures));
+				FeaturesOfSong featuresOfSong = featureExtractor.postprocess(iterator);
 
-				futures.clear();
+				featuresOfWindows.remove(song);
 				Runtime.getRuntime().gc();
-		
+
 				return featuresOfSong;
-			}
-
-		});
-	}
-
-	private List<FeaturesOfWindow> evaluate(List<ListenableFuture<FeaturesOfWindow>> futures) {
-		return Lists.transform(futures, new Function<ListenableFuture<FeaturesOfWindow>, FeaturesOfWindow>() {
-
-			public FeaturesOfWindow apply(ListenableFuture<FeaturesOfWindow> future) {
-				try {
-					return future.get();
-				} catch (InterruptedException | ExecutionException exception) {
-					throw new RuntimeException(exception);
-				}
 			}
 
 		});

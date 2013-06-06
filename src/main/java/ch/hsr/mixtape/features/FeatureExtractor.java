@@ -1,12 +1,12 @@
 package ch.hsr.mixtape.features;
 
-import java.util.List;
+import java.util.Iterator;
 
 public interface FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> {
 
 	FeaturesOfWindow extractFrom(double[] windowOfSamples);
 
-	FeaturesOfSong postprocess(List<FeaturesOfWindow> featuresOfWindows);
+	FeaturesOfSong postprocess(Iterator<FeaturesOfWindow> featuresOfWindows);
 
 	double distanceBetween(FeaturesOfSong x, FeaturesOfSong y);
 

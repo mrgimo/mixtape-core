@@ -1,9 +1,18 @@
 package ch.hsr.mixtape.features.temporal;
 
 import static ch.hsr.mixtape.MathUtils.limit;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.COMPLEX_DOMAIN;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.ENERGY;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.HIGH_FREQUENCY_CONTENT;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.KULLBACK_LIEBLER;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.MODIFIED_KULLBACK_LIEBLER;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.PHASE_FAST;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.SPECTRAL_DIFFERENCE;
+import static ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType.SPECTRAL_FLUX;
 import static org.apache.commons.math3.util.FastMath.abs;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import weka.clusterers.ClusterEvaluation;
@@ -18,6 +27,17 @@ import ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionT
 import com.google.common.collect.Lists;
 
 public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> {
+
+	private static final SpectralDescriptionType[] SPECTRAL_DESCRIPTION_TYPES = {
+			ENERGY,
+			SPECTRAL_DIFFERENCE,
+			HIGH_FREQUENCY_CONTENT,
+			COMPLEX_DOMAIN,
+			PHASE_FAST,
+			KULLBACK_LIEBLER,
+			MODIFIED_KULLBACK_LIEBLER,
+			SPECTRAL_FLUX
+	};
 
 	private static final int BPM_INDEX = 0;
 	private static final int STANDARD_DEVIATION_INDEX = 1;
@@ -55,22 +75,24 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 		return 10.0 * Math.log10(energy / (double) windowOfSamples.length) >= SILENCE;
 	}
 
-	public TemporalFeaturesOfSong postprocess(List<TemporalFeaturesOfWindow> featuresOfWindows) {
+	public TemporalFeaturesOfSong postprocess(Iterator<TemporalFeaturesOfWindow> featuresOfWindows) {
 		Tempo[] tempos = initTempos();
 
-		double[][] bpms = new double[tempos.length][featuresOfWindows.size()];
-		double[][] confidences = new double[tempos.length][featuresOfWindows.size()];
+		List<Double[]> bpms = Lists.newArrayList();
+		List<Double[]> confidences = Lists.newArrayList();
 
-		for (int i = 0; i < tempos.length; i++) {
-			Tempo tempo = tempos[i];
-			for (int j = 0; j < featuresOfWindows.size(); j++) {
-				TemporalFeaturesOfWindow featuresOfWindow = featuresOfWindows.get(j);
-				tempo.extractTempo(featuresOfWindow.silent, featuresOfWindow.fftgrain);
+		while (featuresOfWindows.hasNext()) {
+			TemporalFeaturesOfWindow featureOfWindow = featuresOfWindows.next();
 
-				bpms[i][j] = tempo.getBPM();
-				confidences[i][j] = tempo.getConfidence();
+			Double[] bpm = new Double[tempos.length];
+			Double[] confidence = new Double[tempos.length];
+			for (int i = 0; i < tempos.length; i++) {
+				Tempo tempo = tempos[i];
+				tempo.extractTempo(featureOfWindow.silent, featureOfWindow.fftgrain);
+
+				bpm[i] = tempo.getBPM();
+				confidence[i] = tempo.getConfidence();
 			}
-
 		}
 
 		TemporalFeaturesOfSong featuresOfSong = new TemporalFeaturesOfSong();
@@ -80,16 +102,14 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 	}
 
 	private Tempo[] initTempos() {
-		SpectralDescriptionType[] types = SpectralDescriptionType.values();
-
-		Tempo[] tempos = new Tempo[types.length];
-		for (SpectralDescriptionType type : types)
+		Tempo[] tempos = new Tempo[SPECTRAL_DESCRIPTION_TYPES.length];
+		for (SpectralDescriptionType type : SPECTRAL_DESCRIPTION_TYPES)
 			tempos[type.ordinal()] = new Tempo(type, WINDOW_SIZE, HOP_SIZE, SAMPLE_RATE);
 
 		return tempos;
 	}
 
-	public double[][] getClusteredResults(double[][] bpms, double[][] confidences) {
+	public double[][] getClusteredResults(List<Double[]> bpms, List<Double[]> confidences) {
 		try {
 			return tryGetClusteredResults(bpms, confidences);
 		} catch (Exception exception) {
@@ -97,7 +117,7 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 		}
 	}
 
-	public double[][] tryGetClusteredResults(double[][] bpms, double[][] confidences) throws Exception {
+	public double[][] tryGetClusteredResults(List<Double[]> bpms, List<Double[]> confidences) throws Exception {
 		Instances instances = setupClusterInstances(bpms, confidences);
 
 		double[][][] clusters = cluster(instances);
@@ -115,30 +135,30 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 		return results;
 	}
 
-	private Instances setupClusterInstances(double[][] bpms, double[][] confidences) {
+	private Instances setupClusterInstances(List<Double[]> bpms, List<Double[]> confidences) {
 		ArrayList<Attribute> attributes = Lists.newArrayList(new Attribute("BPM"));
-		Instances instances = new Instances("TempoDataset", attributes, bpms.length);
+		Instances instances = new Instances("TempoDataset", attributes, bpms.size());
 
 		double[] maxConfidences = getMaxConfidences(confidences);
-		for (int i = 0; i < bpms.length; i++) {
-			for (int j = 0; j < bpms[i].length; i++) {
-				double bpm = bpms[i][j];
-				double confidence = confidences[i][j];
+		for (int i = 0; i < bpms.size(); i++) {
+			for (int j = 0; j < SPECTRAL_DESCRIPTION_TYPES.length; i++) {
+				double bpm = bpms.get(i)[j];
+				double confidence = confidences.get(i)[j];
 
 				if (bpm > 0 && confidence > 0)
-					instances.add(new DenseInstance(confidence / maxConfidences[i], new double[] { bpm }));
+					instances.add(new DenseInstance(confidence / maxConfidences[j], new double[] { bpm }));
 			}
 		}
 
 		return instances;
 	}
 
-	private double[] getMaxConfidences(double[][] confidences) {
-		double[] maxConfidences = new double[confidences.length];
-		for (int i = 0; i < confidences.length; i++)
-			for (int j = 0; j < confidences[i].length; j++)
-				if (maxConfidences[i] < confidences[i][j])
-					maxConfidences[i] = confidences[i][j];
+	private double[] getMaxConfidences(List<Double[]> confidences) {
+		double[] maxConfidences = new double[SPECTRAL_DESCRIPTION_TYPES.length];
+		for (Double[] confidence : confidences)
+			for (int j = 0; j < confidence.length; j++)
+				if (maxConfidences[j] < confidence[j])
+					maxConfidences[j] = confidence[j];
 
 		return maxConfidences;
 	}

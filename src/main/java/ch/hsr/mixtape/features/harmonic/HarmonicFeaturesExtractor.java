@@ -1,11 +1,13 @@
 package ch.hsr.mixtape.features.harmonic;
 
+import java.util.Iterator;
 import java.util.List;
 
 import ch.hsr.mixtape.MathUtils;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
 
+import com.google.common.collect.Lists;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Ints;
 
@@ -34,46 +36,51 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 		int binOfFundamental = featuresOfWindow.fundamentals[0];
 		int[] binsOfHarmonics = harmonics.extract(powerSpectrum, binOfFundamental);
 
-		featuresOfWindow.inharmonicity = inharmonicity.extract(powerSpectrum, binOfFundamental,
+		featuresOfWindow.inharmonicity = inharmonicity.extract(
+				powerSpectrum,
+				binOfFundamental,
 				binsOfHarmonics);
 
-		featuresOfWindow.oddToEvenHarmonicEnergyRatio = oddToEvenHarmonicEnergyRatio.extract(powerSpectrum,
+		featuresOfWindow.oddToEvenHarmonicEnergyRatio = oddToEvenHarmonicEnergyRatio.extract(
+				powerSpectrum,
 				binsOfHarmonics);
 
-		featuresOfWindow.tristimulus = tristimulus.extract(powerSpectrum, binsOfHarmonics);
+		featuresOfWindow.tristimulus = tristimulus.extract(
+				powerSpectrum,
+				binsOfHarmonics);
 
 		return featuresOfWindow;
 	}
 
-	public HarmonicFeaturesOfSong postprocess(List<HarmonicFeaturesOfWindow> featuresOfWindows) {
-		HarmonicFeaturesOfSong featuresOfSong = new HarmonicFeaturesOfSong();
+	public HarmonicFeaturesOfSong postprocess(Iterator<HarmonicFeaturesOfWindow> featuresOfWindows) {
+		List<Integer> fundamentals = Lists.newArrayList();
+		List<Integer> inharmonicity = Lists.newArrayList();
+		List<Integer> oddToEvenHarmonicEnergyRatio = Lists.newArrayList();
+		List<Integer> tristimulus = Lists.newArrayList();
 
-		int[] fundamentals = new int[0];
-		int[] inharmonicity = new int[featuresOfWindows.size()];
-		int[] oddToEvenHarmonicEnergyRatio = new int[featuresOfWindows.size()];
-		int[] tristimulus = new int[0];
+		while (featuresOfWindows.hasNext()) {
+			HarmonicFeaturesOfWindow featuresOfWindow = featuresOfWindows.next();
 
-		for (int i = 0; i < featuresOfWindows.size(); i++) {
-			HarmonicFeaturesOfWindow featuresOfWindow = featuresOfWindows.get(i);
-
-			fundamentals = Ints.concat(fundamentals, quantizeFundamentals(featuresOfWindow.fundamentals));
-			inharmonicity[i] = quantizeInharmonicity(featuresOfWindow.inharmonicity);
-			oddToEvenHarmonicEnergyRatio[i] = quantizeOddToEvenHarmonicEnergyRatio(featuresOfWindow.oddToEvenHarmonicEnergyRatio);
-			tristimulus = Ints.concat(tristimulus, quantizeTristimulus(featuresOfWindow.tristimulus));
+			fundamentals.addAll(quantizeFundamentals(featuresOfWindow.fundamentals));
+			inharmonicity.add(quantizeInharmonicity(featuresOfWindow.inharmonicity));
+			oddToEvenHarmonicEnergyRatio.add(quantizeOddToEvenHarmonicEnergyRatio(featuresOfWindow.oddToEvenHarmonicEnergyRatio));
+			tristimulus.addAll(quantizeTristimulus(featuresOfWindow.tristimulus));
 		}
 
-		featuresOfSong.fudamentals = fundamentals;
-		featuresOfSong.inharmonicity = inharmonicity;
-		featuresOfSong.oddToEvenHarmonicEnergyRatio = oddToEvenHarmonicEnergyRatio;
-		featuresOfSong.tristimulus = tristimulus;
+		HarmonicFeaturesOfSong featuresOfSong = new HarmonicFeaturesOfSong();
+
+		featuresOfSong.fudamentals = Ints.toArray(fundamentals);
+		featuresOfSong.inharmonicity = Ints.toArray(inharmonicity);
+		featuresOfSong.oddToEvenHarmonicEnergyRatio = Ints.toArray(oddToEvenHarmonicEnergyRatio);
+		featuresOfSong.tristimulus = Ints.toArray(tristimulus);
 
 		return featuresOfSong;
 	}
 
-	private int[] quantizeFundamentals(int[] binsOfFundamentals) {
-		int[] pianoKeys = new int[binsOfFundamentals.length];
-		for (int i = 0; i < pianoKeys.length; i++)
-			pianoKeys[i] = frequencyToPianoKey(MathUtils.binToFrequency(binsOfFundamentals[i], 44100, WINDOW_SIZE));
+	private List<Integer> quantizeFundamentals(int[] binsOfFundamentals) {
+		List<Integer> pianoKeys = Lists.newArrayList(binsOfFundamentals.length);
+		for (int i = 0; i < binsOfFundamentals.length; i++)
+			pianoKeys.add(frequencyToPianoKey(MathUtils.binToFrequency(binsOfFundamentals[i], 44100, WINDOW_SIZE)));
 
 		return pianoKeys;
 	}
@@ -90,10 +97,10 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 		return (int) (oddToEvenHarmonicEnergyRatio * 10) + 1;
 	}
 
-	private int[] quantizeTristimulus(double[] tristimulus) {
-		int[] quantized = new int[tristimulus.length];
-		for (int i = 0; i < quantized.length; i++)
-			quantized[i] = (int) (tristimulus[i] * 10) + 1;
+	private List<Integer> quantizeTristimulus(double[] tristimulus) {
+		List<Integer> quantized = Lists.newArrayList(tristimulus.length);
+		for (int i = 0; i < tristimulus.length; i++)
+			quantized.add((int) (tristimulus[i] * 10) + 1);
 
 		return quantized;
 	}
