@@ -65,14 +65,25 @@
 			<version>0.3.7-2</version>
 		</dependency>
 
-		<!-- <dependency> <groupId>com.googlecode.soundlibs</groupId> <artifactId>jlayer</artifactId> 
-			<version>1.0.1-1</version> </dependency> -->
+		<!-- mp3 support -->
+		<dependency>
+			<groupId>com.googlecode.soundlibs</groupId>
+			<artifactId>jlayer</artifactId>
+			<version>1.0.1-1</version>
+		</dependency>
+<!-- 
+		<dependency>
+			<groupId>net.sourceforge.jaadec</groupId>
+			<artifactId>jaad</artifactId>
+			<version>${jaad.version}</version>
+		</dependency>
+ -->
 
-		<!-- <dependency> <groupId>net.sourceforge.jaadec</groupId> <artifactId>jaad</artifactId> 
-			<version>${jaad.version}</version> </dependency> -->
-
-		<!-- <dependency> <groupId>com.googlecode.soundlibs</groupId> <artifactId>mp3spi</artifactId> 
-			<version>1.9.5-1</version> </dependency> -->
+		<dependency>
+			<groupId>com.googlecode.soundlibs</groupId>
+			<artifactId>mp3spi</artifactId>
+			<version>1.9.5-1</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.googlecode.soundlibs</groupId>
@@ -177,9 +188,23 @@
 
 	<repositories>
 		<repository>
+			<id>lib</id>
+			<name>Lib</name>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>file://${project.basedir}/lib</url>
+		</repository>
+
+		<repository>
 			<id>EclipseLink</id>
 			<url>http://download.eclipse.org/rt/eclipselink/maven.repo</url>
 		</repository>
+
 		<repository>
 			<id>Jaudiotagger</id>
 			<url>http://maven.java.net/content/repositories/snapshots</url>
@@ -188,43 +213,16 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>install-library</id>
-						<phase>install</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<groupId>com.softsynth</groupId>
-							<artifactId>jsyn</artifactId>
-							<version>${jsyn.version}</version>
-							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
-							<file>lib/jsyn-beta-16.5.14.jar</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install JAVE</id>
-						<phase>install</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<groupId>it.sauronsoftware</groupId>
-							<artifactId>jave</artifactId>
-							<version>${jave.version}</version>
-							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
-							<file>lib/jave-1.0.2.jar</file>
-							<sources>lib/jave-1.0.2-src</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-install-plugin</artifactId> 
+				<executions> <execution> <id>install-library</id> <phase>install</phase> 
+				<goals> <goal>install-file</goal> </goals> <configuration> <groupId>com.softsynth</groupId> 
+				<artifactId>jsyn</artifactId> <version>${jsyn.version}</version> <packaging>jar</packaging> 
+				<generatePom>true</generatePom> <file>lib/jsyn-beta-16.5.14.jar</file> </configuration> 
+				</execution> <execution> <id>install JAVE</id> <phase>install</phase> <goals> 
+				<goal>install-file</goal> </goals> <configuration> <groupId>it.sauronsoftware</groupId> 
+				<artifactId>jave</artifactId> <version>${jave.version}</version> <packaging>jar</packaging> 
+				<generatePom>true</generatePom> <file>lib/jave-1.0.2.jar</file> <sources>lib/jave-1.0.2-src</sources> 
+				</configuration> </execution> </executions> </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

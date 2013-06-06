@@ -1,11 +1,13 @@
 package ch.hsr.mixtape.features.spectral;
 
-import java.util.List;
+import static ch.hsr.mixtape.MathUtils.powerSpectrum;
+import static ch.hsr.mixtape.MathUtils.sum;
+import static ch.hsr.mixtape.MathUtils.vectorLength;
 
-import ch.hsr.mixtape.MathUtils;
+import java.util.Iterator;
+
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.metrics.NormalizedInformationDistance;
-import static ch.hsr.mixtape.MathUtils.*;
 
 public class SpectralFeaturesExtractor implements
 		FeatureExtractor<SpectralFeaturesOfWindow, SpectralFeaturesOfSong> {
@@ -21,49 +23,48 @@ public class SpectralFeaturesExtractor implements
 	private SpectralSkewness spectralSkewness = new SpectralSkewness();
 
 	private SpectralQuantizer spectralQuantizer = new SpectralQuantizer();
-
 	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
 
 	@Override
 	public SpectralFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		SpectralFeaturesOfWindow spectralFeaturesOfWindows = new SpectralFeaturesOfWindow();
 
-		double[] powerSpectrum = getPowerSpectrum(windowOfSamples);
+		double[] powerSpectrum = powerSpectrum(windowOfSamples);
 		double totalPower = sum(powerSpectrum);
-		
 
-		spectralFeaturesOfWindows.spectralCentroid = spectralCentroid
-				.extractFeature(windowOfSamples, powerSpectrum, totalPower);
+		spectralFeaturesOfWindows.spectralCentroid = spectralCentroid.extractFeature(
+				windowOfSamples,
+				powerSpectrum,
+				totalPower);
 
-		spectralFeaturesOfWindows.spectralSpread = spectralSpread
-				.extractFeature(powerSpectrum,
-						spectralFeaturesOfWindows.spectralCentroid, totalPower);
+		spectralFeaturesOfWindows.spectralSpread = spectralSpread.extractFeature(
+				powerSpectrum,
+				spectralFeaturesOfWindows.spectralCentroid,
+				totalPower);
 
-		spectralFeaturesOfWindows.spectralOddToEvenRatio = spectralOddToEvenRatio
-				.extractFeature(powerSpectrum);
+		spectralFeaturesOfWindows.spectralOddToEvenRatio = spectralOddToEvenRatio.extractFeature(
+				powerSpectrum);
 
-		spectralFeaturesOfWindows.spectralSkewness = spectralSkewness
-				.extractFeature(powerSpectrum,
-						spectralFeaturesOfWindows.spectralCentroid,
-						spectralFeaturesOfWindows.spectralSpread, totalPower);
+		spectralFeaturesOfWindows.spectralSkewness = spectralSkewness.extractFeature(
+				powerSpectrum,
+				spectralFeaturesOfWindows.spectralCentroid,
+				spectralFeaturesOfWindows.spectralSpread,
+				totalPower);
 
-		spectralFeaturesOfWindows.spectralKurtosis = spectralKurtosis
-				.extracFeature(powerSpectrum,
-						spectralFeaturesOfWindows.spectralCentroid,
-						spectralFeaturesOfWindows.spectralSpread, totalPower);
+		spectralFeaturesOfWindows.spectralKurtosis = spectralKurtosis.extracFeature(
+				powerSpectrum,
+				spectralFeaturesOfWindows.spectralCentroid,
+				spectralFeaturesOfWindows.spectralSpread,
+				totalPower);
 
 		return spectralFeaturesOfWindows;
 	}
 
-	@Override
-	public SpectralFeaturesOfSong postprocess(
-			List<SpectralFeaturesOfWindow> featuresOfWindows) {
+	public SpectralFeaturesOfSong postprocess(Iterator<SpectralFeaturesOfWindow> featuresOfWindows) {
 		return spectralQuantizer.quantize(featuresOfWindows);
 	}
 
-	@Override
-	public double distanceBetween(SpectralFeaturesOfSong x,
-			SpectralFeaturesOfSong y) {
+	public double distanceBetween(SpectralFeaturesOfSong x, SpectralFeaturesOfSong y) {
 		double[] spectralDistances = new double[SPECTRAL_FEATURES_DIMENSION];
 
 		spectralDistances[0] = nid.distanceBetween(x.spectralCentroid, y.spectralCentroid);
@@ -75,18 +76,12 @@ public class SpectralFeaturesExtractor implements
 		return vectorLength(spectralDistances);
 	}
 
-	@Override
 	public int getWindowSize() {
 		return WINDOW_SIZE;
 	}
 
-	@Override
 	public int getWindowOverlap() {
 		return WINDOW_OVERLAP;
-	}
-
-	private double[] getPowerSpectrum(double[] samples) {
-		return square(MathUtils.frequencySpectrum(samples));
 	}
 
 }

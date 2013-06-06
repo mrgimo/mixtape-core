@@ -16,10 +16,14 @@ public class MathUtils {
 
 	private static final FastFourierTransformer fft = new FastFourierTransformer(STANDARD);
 
+	public static double[] powerSpectrum(double[] samples) {
+		return square(frequencySpectrum(samples));
+	}
+	
 	public static double[] frequencySpectrum(double[] samples) {
 		return toFrequencySpectrum(fft(hannWindow(samples)));
 	}
-
+	
 	public static double binToFrequency(int bin, double sampleRate, int windowSize) {
 		return bin * sampleRate / windowSize;
 	}
