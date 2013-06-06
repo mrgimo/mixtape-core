@@ -21,6 +21,7 @@ import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesExtractor;
 import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesExtractor;
 import ch.hsr.mixtape.features.spectral.SpectralFeaturesExtractor;
+import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.Lists;
@@ -42,10 +43,10 @@ public class Mixtape {
 			.availableProcessors();
 
 	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues
-			.newArrayBlockingQueue(AVAILABLE_PROCESSORS);
+			.newArrayBlockingQueue(AVAILABLE_PROCESSORS * 4);
 	private static final ListeningExecutorService executor = listeningDecorator(MoreExecutors
 			.getExitingExecutorService(new ThreadPoolExecutor(
-					AVAILABLE_PROCESSORS, AVAILABLE_PROCESSORS, 1,
+					AVAILABLE_PROCESSORS, AVAILABLE_PROCESSORS * 2, 1,
 					TimeUnit.MINUTES, new ForwardingBlockingQueue<Runnable>() {
 
 						protected BlockingQueue<Runnable> delegate() {
