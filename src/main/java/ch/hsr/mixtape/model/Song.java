@@ -91,6 +91,15 @@ public class Song {
 	}
 
 	/**
+	 * TODO: remove in the future
+	 * @deprecated
+	 */
+	public Song(int id, String filepath) {
+		this.id = id;
+		this.filepath = filepath;
+	}
+
+	/**
 	 * Checks if the provided filepath is valid by format, reachable and if the
 	 * file is readable.
 	 * 

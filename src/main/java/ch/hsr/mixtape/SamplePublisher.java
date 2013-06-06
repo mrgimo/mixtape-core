@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 import ch.hsr.mixtape.audio.AudioChannel;
-import ch.hsr.mixtape.domain.Song;
+import ch.hsr.mixtape.model.Song;
 
 import com.google.common.primitives.Ints;
 
@@ -40,7 +40,7 @@ public class SamplePublisher {
 		int writePosition = 0;
 		int[] readPositions = new int[subscribers.size()];
 
-		AudioChannel channel = AudioChannel.load(new File(song.getFilePath()));
+		AudioChannel channel = AudioChannel.load(new File(song.getFilepath()));
 		ByteBuffer byteBuffer = ByteBuffer.allocate(getBufferSize(channel, sampleBuffer.length));
 
 		while ((writePosition = readSamples(channel, byteBuffer, sampleBuffer, writePosition)) != -1) {

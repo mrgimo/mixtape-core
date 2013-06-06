@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import ch.hsr.mixtape.domain.Song;
+import ch.hsr.mixtape.model.Song;
 
 public class Pathfinder {
 

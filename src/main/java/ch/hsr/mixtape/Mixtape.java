@@ -16,12 +16,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import ch.hsr.mixtape.domain.Song;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesExtractor;
 import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesExtractor;
 import ch.hsr.mixtape.features.spectral.SpectralFeaturesExtractor;
 import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
+import ch.hsr.mixtape.model.Song;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.Lists;
@@ -98,11 +98,11 @@ public class Mixtape {
 				.size()];
 
 		List<ListenableFuture<Double>> futures = Lists.newArrayList();
-		
+
 		SamplePublisher publisher = new SamplePublisher(processors);
 		for (int x = 0; x < songs.size(); x++) {
 			Song songX = songs.get(x);
-			String nameX = "'" + new File(songX.getFilePath()).getName() + "'";
+			String nameX = "'" + new File(songX.getFilepath()).getName() + "'";
 			System.out.println("Processing song " + nameX + ".");
 
 			publisher.publish(songX);
@@ -113,13 +113,16 @@ public class Mixtape {
 
 			for (int y = 0; y < x; y++) {
 				Song songY = songs.get(y);
-				String nameY = "'" + new File(songY.getFilePath()).getName()
+				String nameY = "'" + new File(songY.getFilepath()).getName()
 						+ "'";
 
-				System.out.println("Calculating distance between " + nameX + " and " + nameY + ".");
+				System.out.println("Calculating distance between " + nameX
+						+ " and " + nameY + ".");
 				for (int i = 0; i < processors.size(); i++) {
-					ListenableFuture<Double> distance = processors.get(i).distanceBetween(songX, songY);
-					Futures.addCallback(distance, createDistanceCallback(distances[x][y], i));
+					ListenableFuture<Double> distance = processors.get(i)
+							.distanceBetween(songX, songY);
+					Futures.addCallback(distance,
+							createDistanceCallback(distances[x][y], i));
 					futures.add(distance);
 				}
 
@@ -131,14 +134,16 @@ public class Mixtape {
 		return distances;
 	}
 
-	private static FutureCallback<Double> createDistanceCallback(final double[] distanceVector, final int i) {
+	private static FutureCallback<Double> createDistanceCallback(
+			final double[] distanceVector, final int i) {
 		return new FutureCallback<Double>() {
 
 			public void onSuccess(Double distance) {
 				distanceVector[i] = distance;
 			}
 
-			public void onFailure(Throwable throwable) {}
+			public void onFailure(Throwable throwable) {
+			}
 
 		};
 	}
@@ -166,6 +171,8 @@ public class Mixtape {
 		List<Song> songs = Lists.newArrayListWithCapacity(songFiles.size());
 		for (int id = 0; id < songFiles.size(); id++)
 			songs.add(new Song(id, songFiles.get(id).getAbsolutePath()));
+		// TODO: this constructor is not allowed here => deprecated ;-)
+		// Use DB instead :-)
 
 		return songs;
 	}
@@ -181,11 +188,13 @@ public class Mixtape {
 		return extractors;
 	}
 
-	public double distanceBetween(int x, int y, double[] weighting) {
-		if (x > y)
-			return distance(distances[x][y], weighting);
-		else if (x < y)
-			return distance(distances[y][x], weighting);
+	public double distanceBetween(long x, long y, double[] weighting) {
+		int temp_x = (int) x; // TODO: no more ints here buddy ;-)
+		int temp_y = (int) y; // TODO: no more ints here buddy ;-)
+		if (temp_x > temp_y)
+			return distance(distances[temp_x][temp_y], weighting);
+		else if (temp_x < temp_y)
+			return distance(distances[temp_y][temp_x], weighting);
 		else
 			return 0;
 	}
@@ -207,9 +216,8 @@ public class Mixtape {
 		List<FeatureExtractor<?, ?>> featureExtractors = Arrays.asList(
 				new HarmonicFeaturesExtractor(),
 				new SpectralFeaturesExtractor(),
-				new PerceptualFeaturesExtractor()
-		 ,new TemporalFeaturesExtractor()
-				);
+				new PerceptualFeaturesExtractor(),
+				new TemporalFeaturesExtractor());
 
 		List<File> files = Arrays.asList(new File("songs"));
 
@@ -226,12 +234,16 @@ public class Mixtape {
 		for (int x = 0; x < songs.size(); x++) {
 			Map<Song, Double> distances = Maps.newHashMap();
 			for (int y = 0; y < songs.size(); y++)
-				distances.put(songs.get(y), mixtape.distanceBetween(x, y, new double[] { 1, 1, 1, 1 }));
+				distances.put(songs.get(y), mixtape.distanceBetween(x, y,
+						new double[] { 1, 1, 1, 1 }));
 
-			Ordering<Song> ordering = Ordering.natural().onResultOf(Functions.forMap(distances));
-			System.out.println("Distances to song " + new File(songs.get(x).getFilePath()).getName() + ":");
+			Ordering<Song> ordering = Ordering.natural().onResultOf(
+					Functions.forMap(distances));
+			System.out.println("Distances to song "
+					+ new File(songs.get(x).getFilepath()).getName() + ":");
 			for (Song song : ordering.sortedCopy(distances.keySet()))
-				System.out.println(new File(song.getFilePath()).getName() + " = " + distances.get(song));
+				System.out.println(new File(song.getFilepath()).getName()
+						+ " = " + distances.get(song));
 
 			System.out.println();
 		}
