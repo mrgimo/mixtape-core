@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import ch.hsr.mixtape.domain.Song;
 import ch.hsr.mixtape.features.FeatureExtractor;
+import ch.hsr.mixtape.model.Song;
 
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;

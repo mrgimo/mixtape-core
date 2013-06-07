@@ -1,11 +1,9 @@
 package ch.hsr.mixtape.application.service;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.persistence.TypedQuery;
 
-import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -15,24 +13,18 @@ import ch.hsr.mixtape.model.Song;
  */
 public class QueryService {
 
-	private static final Logger log = LoggerFactory.getLogger(QueryService.class);
+	private static final DatabaseService DB = ApplicationFactory
+			.getDatabaseService();
+	
+	private static final int MAX_QUERY_RESULTS = 20;
 
-	public ArrayList<Song> findSongsByTerm(String term) {
-		// TODO: implement db query
-		ArrayList<Song> availableSongs = ApplicationFactory.getDatabaseManager().getDummyDatabase();
-
-		ArrayList<Song> foundSongs = new ArrayList<Song>();
-
-		// TODO: clean string
-		String cleanTerm = term.toLowerCase();
-
-		if (!cleanTerm.isEmpty())
-			for (Song s : availableSongs)
-				if (s.getTitle().toLowerCase().contains(cleanTerm) || s.getArtist().toLowerCase().contains(cleanTerm)
-						|| s.getAlbum().toLowerCase().contains(cleanTerm))
-					foundSongs.add(s);
-
-		return foundSongs;
+	public List<Song> findSongsByTerm(String term) {
+		String cleanTerm = "%" + term.toLowerCase().trim() + "%";
+		TypedQuery<Song> query = DB.getEntityManager().createNamedQuery(
+				"findSongsByTerm", Song.class);
+		query.setParameter("term", cleanTerm);
+		query.setMaxResults(MAX_QUERY_RESULTS);
+		return query.getResultList();
 	}
 
 }

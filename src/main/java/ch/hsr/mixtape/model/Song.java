@@ -5,12 +5,13 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.Random;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.PrePersist;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -21,8 +22,17 @@ import ch.hsr.mixtape.application.SongTagExtractor;
 /**
  * @author Stefan Derungs
  */
+@NamedQueries({
+		@NamedQuery(name = "getAllSongs", query = "SELECT s FROM Song s"),
+		@NamedQuery(name = "getNewSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NULL"),
+		@NamedQuery(name = "getAnalysedSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NOT NULL"),
+		@NamedQuery(name = "findSongsByTerm", query = "SELECT s FROM Song s WHERE s.title LIKE :term OR s.artist LIKE :term OR s.album LIKE :term") })
 @Entity
 public class Song {
+
+	public static enum SongStatusType {
+		New, Analyzing, Analyzed
+	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,32 +59,20 @@ public class Song {
 
 	private String artist;
 
+	// @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@Transient
-	private boolean userWish;
-
-	@Transient
-	private boolean inStreamQueue;
-	
-	@Transient
-	private SongSimilarity songSimilarity;
-
-	private static Random random = new Random(); // TODO: remove as soon as
-													// working with real data
+	private FeaturesOfSong features;
 
 	public Song() {
-		id = random.nextLong(); // TODO: remove as soon as working with real
-								// data
 		scanDate = new Date();
 	}
 
-	public Song(String filepath, String title, String artist, String album,
-			boolean isUserWish) {
+	public Song(String filepath, String title, String artist, String album) {
 		this();
 		this.filepath = filepath;
 		this.title = title;
 		this.artist = artist;
 		this.album = album;
-		this.userWish = isUserWish;
 	}
 
 	/**
@@ -90,6 +88,15 @@ public class Song {
 
 		SongTagExtractor extractor = new SongTagExtractor();
 		extractor.extractTagsFromSong(this);
+	}
+
+	/**
+	 * TODO: remove in the future
+	 * @deprecated
+	 */
+	public Song(int id, String filepath) {
+		this.id = id;
+		this.filepath = filepath;
 	}
 
 	/**
@@ -130,14 +137,6 @@ public class Song {
 	@PrePersist
 	private void updateModifiedDate() {
 		lastModified = new Date();
-	}
-
-	public SongSimilarity getSongSimilarity() {
-		return songSimilarity;
-	}
-
-	public void setSongSimilarity(SongSimilarity similarity) {
-		this.songSimilarity = similarity;
 	}
 
 	public long getId() {
@@ -208,22 +207,6 @@ public class Song {
 		this.album = album;
 	}
 
-	public boolean isUserWish() {
-		return userWish;
-	}
-
-	public void setUserWish(boolean userWish) {
-		this.userWish = userWish;
-	}
-
-	public boolean isInStreamQueue() {
-		return inStreamQueue;
-	}
-
-	public void setInStreamQueue(boolean inStreamQueue) {
-		this.inStreamQueue = inStreamQueue;
-	}
-
 	@Override
 	public int hashCode() {
 		return title.hashCode();
@@ -233,7 +216,7 @@ public class Song {
 	public boolean equals(Object anObject) {
 		return this.id == ((Song) anObject).id;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "===========\nFilepath: " + filepath + "\nTitle: " + title

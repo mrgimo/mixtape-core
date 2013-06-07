@@ -5,9 +5,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import ch.hsr.mixtape.model.PlaylistItem;
+import ch.hsr.mixtape.model.PlaylistSettings;
 import ch.hsr.mixtape.model.Song;
 
-public class Pathfinder {
+public class PlayListMixer {
+	
+	public List<PlaylistItem> mix(List<PlaylistItem> playListItems, Song songToAdd, PlaylistSettings playlistSettings) {
+		
+		return null;
+	}
 
 	public List<Song> createPlaylist(Mixtape mixtape, List<Song> chosenSongs,
 			List<Song> availableSongs, double[] weighting) {

@@ -12,7 +12,8 @@
 		<class>ch.hsr.mixtape.model.PlaylistSettings</class>
 		<class>ch.hsr.mixtape.model.Song</class>
 		<class>ch.hsr.mixtape.model.SystemSettings</class>
-		<class>ch.hsr.mixtape.model.SongSimilarity</class>
+		<class>ch.hsr.mixtape.model.Playlist</class>
+		<class>ch.hsr.mixtape.model.PlaylistItem</class>
 
 		<!-- shouldn't be valid for java SE per specification, but it works for 
 			EclipseLink ... -->
