@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -42,12 +44,11 @@ public class Mixtape {
 	private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime()
 			.availableProcessors();
 
-	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues
-			.newArrayBlockingQueue(AVAILABLE_PROCESSORS * 4);
-	private static final ListeningExecutorService executor = listeningDecorator(MoreExecutors
+	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues.newArrayBlockingQueue(2 * AVAILABLE_PROCESSORS);
+	private static final ListeningExecutorService EXTRACTION_EXECUTOR = listeningDecorator(MoreExecutors
 			.getExitingExecutorService(new ThreadPoolExecutor(
-					AVAILABLE_PROCESSORS, AVAILABLE_PROCESSORS * 2, 1,
-					TimeUnit.MINUTES, new ForwardingBlockingQueue<Runnable>() {
+					AVAILABLE_PROCESSORS, AVAILABLE_PROCESSORS, 0L,
+					TimeUnit.MILLISECONDS, new ForwardingBlockingQueue<Runnable>() {
 
 						protected BlockingQueue<Runnable> delegate() {
 							return TASK_QUEUE;
@@ -63,6 +64,12 @@ public class Mixtape {
 						}
 
 					})));
+
+	private static final ListeningExecutorService POSTPROCESSING_EXECUTOR = listeningDecorator(
+			MoreExecutors.getExitingExecutorService(new ThreadPoolExecutor(
+					4, 4,
+					0L, TimeUnit.MILLISECONDS,
+					new LinkedBlockingQueue<Runnable>())));
 
 	private final List<Song> songs;
 
@@ -98,7 +105,7 @@ public class Mixtape {
 				.size()];
 
 		List<ListenableFuture<Double>> futures = Lists.newArrayList();
-		
+
 		SamplePublisher publisher = new SamplePublisher(processors);
 		for (int x = 0; x < songs.size(); x++) {
 			Song songX = songs.get(x);
@@ -176,7 +183,7 @@ public class Mixtape {
 		List<FeatureProcessor<?, ?>> extractors = Lists
 				.newArrayListWithCapacity(featuresExtractors.size());
 		for (FeatureExtractor<?, ?> featuresExtractor : featuresExtractors)
-			extractors.add(new FeatureProcessor<>(featuresExtractor, executor));
+			extractors.add(new FeatureProcessor<>(featuresExtractor, EXTRACTION_EXECUTOR, POSTPROCESSING_EXECUTOR));
 
 		return extractors;
 	}
@@ -208,7 +215,7 @@ public class Mixtape {
 				new HarmonicFeaturesExtractor(),
 				new SpectralFeaturesExtractor(),
 				new PerceptualFeaturesExtractor()
-		 ,new TemporalFeaturesExtractor()
+			//	, new TemporalFeaturesExtractor()
 				);
 
 		List<File> files = Arrays.asList(new File("songs"));
