@@ -49,11 +49,13 @@ public class Mixtape {
 	private static final int AVAILABLE_PROCESSORS = Runtime.getRuntime()
 			.availableProcessors();
 
-	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues.newArrayBlockingQueue(2 * AVAILABLE_PROCESSORS);
+	private static final BlockingQueue<Runnable> TASK_QUEUE = Queues
+			.newArrayBlockingQueue(2 * AVAILABLE_PROCESSORS);
 	private static final ListeningExecutorService EXTRACTION_EXECUTOR = listeningDecorator(MoreExecutors
 			.getExitingExecutorService(new ThreadPoolExecutor(
 					AVAILABLE_PROCESSORS, AVAILABLE_PROCESSORS, 0L,
-					TimeUnit.MILLISECONDS, new ForwardingBlockingQueue<Runnable>() {
+					TimeUnit.MILLISECONDS,
+					new ForwardingBlockingQueue<Runnable>() {
 
 						protected BlockingQueue<Runnable> delegate() {
 							return TASK_QUEUE;
@@ -70,11 +72,9 @@ public class Mixtape {
 
 					})));
 
-	private static final ListeningExecutorService POSTPROCESSING_EXECUTOR = listeningDecorator(
-			MoreExecutors.getExitingExecutorService(new ThreadPoolExecutor(
-					4, 4,
-					0L, TimeUnit.MILLISECONDS,
-					new LinkedBlockingQueue<Runnable>())));
+	private static final ListeningExecutorService POSTPROCESSING_EXECUTOR = listeningDecorator(MoreExecutors
+			.getExitingExecutorService(new ThreadPoolExecutor(4, 4, 0L,
+					TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>())));
 
 	private final List<Song> songs;
 
@@ -154,7 +154,8 @@ public class Mixtape {
 				distanceVector[i] = distance;
 			}
 
-			public void onFailure(Throwable throwable) {}
+			public void onFailure(Throwable throwable) {
+			}
 
 		};
 	}
@@ -194,7 +195,8 @@ public class Mixtape {
 		List<FeatureProcessor<?, ?>> extractors = Lists
 				.newArrayListWithCapacity(featuresExtractors.size());
 		for (FeatureExtractor<?, ?> featuresExtractor : featuresExtractors)
-			extractors.add(new FeatureProcessor<>(featuresExtractor, EXTRACTION_EXECUTOR, POSTPROCESSING_EXECUTOR));
+			extractors.add(new FeatureProcessor<>(featuresExtractor,
+					EXTRACTION_EXECUTOR, POSTPROCESSING_EXECUTOR));
 
 		return extractors;
 	}
@@ -297,7 +299,8 @@ public class Mixtape {
 
 	}
 
-	public void mixAnotherSong(Playlist playlist, Song addedSong) throws InvalidPlaylistException {
+	public void mixAnotherSong(Playlist playlist, Song addedSong)
+			throws InvalidPlaylistException {
 		List<Song> availableSongs = getAvailableSongs();
 
 		stripUsedSongs(playlist, addedSong, availableSongs);
@@ -308,8 +311,7 @@ public class Mixtape {
 
 	// TODO: find good strategy -> maybe dont fetch all the time...
 	private List<Song> getAvailableSongs() {
-		return ApplicationFactory.getDatabaseService()
-				.getAllSongs();
+		return ApplicationFactory.getDatabaseService().getAllSongs();
 	}
 
 	private void mix(Playlist currentPlaylist, Song addedSong,
@@ -390,7 +392,8 @@ public class Mixtape {
 	}
 
 	// TODO: merge somehow with other method or remove ?
-	private void stripUsedSongs(Playlist playlist, Song addedsong, List<Song> availableSongs) {
+	private void stripUsedSongs(Playlist playlist, Song addedsong,
+			List<Song> availableSongs) {
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.remove(addedsong);
 	}
@@ -401,45 +404,34 @@ public class Mixtape {
 		availableSongs.removeAll(addedSongs);
 	}
 
-	private void sortBySong(Song referenceSong, List<Song> songsToSort,
-			double[] weighting) {
+	private void sortBySong(final Song referenceSong, List<Song> songsToSort,
+			final double[] weighting) {
 
-		if (songsToSort.size() > 2)
-			Collections.sort(songsToSort, new SortBySong(songsToSort.get(0),
-					weighting));
-	}
+		if (songsToSort.size() > 2) {
+			Collections.sort(songsToSort, new Comparator<Song>() {
 
-	private class SortBySong implements Comparator<Song> {
+				@Override
+				public int compare(Song x, Song y) {
 
-		private Song refSong;
-		private double[] weighting;
+					double distanceXtoRefSong = distanceBetween(x.getId(),
+							referenceSong.getId(), weighting);
+					double distanceYtoRefSong = distanceBetween(y.getId(),
+							referenceSong.getId(), weighting);
 
-		public SortBySong(Song song, double[] weighting) {
-			this.refSong = song;
-			this.weighting = weighting;
+					if (distanceXtoRefSong < distanceYtoRefSong)
+						return -1;
+
+					if (distanceXtoRefSong == distanceYtoRefSong)
+						if (x.getId() == y.getId())
+							return 0;
+						else
+							return x.getId() < y.getId() ? -1 : 1;
+
+					else
+						return 1;
+				}
+			});
 		}
-
-		@Override
-		public int compare(Song x, Song y) {
-
-			double distanceXtoRefSong = distanceBetween(x.getId(),
-					refSong.getId(), weighting);
-			double distanceYtoRefSong = distanceBetween(y.getId(),
-					refSong.getId(), weighting);
-
-			if (distanceXtoRefSong < distanceYtoRefSong)
-				return -1;
-
-			if (distanceXtoRefSong == distanceYtoRefSong)
-				if (x.getId() == y.getId())
-					return 0;
-				else
-					return x.getId() < y.getId() ? -1 : 1;
-
-			else
-				return 1;
-		}
-
 	}
 
 }
