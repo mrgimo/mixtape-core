@@ -289,7 +289,8 @@ public class Mixtape {
 
 		List<Song> availableSongs = getAvailableSongs();
 
-		stripUsedSongs(playlist, addedSongs, availableSongs);
+		availableSongs.removeAll(playlist.getSongsInPlaylist());
+		availableSongs.removeAll(addedSongs);
 
 		sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
 				.getSettings().getFeatureWeighting());
@@ -303,7 +304,8 @@ public class Mixtape {
 			throws InvalidPlaylistException {
 		List<Song> availableSongs = getAvailableSongs();
 
-		stripUsedSongs(playlist, addedSong, availableSongs);
+		availableSongs.removeAll(playlist.getSongsInPlaylist());
+		availableSongs.remove(addedSong);
 
 		mix(playlist, addedSong, availableSongs);
 
@@ -317,6 +319,8 @@ public class Mixtape {
 	private void mix(Playlist currentPlaylist, Song addedSong,
 			List<Song> availableSongs) throws InvalidPlaylistException {
 
+		stripNonCandidates(currentPlaylist, addedSong, availableSongs);
+
 		Song firstSong = currentPlaylist.getLastItem().getCurrent();
 		Song lastSong = firstSong;
 		Song mostSuitableSong = firstSong;
@@ -324,8 +328,8 @@ public class Mixtape {
 		double[] featureWeighting = currentPlaylist.getSettings()
 				.getFeatureWeighting();
 
-		double distanceFirstToAddedSong = distanceBetween(
-				mostSuitableSong.getId(), addedSong.getId(), featureWeighting);
+		double distanceFirstToAddedSong = distanceBetween(firstSong.getId(),
+				addedSong.getId(), featureWeighting);
 
 		double currentDistanceToAddedSong = distanceFirstToAddedSong;
 
@@ -391,17 +395,29 @@ public class Mixtape {
 				&& distanceFirstToCurrentSong < distanceFirstToAddedSong;
 	}
 
-	// TODO: merge somehow with other method or remove ?
-	private void stripUsedSongs(Playlist playlist, Song addedsong,
+	private void stripNonCandidates(Playlist playlist, Song addedSong,
 			List<Song> availableSongs) {
-		availableSongs.removeAll(playlist.getSongsInPlaylist());
-		availableSongs.remove(addedsong);
+
+		double[] featureWeighting = playlist.getSettings()
+				.getFeatureWeighting();
+		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
+
+		double distanceFirstToAddedSong = distanceBetween(
+				lastPlaylistSong.getId(), addedSong.getId(), featureWeighting);
+
+		for (Song song : availableSongs)
+			if (isNoCandidate(addedSong, featureWeighting, lastPlaylistSong,
+					distanceFirstToAddedSong, song))
+				availableSongs.remove(song);
+
 	}
 
-	private void stripUsedSongs(Playlist currentPlayList,
-			List<Song> addedSongs, List<Song> availableSongs) {
-		availableSongs.removeAll(currentPlayList.getSongsInPlaylist());
-		availableSongs.removeAll(addedSongs);
+	private boolean isNoCandidate(Song addedSong, double[] featureWeighting,
+			Song lastPlaylistSong, double distanceFirstToAddedSong, Song song) {
+
+		return !(distanceBetween(song.getId(), lastPlaylistSong.getId(),
+				featureWeighting) < distanceFirstToAddedSong && distanceBetween(
+				song.getId(), addedSong.getId(), featureWeighting) < distanceFirstToAddedSong);
 	}
 
 	private void sortBySong(final Song referenceSong, List<Song> songsToSort,

@@ -15,17 +15,18 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 public class AnalyzerService {
 
-	ListeningExecutorService taskProcessor = MoreExecutors
+	ListeningExecutorService analyzingExecutor = MoreExecutors
 			.listeningDecorator(Executors.newSingleThreadExecutor());
 
-	public void analyze(List<Song> audioFiles) {
+	public void analyze(final List<Song> songs) {
 
-		ListenableFuture<List<FooDistances>> distances = taskProcessor
+		
+		ListenableFuture<List<FooDistances>> distances = analyzingExecutor
 				.submit(new Callable<List<FooDistances>>() {
 
 					@Override
 					public List<FooDistances> call() throws Exception {
-						return null; // analyzer.analyze(audioFiles);
+						return null; // mixTape.addSongs(songs);
 					}
 				});
 
@@ -34,16 +35,19 @@ public class AnalyzerService {
 
 					@Override
 					public void onSuccess(List<FooDistances> distances) {
-						persistDistances(distances);
+						persist(distances, songs);
+						// inform UI?
 					}
 
 					@Override
-					public void onFailure(Throwable arg0) {
+					public void onFailure(Throwable throwable) {
+						// inform UI?
 					}
 				});
 	}
 
-	private void persistDistances(List<FooDistances> distances) {
-		// persist distances in db
+
+	private void persist(List<FooDistances> distances, List<Song> songs) {
+		// persist songs & distances in db
 	}
 }
