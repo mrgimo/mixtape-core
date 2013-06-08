@@ -84,6 +84,19 @@ public class PlaylistService {
 			ps.notifyPlaylistChanged();
 	}
 
+	public boolean isPlaylistInitialized() {
+		return playlist != null && playlist.isInitialized();
+	}
+
+	/**
+	 * @throws InvalidPlaylistException
+	 */
+	private void ensurePlaylistIsInitialized() throws InvalidPlaylistException {
+		if (!isPlaylistInitialized())
+			throw new InvalidPlaylistException(
+					"Uninitialized playlist. You have to create a playlist first.");
+	}
+
 	public void createPlaylist(PlaylistSettings settings) {
 		try {
 			playlistLock.writeLock().lock();
@@ -284,15 +297,6 @@ public class PlaylistService {
 			playlistLock.writeLock().unlock();
 			LOG.debug("Released Write-Lock in `removeSong`.");
 		}
-	}
-
-	/**
-	 * @throws InvalidPlaylistException
-	 */
-	private void ensurePlaylistIsInitialized() throws InvalidPlaylistException {
-		if (!playlist.isInitialized())
-			throw new InvalidPlaylistException(
-					"Uninitialized playlist. You have to create a playlist first.");
 	}
 
 	/**

@@ -1,11 +1,11 @@
 package ch.hsr.mixtape.application.service;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
 import ch.hsr.mixtape.FooDistances;
+import ch.hsr.mixtape.model.Song;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -18,7 +18,7 @@ public class AnalyzerService {
 	ListeningExecutorService taskProcessor = MoreExecutors
 			.listeningDecorator(Executors.newSingleThreadExecutor());
 
-	public void analyze(List<File> audioFiles) {
+	public void analyze(List<Song> audioFiles) {
 
 		ListenableFuture<List<FooDistances>> distances = taskProcessor
 				.submit(new Callable<List<FooDistances>>() {
