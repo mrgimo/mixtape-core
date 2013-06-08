@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.math3.util.FastMath;
@@ -53,13 +54,13 @@ public class Mixtape {
 	private final FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> temporalFeatureExtractor = new TemporalFeaturesExtractor();
 
 	// private List<Distance> distances;
-	private List<Song> songs;
+	// private List<Song> songs;
 
 	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable
 			.create();
 
 	public Mixtape(List<Song> songs, List<Distance> distances) {
-		this.songs = songs;
+		// this.songs = songs;
 		// this.distances = distances;
 		updateDistanceTable(distances);
 	}
@@ -82,7 +83,7 @@ public class Mixtape {
 
 		List<Distance> newDistances = calcDistances(song);
 		// distances.addAll(newDistances);
-		songs.add(song);
+		// songs.add(song);
 
 		updateDistanceTable(newDistances);
 
@@ -110,6 +111,8 @@ public class Mixtape {
 	}
 
 	private List<Distance> calcDistances(Song songX) {
+		// TODO: changed to remove song list dependency
+		Set<Song> songs = distanceTable.columnKeySet();
 		List<Distance> distances = Lists.newArrayListWithCapacity(songs.size());
 		for (Song songY : songs)
 			distances.add(distanceBetween(songX, songY));
@@ -177,7 +180,8 @@ public class Mixtape {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		List<Song> availableSongs = new ArrayList<Song>(songs);
+		List<Song> availableSongs = new ArrayList<Song>(
+				distanceTable.columnKeySet());
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.removeAll(addedSongs);
@@ -192,7 +196,8 @@ public class Mixtape {
 
 	public void mixAnotherSong(Playlist playlist, Song addedSong)
 			throws InvalidPlaylistException {
-		ArrayList<Song> availableSongs = new ArrayList<Song>(songs);
+		ArrayList<Song> availableSongs = new ArrayList<Song>(
+				distanceTable.columnKeySet());
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.remove(addedSong);
