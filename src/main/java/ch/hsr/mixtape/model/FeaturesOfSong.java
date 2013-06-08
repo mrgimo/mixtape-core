@@ -9,13 +9,20 @@ import ch.hsr.mixtape.features.temporal.TemporalFeaturesOfSong;
  * @author Stefan Derungs
  */
 public class FeaturesOfSong {
-	
-	public HarmonicFeaturesOfSong harmonic;
-	
-	public PerceptualFeaturesOfSong perceptual;
-	
-	public SpectralFeaturesOfSong spectral;
-	
-	public TemporalFeaturesOfSong temporal;
-	
+
+	public final HarmonicFeaturesOfSong harmonic;
+	public final PerceptualFeaturesOfSong perceptual;
+	public final SpectralFeaturesOfSong spectral;
+	public final TemporalFeaturesOfSong temporal;
+
+	public FeaturesOfSong(HarmonicFeaturesOfSong harmonic,
+			PerceptualFeaturesOfSong perceptual,
+			SpectralFeaturesOfSong spectral,
+			TemporalFeaturesOfSong temporal) {
+		this.harmonic = harmonic;
+		this.perceptual = perceptual;
+		this.spectral = spectral;
+		this.temporal = temporal;
+	}
+
 }

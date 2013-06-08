@@ -92,6 +92,7 @@ public class Song {
 
 	/**
 	 * TODO: remove in the future
+	 * 
 	 * @deprecated
 	 */
 	public Song(int id, String filepath) {
@@ -207,6 +208,14 @@ public class Song {
 		this.album = album;
 	}
 
+	public FeaturesOfSong getFeatures() {
+		return features;
+	}
+
+	public void setFeatures(FeaturesOfSong features) {
+		this.features = features;
+	}
+
 	@Override
 	public int hashCode() {
 		return filepath.hashCode();
@@ -224,4 +233,5 @@ public class Song {
 				+ "\nLengthInSeconds: " + lengthInSeconds
 				+ "\nSampleRateInHz: " + sampleRateInHz + "\n===========";
 	}
+
 }

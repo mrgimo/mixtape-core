@@ -1,6 +1,6 @@
 package ch.hsr.mixtape;
 
-import static java.util.Arrays.copyOfRange;
+import static java.lang.System.arraycopy;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,88 +9,110 @@ import java.util.Collection;
 import java.util.List;
 
 import ch.hsr.mixtape.audio.AudioChannel;
+import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.model.Song;
 
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 
 public class SamplePublisher {
 
-	private final List<FeatureProcessor<?, ?>> subscribers;
+	private final ListeningExecutorService extractionExecutor;
+	private final ListeningExecutorService postprocessingExecutor;
 
-	public SamplePublisher(List<FeatureProcessor<?, ?>> subscribers) {
-		this.subscribers = subscribers;
+	private double[] sampleBuffer;
+
+	private int[] readPositions;
+	private int writePosition;
+
+	private AudioChannel channel;
+	private ByteBuffer byteBuffer;
+
+	private List<FeatureProcessor<?, ?>> processors = Lists.newArrayList();
+
+	public SamplePublisher(ListeningExecutorService extractionExecutor, ListeningExecutorService postprocessingExecutor) {
+		this.extractionExecutor = extractionExecutor;
+		this.postprocessingExecutor = postprocessingExecutor;
 	}
 
-	private int getBufferSize(AudioChannel channel, int maxWindowSize) {
-		return channel.getProperties().getFrameSizeInBytes() * maxWindowSize;
+	public <FeaturesOfSong> ListenableFuture<FeaturesOfSong> register(FeatureExtractor<?, FeaturesOfSong> extractor) {
+		FeatureProcessor<?, FeaturesOfSong> processor = new FeatureProcessor<>(extractor,
+				extractionExecutor,
+				postprocessingExecutor);
+		processors.add(processor);
+
+		return processor.getFeaturesOfSong();
 	}
 
-	private int getMaxWindowSize(Collection<FeatureProcessor<?, ?>> subscribers) {
+	private int calcSampleBufferSize(Collection<FeatureProcessor<?, ?>> subscribers) {
 		int maxWindowSize = 0;
 		for (FeatureProcessor<?, ?> subscriber : subscribers)
 			if (maxWindowSize < subscriber.getWindowSize())
 				maxWindowSize = subscriber.getWindowSize();
 
-		return maxWindowSize;
+		return 2 * maxWindowSize;
+	}
+
+	private int calcByteBufferSize(AudioChannel channel, int sampleBufferSize) {
+		return channel.getProperties().getFrameSizeInBytes() * sampleBufferSize;
 	}
 
 	public void publish(Song song) throws IOException {
-		double[] sampleBuffer = new double[getMaxWindowSize(subscribers)];
+		init(song);
 
-		int writePosition = 0;
-		int[] readPositions = new int[subscribers.size()];
+		while (channel.read(byteBuffer) == -1) {
+			readSamples();
+			publishSamples();
 
-		AudioChannel channel = AudioChannel.load(new File(song.getFilepath()));
-		ByteBuffer byteBuffer = ByteBuffer.allocate(getBufferSize(channel, sampleBuffer.length));
-
-		while ((writePosition = readSamples(channel, byteBuffer, sampleBuffer, writePosition)) != -1) {
-			publishSamples(song, sampleBuffer, readPositions, writePosition);
-
-			int minReadPosition = Ints.min(readPositions);
-
-			sampleBuffer = resetSampleBuffer(sampleBuffer, minReadPosition);
-
-			writePosition = resetWritePosition(writePosition, minReadPosition);
-			readPositions = resetReadPositions(readPositions, minReadPosition);
+			shift();
 		}
 
-		publishRemainingSamples(song, sampleBuffer, readPositions);
+		publishRemainingSamples();
 	}
 
-	private int readSamples(AudioChannel channel, ByteBuffer byteBuffer, double[] sampleBuffer, int writePosition)
-			throws IOException {
-		if (channel.read(byteBuffer) == -1)
-			return -1;
+	private void init(Song song) {
+		sampleBuffer = new double[calcSampleBufferSize(processors)];
 
+		readPositions = new int[processors.size()];
+		writePosition = 0;
+
+		channel = AudioChannel.load(new File(song.getFilepath()));
+		byteBuffer = ByteBuffer.allocate(calcByteBufferSize(channel, sampleBuffer.length));
+	}
+
+	private void shiftWritePosition(int offset) {
+		writePosition -= offset;
+	}
+
+	private void readSamples() {
 		byteBuffer.flip();
-		while (!isByteBufferEmpty(channel, byteBuffer) && !isSampleBufferFull(sampleBuffer, writePosition))
-			sampleBuffer[writePosition++] = readSample(channel, byteBuffer);
+		while (!isByteBufferEmpty() && !isSampleBufferFull())
+			sampleBuffer[writePosition++] = readSample();
 
 		byteBuffer.compact();
-
-		return writePosition;
 	}
 
-	private boolean isByteBufferEmpty(AudioChannel channel, ByteBuffer byteBuffer) {
+	private boolean isByteBufferEmpty() {
 		return channel.getProperties().getFrameSizeInBytes() > byteBuffer.remaining();
 	}
 
-	private boolean isSampleBufferFull(double[] sampleBuffer, int writePosition) {
-		return sampleBuffer.length == writePosition;
+	private boolean isSampleBufferFull() {
+		return writePosition == sampleBuffer.length;
 	}
 
-	private double readSample(AudioChannel channel, ByteBuffer byteBuffer) {
+	private double readSample() {
 		int numberOfChannels = channel.getProperties().getNumberOfChannels();
 
 		double sample = 0;
-		for (int channel1 = 0; channel1 < numberOfChannels; channel1++) {
-			sample += getSample(channel, byteBuffer);
-		}
+		for (int channel1 = 0; channel1 < numberOfChannels; channel1++)
+			sample += nextSample();
 
 		return sample / numberOfChannels;
 	}
 
-	private double getSample(AudioChannel channel, ByteBuffer byteBuffer) {
+	private double nextSample() {
 		switch (channel.getProperties().getSampleSizeInBits()) {
 		case 8:
 			return (double) byteBuffer.get() / Byte.MAX_VALUE;
@@ -103,47 +125,57 @@ public class SamplePublisher {
 		}
 	}
 
-	private void publishSamples(Song song, double[] sampleBuffer, int[] readPositions, int writePosition) {
+	private void publishSamples() {
 		for (int i = 0; i < readPositions.length; i++) {
-			FeatureProcessor<?, ?> subscriber = subscribers.get(i);
+			FeatureProcessor<?, ?> processor = processors.get(i);
 
-			int size = subscriber.getWindowSize();
-			int hop = size - subscriber.getWindowOverlap();
+			int windowSize = processor.getWindowSize();
+			int hopSize = windowSize - processor.getWindowOverlap();
 
-			int position = readPositions[i];
-			while (position + size <= writePosition) {
-				subscriber.process(song, copyOfRange(sampleBuffer, position, position + size));
-				position += hop;
+			int readPosition = readPositions[i];
+			while (readPosition + windowSize <= writePosition) {
+				double[] windowOfSamples = new double[windowSize];
+				arraycopy(sampleBuffer, readPosition, windowOfSamples, 0, windowSize);
+
+				processor.process(windowOfSamples);
+				readPosition += hopSize;
 			}
 
-			readPositions[i] = position;
+			readPositions[i] = readPosition;
 		}
 	}
 
-	private int[] resetReadPositions(int[] readPositions, int minReadPosition) {
+	private void shift() {
+		int offset = Ints.min(readPositions);
+		if (offset == 0)
+			return;
+
+		shiftSampleBuffer(offset);
+		shiftReadPositions(offset);
+		shiftWritePosition(offset);
+	}
+
+	private void shiftSampleBuffer(int offset) {
+		arraycopy(sampleBuffer, offset, sampleBuffer, offset, sampleBuffer.length - offset);
+	}
+
+	private void shiftReadPositions(int offset) {
 		for (int i = 0; i < readPositions.length; i++)
-			readPositions[i] -= minReadPosition;
-
-		return readPositions;
+			readPositions[i] -= offset;
 	}
 
-	private int resetWritePosition(int writePosition, int minReadPosition) {
-		return writePosition - minReadPosition;
-	}
-
-	private double[] resetSampleBuffer(double[] sampleBuffer, int minReadPosition) {
-		System.arraycopy(sampleBuffer, minReadPosition, sampleBuffer, minReadPosition, sampleBuffer.length - minReadPosition);
-		return sampleBuffer;
-	}
-
-	private void publishRemainingSamples(Song song, double[] sampleBuffer, int[] readPositions) {
+	private void publishRemainingSamples() {
 		for (int i = 0; i < readPositions.length; i++) {
-			FeatureProcessor<?, ?> subscriber = subscribers.get(i);
+			FeatureProcessor<?, ?> processor = processors.get(i);
 
-			int position = readPositions[i];
-			int size = subscriber.getWindowSize();
+			int windowSize = processor.getWindowSize();
+			int readPosition = readPositions[i];
 
-			subscriber.process(song, copyOfRange(sampleBuffer, position, position + size));
+			double[] windowOfSamples = new double[windowSize];
+			arraycopy(sampleBuffer, readPosition, windowOfSamples, 0, writePosition - readPosition);
+
+			processor.process(windowOfSamples);
+			processor.postprocess();
 		}
 	}
 
