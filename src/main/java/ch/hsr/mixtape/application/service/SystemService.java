@@ -1,18 +1,9 @@
 package ch.hsr.mixtape.application.service;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
@@ -21,9 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.FilepathExtractor;
-import ch.hsr.mixtape.application.SongTagExtractor;
-import ch.hsr.mixtape.model.Song;
+import ch.hsr.mixtape.application.MusicDirectoryScanner;
 import ch.hsr.mixtape.model.SystemStatus;
 
 /**
@@ -33,14 +22,10 @@ import ch.hsr.mixtape.model.SystemStatus;
  */
 public class SystemService {
 
-	private static final Logger LOG = LoggerFactory
-			.getLogger(SystemService.class);
+	static final Logger LOG = LoggerFactory.getLogger(SystemService.class);
 
-	private static final ArrayList<String> ALLOWED_MUSIC_FILETYPES = new ArrayList<String>(
-			Arrays.asList("MP3", "OGG", "M4A", "AAC", "WMV"));
-	
-	private EntityManager em = ApplicationFactory
-			.getDatabaseService().getNewEntityManager();
+	private EntityManager em = ApplicationFactory.getDatabaseService()
+			.getNewEntityManager();
 
 	private DecimalFormat df;
 
@@ -51,16 +36,33 @@ public class SystemService {
 		df.setMaximumFractionDigits(2);
 	}
 
+	/**
+	 * @param caller
+	 *            To make this method only callable from MusicDirectoryScanner.
+	 * @return See {@link AtomicBoolean#compareAndSet(boolean, boolean)}
+	 */
+	public boolean compareAndSetScanningMusicDirectory(boolean expect,
+			boolean update, Object caller) {
+		if (!(caller instanceof MusicDirectoryScanner))
+			return false;
+
+		return scanningMusicDirectory.compareAndSet(expect, update);
+	}
+
 	public boolean isScanningMusicDirectory() {
 		return scanningMusicDirectory.get();
 	}
 
-	public void scanMusicDirectory() {
+	/**
+	 * @return True if scanner thread could be started. False else.
+	 */
+	public boolean scanMusicDirectory() {
 		if (!scanningMusicDirectory.compareAndSet(false, true))
-			return;
+			return false;
 
 		Thread scanner = new Thread(new MusicDirectoryScanner());
 		scanner.start();
+		return true;
 	}
 
 	public SystemStatus getSystemStatus() {
@@ -157,66 +159,6 @@ public class SystemService {
 	private void setPendingSongs(SystemStatus ss) {
 		ss.setPendingSongs(ApplicationFactory.getDatabaseService()
 				.getPendingSongs());
-	}
-
-	/**
-	 * This class needs access to SystemService#scanningMusicDirectory.
-	 * 
-	 * @author Stefan Derungs
-	 */
-	private class MusicDirectoryScanner implements Runnable {
-
-		private SongTagExtractor extractor;
-
-		private EntityManager em = ApplicationFactory.getDatabaseService()
-				.getNewEntityManager();;
-
-		private final DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
-			public boolean accept(Path path) throws IOException {
-				File file = path.toFile();
-				String extension = FilepathExtractor.getExtension(
-						file.getName()).toUpperCase();
-				return file.isDirectory()
-						|| ALLOWED_MUSIC_FILETYPES.contains(extension);
-			}
-		};
-
-		@Override
-		public void run() {
-			try {
-				String musicDir = System.getenv("mixtapeMusicDir");
-				Path path = Paths.get(musicDir);
-
-				em.getTransaction().begin();
-				scanDirectory(path);
-				em.getTransaction().commit();
-
-			} catch (Exception e) {
-				LOG.error("An error occurred during music directory scanning.",
-						e);
-			} finally {
-				scanningMusicDirectory.compareAndSet(true, false);
-			}
-		}
-
-		private void scanDirectory(Path path) throws IOException {
-			DirectoryStream<Path> ds = Files.newDirectoryStream(path, filter);
-			Iterator<Path> iterator = ds.iterator();
-
-			while (iterator.hasNext()) {
-				final Path nextPath = iterator.next();
-				File nextFile = path.toFile();
-
-				if (nextFile.isDirectory()) {
-					scanDirectory(nextPath);
-				} else {
-					Song song = new Song(nextFile.getAbsolutePath(), new Date());
-					extractor.extractTagsFromSong(song);
-					em.persist(em.merge(song));
-				}
-			}
-		}
-
 	}
 
 }
