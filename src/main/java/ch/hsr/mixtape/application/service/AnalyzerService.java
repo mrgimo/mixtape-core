@@ -1,6 +1,5 @@
 package ch.hsr.mixtape.application.service;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -8,6 +7,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import ch.hsr.mixtape.FooDistances;
+import ch.hsr.mixtape.model.Song;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -21,7 +21,7 @@ public class AnalyzerService {
 			.listeningDecorator(new ThreadPoolExecutor(1, 1, 0L,
 					TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>()));
 
-	public void analyze(List<File> audioFiles) {
+	public void analyze(List<Song> audioFiles) {
 
 		ListenableFuture<List<FooDistances>> distances = taskProcessor
 				.submit(new Callable<List<FooDistances>>() {
