@@ -1,5 +1,6 @@
 package ch.hsr.mixtape;
 
+import static ch.hsr.mixtape.MathUtils.vectorLength;
 import static ch.hsr.mixtape.concurrency.CustomExecutors.exitingFixedExecutorService;
 import static ch.hsr.mixtape.concurrency.CustomExecutors.exitingFixedExecutorServiceWithBlockingTaskQueue;
 
@@ -10,7 +11,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import ch.hsr.mixtape.application.service.ApplicationFactory;
+import org.apache.commons.math3.util.FastMath;
+
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesExtractor;
@@ -31,6 +33,7 @@ import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.Song;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -48,40 +51,60 @@ public class Mixtape {
 	private final FeatureExtractor<SpectralFeaturesOfWindow, SpectralFeaturesOfSong> spectralFeatureExtractor = new SpectralFeaturesExtractor();
 	private final FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> temporalFeatureExtractor = new TemporalFeaturesExtractor();
 
-	private List<Distance> distances;
+//	private List<Distance> distances;
 	private List<Song> songs;
+
+	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable
+			.create();
 
 	public Mixtape(List<Song> songs, List<Distance> distances) {
 		this.songs = songs;
-		this.distances = distances;
+//		this.distances = distances;
+		updateDistanceTable(distances);
 	}
 
-	public List<Distance> addSong(Song song) throws IOException, InterruptedException, ExecutionException {
+	private void updateDistanceTable(List<Distance> distances) {
+		for (Distance distance : distances) {
+			distanceTable.put(distance.getSongX(), distance.getSongY(),
+					distance);
+			// TODO: maybe just put on of em into the table, if so addapt change to all using methods !
+			distanceTable.put(distance.getSongY(), distance.getSongX(),
+					distance);
+		}
+	}
+
+	public List<Distance> addSong(Song song) throws IOException,
+			InterruptedException, ExecutionException {
 		FeaturesOfSong features = extractFeatures(song);
 		song.setFeatures(features);
 
 		List<Distance> newDistances = calcDistances(song);
-		distances.addAll(newDistances);
+//		distances.addAll(newDistances);
 		songs.add(song);
+
+		updateDistanceTable(newDistances);
 
 		return newDistances;
 	}
 
-	private FeaturesOfSong extractFeatures(Song song) throws IOException, InterruptedException, ExecutionException {
-		SamplePublisher publisher = new SamplePublisher(extractionExecutor, postprocessingExecutor);
+	private FeaturesOfSong extractFeatures(Song song) throws IOException,
+			InterruptedException, ExecutionException {
+		SamplePublisher publisher = new SamplePublisher(extractionExecutor,
+				postprocessingExecutor);
 
-		ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher.register(harmonicFeatureExtractor);
-		ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher.register(perceptualFeatureExtractor);
-		ListenableFuture<SpectralFeaturesOfSong> spectral = publisher.register(spectralFeatureExtractor);
-		ListenableFuture<TemporalFeaturesOfSong> temporal = publisher.register(temporalFeatureExtractor);
+		ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher
+				.register(harmonicFeatureExtractor);
+		ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher
+				.register(perceptualFeatureExtractor);
+		ListenableFuture<SpectralFeaturesOfSong> spectral = publisher
+				.register(spectralFeatureExtractor);
+		ListenableFuture<TemporalFeaturesOfSong> temporal = publisher
+				.register(temporalFeatureExtractor);
 
 		publisher.publish(song);
 
-		return new FeaturesOfSong(
-				harmonic.get(),
-				perceptual.get(),
-				spectral.get(),
-				temporal.get());
+		return new FeaturesOfSong(harmonic.get(), perceptual.get(),
+				spectral.get(), temporal.get());
 	}
 
 	private List<Distance> calcDistances(Song songX) {
@@ -97,24 +120,33 @@ public class Mixtape {
 		FeaturesOfSong y = songY.getFeatures();
 
 		return new Distance(songX, songY,
-				harmonicFeatureExtractor.distanceBetween(x.harmonic, y.harmonic),
-				perceptualFeatureExtractor.distanceBetween(x.perceptual, y.perceptual),
-				spectralFeatureExtractor.distanceBetween(x.spectral, y.spectral),
-				temporalFeatureExtractor.distanceBetween(x.temporal, y.temporal));
+				harmonicFeatureExtractor
+						.distanceBetween(x.harmonic, y.harmonic),
+				perceptualFeatureExtractor.distanceBetween(x.perceptual,
+						y.perceptual),
+				spectralFeatureExtractor
+						.distanceBetween(x.spectral, y.spectral),
+				temporalFeatureExtractor
+						.distanceBetween(x.temporal, y.temporal));
 	}
 
-	public double distanceBetween(long x, long y, double[] weighting) {
-		int temp_x = (int) x; // TODO: no more ints here buddy ;-)
-		int temp_y = (int) y; // TODO: no more ints here buddy ;-)
-		if (temp_x > temp_y)
-			return distance(distances[temp_x][temp_y], weighting);
-		else if (temp_x < temp_y)
-			return distance(distances[temp_y][temp_x], weighting);
-		else
-			return 0;
-	}
+	// public double distanceBetween(long x, long y, double[] weighting) {
+	// int temp_x = (int) x; // TODO: no more ints here buddy ;-)
+	// int temp_y = (int) y; // TODO: no more ints here buddy ;-)
+	// if (temp_x > temp_y)
+	// return distance(distances[temp_x][temp_y], weighting);
+	// else if (temp_x < temp_y)
+	// return distance(distances[temp_y][temp_x], weighting);
+	// else
+	// return 0;
+	// }
 
 	public List<Song> getSongs() {
+		
+		//TODO: makes List<Song> songs obsolet?
+		ArrayList<Song> songs = new ArrayList<Song>();
+		songs.addAll(distanceTable.columnKeySet());
+		
 		return songs;
 	}
 
@@ -143,7 +175,7 @@ public class Mixtape {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		List<Song> availableSongs = new ArrayList<Song>(getAllFinishedSongs());
+		List<Song> availableSongs = new ArrayList<Song>(songs);
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.removeAll(addedSongs);
@@ -158,18 +190,13 @@ public class Mixtape {
 
 	public void mixAnotherSong(Playlist playlist, Song addedSong)
 			throws InvalidPlaylistException {
-		ArrayList<Song> availableSongs = new ArrayList<Song>(getAllFinishedSongs());
+		ArrayList<Song> availableSongs = new ArrayList<Song>(songs);
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.remove(addedSong);
 
 		mix(playlist, addedSong, availableSongs);
 
-	}
-
-	// TODO: find good strategy -> maybe dont fetch all the time...
-	private List<Song> getAllFinishedSongs() {
-		return ApplicationFactory.getDatabaseService().getAllSongs();
 	}
 
 	private void mix(Playlist currentPlaylist, Song addedSong,
@@ -184,8 +211,8 @@ public class Mixtape {
 		double[] featureWeighting = currentPlaylist.getSettings()
 				.getFeatureWeighting();
 
-		double currentDistanceToAddedSong = distanceBetween(firstSong.getId(),
-				addedSong.getId(), featureWeighting);
+		double currentDistanceToAddedSong = weightedVectorLength(
+				distanceTable.get(firstSong, addedSong), featureWeighting);
 
 		boolean closerSongExists = false;
 
@@ -194,10 +221,11 @@ public class Mixtape {
 			double currentDistanceToLastSong = Double.POSITIVE_INFINITY;
 
 			for (Song song : availableSongs) {
-				double distanceToAddedSong = distanceBetween(song.getId(),
-						addedSong.getId(), featureWeighting);
-				double distanceToLastSong = distanceBetween(song.getId(),
-						mostSuitableSong.getId(), featureWeighting);
+				double distanceToAddedSong = weightedVectorLength(
+						distanceTable.get(song, addedSong), featureWeighting);
+				double distanceToLastSong = weightedVectorLength(
+						distanceTable.get(song, mostSuitableSong),
+						featureWeighting);
 
 				if (isMoreSuitable(distanceToAddedSong,
 						currentDistanceToAddedSong, distanceToLastSong,
@@ -230,6 +258,24 @@ public class Mixtape {
 
 	}
 
+	private double weightedVectorLength(Distance distance,
+			double[] featureWeighting) {
+
+		return vectorLength(
+				distance.getHarmonicDistance()
+						/ FastMath
+								.sqrt(HarmonicFeaturesOfSong.NUMBER_OF_HARMONIC_FEATURES),
+				distance.getPerceptualDistance()
+						/ FastMath
+								.sqrt(PerceptualFeaturesOfSong.NUMBER_OF_PERCEPTUAL_FEATURES),
+				distance.getSpectralDistance()
+						/ FastMath
+								.sqrt(SpectralFeaturesOfSong.NUMBER_OF_SPECTRAL_FEATURES),
+				distance.getTemporalDistance()
+						/ FastMath
+								.sqrt(TemporalFeaturesOfSong.NUMBER_OF_TEMPORAL_FEATURES));
+	}
+
 	private boolean closerSongExists(double currentDistanceToLastSong) {
 		return currentDistanceToLastSong != Double.POSITIVE_INFINITY;
 	}
@@ -249,8 +295,9 @@ public class Mixtape {
 				.getFeatureWeighting();
 		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
 
-		double distanceFirstToAddedSong = distanceBetween(
-				lastPlaylistSong.getId(), addedSong.getId(), featureWeighting);
+		double distanceFirstToAddedSong = weightedVectorLength(
+				distanceTable.get(lastPlaylistSong, addedSong),
+				featureWeighting);
 
 		for (Song song : availableSongs)
 			if (isNoCandidate(addedSong, featureWeighting, lastPlaylistSong,
@@ -262,9 +309,9 @@ public class Mixtape {
 	private boolean isNoCandidate(Song addedSong, double[] featureWeighting,
 			Song lastPlaylistSong, double distanceFirstToAddedSong, Song song) {
 
-		return !(distanceBetween(song.getId(), lastPlaylistSong.getId(),
-				featureWeighting) < distanceFirstToAddedSong && distanceBetween(
-				song.getId(), addedSong.getId(), featureWeighting) < distanceFirstToAddedSong);
+		return !(weightedVectorLength(
+				distanceTable.get(song, lastPlaylistSong), featureWeighting) < distanceFirstToAddedSong && weightedVectorLength(
+				distanceTable.get(song, addedSong), featureWeighting) < distanceFirstToAddedSong);
 	}
 
 	private void sortBySong(final Song referenceSong, List<Song> songsToSort,
@@ -276,10 +323,10 @@ public class Mixtape {
 				@Override
 				public int compare(Song x, Song y) {
 
-					double distanceXtoRefSong = distanceBetween(x.getId(),
-							referenceSong.getId(), weighting);
-					double distanceYtoRefSong = distanceBetween(y.getId(),
-							referenceSong.getId(), weighting);
+					double distanceXtoRefSong = weightedVectorLength(
+							distanceTable.get(x, referenceSong), weighting);
+					double distanceYtoRefSong = weightedVectorLength(
+							distanceTable.get(x, referenceSong), weighting);
 
 					if (distanceXtoRefSong < distanceYtoRefSong)
 						return -1;
