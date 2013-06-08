@@ -99,7 +99,6 @@ public class DatabaseService {
 	public List<Song> getPendingSongs() {
 		final TypedQuery<Song> query = localEM.createNamedQuery(
 				"getPendingSongs", Song.class);
-		debugQuery(query, null);
 		List<Song> results = query.getResultList();
 		System.err.println("Found matches: " + results.size());
 		return results;
