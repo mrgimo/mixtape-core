@@ -7,6 +7,7 @@ import static org.apache.commons.math3.util.FastMath.sqrt;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -287,7 +288,7 @@ public class Mixtape {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		List<Song> availableSongs = getAvailableSongs();
+		List<Song> availableSongs = new ArrayList<Song>(getAllFinishedSongs());
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.removeAll(addedSongs);
@@ -302,7 +303,7 @@ public class Mixtape {
 
 	public void mixAnotherSong(Playlist playlist, Song addedSong)
 			throws InvalidPlaylistException {
-		List<Song> availableSongs = getAvailableSongs();
+		ArrayList<Song> availableSongs = new ArrayList<Song>(getAllFinishedSongs());
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.remove(addedSong);
@@ -312,7 +313,7 @@ public class Mixtape {
 	}
 
 	// TODO: find good strategy -> maybe dont fetch all the time...
-	private List<Song> getAvailableSongs() {
+	private List<Song> getAllFinishedSongs() {
 		return ApplicationFactory.getDatabaseService().getAllSongs();
 	}
 
