@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.model.Song;
 
-class DatabaseService {
+public class DatabaseService {
 
 	private static final Logger LOG = LoggerFactory
 			.getLogger(DatabaseService.class);

@@ -36,7 +36,7 @@ public class Song {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private int id;
 
 	@Temporal(TemporalType.DATE)
 	private Date lastModified;
@@ -139,7 +139,7 @@ public class Song {
 		lastModified = new Date();
 	}
 
-	public long getId() {
+	public int getId() {
 		return id;
 	}
 
