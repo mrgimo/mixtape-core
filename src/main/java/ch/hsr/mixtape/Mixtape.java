@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.math3.util.FastMath;
@@ -51,7 +52,7 @@ public class Mixtape {
 	private final FeatureExtractor<SpectralFeaturesOfWindow, SpectralFeaturesOfSong> spectralFeatureExtractor = new SpectralFeaturesExtractor();
 	private final FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> temporalFeatureExtractor = new TemporalFeaturesExtractor();
 
-//	private List<Distance> distances;
+	// private List<Distance> distances;
 	private List<Song> songs;
 
 	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable
@@ -59,7 +60,7 @@ public class Mixtape {
 
 	public Mixtape(List<Song> songs, List<Distance> distances) {
 		this.songs = songs;
-//		this.distances = distances;
+		// this.distances = distances;
 		updateDistanceTable(distances);
 	}
 
@@ -67,7 +68,8 @@ public class Mixtape {
 		for (Distance distance : distances) {
 			distanceTable.put(distance.getSongX(), distance.getSongY(),
 					distance);
-			// TODO: maybe just put on of em into the table, if so addapt change to all using methods !
+			// TODO: maybe just put on of em into the table, if so addapt change
+			// to all using methods !
 			distanceTable.put(distance.getSongY(), distance.getSongX(),
 					distance);
 		}
@@ -79,7 +81,7 @@ public class Mixtape {
 		song.setFeatures(features);
 
 		List<Distance> newDistances = calcDistances(song);
-//		distances.addAll(newDistances);
+		// distances.addAll(newDistances);
 		songs.add(song);
 
 		updateDistanceTable(newDistances);
@@ -142,11 +144,11 @@ public class Mixtape {
 	// }
 
 	public List<Song> getSongs() {
-		
-		//TODO: makes List<Song> songs obsolet?
+
+		// TODO: makes List<Song> songs obsolet?
 		ArrayList<Song> songs = new ArrayList<Song>();
 		songs.addAll(distanceTable.columnKeySet());
-		
+
 		return songs;
 	}
 
@@ -295,38 +297,50 @@ public class Mixtape {
 				.getFeatureWeighting();
 		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
 
+		Map<Song, Distance> distancesAddedSong = distanceTable
+				.column(addedSong);
+		Map<Song, Distance> distancesLastPlaylistSong = distanceTable
+				.column(lastPlaylistSong);
+
 		double distanceFirstToAddedSong = weightedVectorLength(
-				distanceTable.get(lastPlaylistSong, addedSong),
+				distancesLastPlaylistSong.get(distancesAddedSong),
 				featureWeighting);
 
 		for (Song song : availableSongs)
-			if (isNoCandidate(addedSong, featureWeighting, lastPlaylistSong,
-					distanceFirstToAddedSong, song))
+
+			if (isNoCandidate(featureWeighting, distancesAddedSong,
+					distancesLastPlaylistSong, distanceFirstToAddedSong, song))
 				availableSongs.remove(song);
 
 	}
 
-	private boolean isNoCandidate(Song addedSong, double[] featureWeighting,
-			Song lastPlaylistSong, double distanceFirstToAddedSong, Song song) {
+	private boolean isNoCandidate(double[] featureWeighting,
+			Map<Song, Distance> distancesAddedSong,
+			Map<Song, Distance> distancesLastPlaylistSong,
+			double distanceFirstToAddedSong, Song song) {
 
-		return !(weightedVectorLength(
-				distanceTable.get(song, lastPlaylistSong), featureWeighting) < distanceFirstToAddedSong && weightedVectorLength(
-				distanceTable.get(song, addedSong), featureWeighting) < distanceFirstToAddedSong);
+		return !(weightedVectorLength(distancesLastPlaylistSong.get(song),
+				featureWeighting) < distanceFirstToAddedSong && weightedVectorLength(
+				distancesAddedSong.get(song), featureWeighting) < distanceFirstToAddedSong);
 	}
 
 	private void sortBySong(final Song referenceSong, List<Song> songsToSort,
 			final double[] weighting) {
 
 		if (songsToSort.size() > 2) {
+
+			final Map<Song, Distance> distancesReferenceSong = distanceTable
+					.column(referenceSong);
+
 			Collections.sort(songsToSort, new Comparator<Song>() {
 
 				@Override
 				public int compare(Song x, Song y) {
 
 					double distanceXtoRefSong = weightedVectorLength(
-							distanceTable.get(x, referenceSong), weighting);
+							distancesReferenceSong.get(x), weighting);
 					double distanceYtoRefSong = weightedVectorLength(
-							distanceTable.get(x, referenceSong), weighting);
+							distancesReferenceSong.get(y), weighting);
 
 					if (distanceXtoRefSong < distanceYtoRefSong)
 						return -1;
