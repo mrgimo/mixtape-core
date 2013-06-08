@@ -1,6 +1,6 @@
 package ch.hsr.mixtape.application;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -9,9 +9,9 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 
+import ch.hsr.mixtape.application.service.ApplicationFactory;
+import ch.hsr.mixtape.application.service.SystemService;
 import ch.hsr.mixtape.model.Song;
-
-import com.google.common.io.Files;
 
 /**
  * Extracts ID3 tags from songs. Where no ID3 tags are found default values are
@@ -25,6 +25,9 @@ public class SongTagExtractor {
 
 	private static final int DEFAULT_SAMPLING_RATE_IN_HZ = 44100;
 
+	private static final SystemService SYSTEM = ApplicationFactory
+			.getSystemService();
+
 	private String filename;
 
 	private Tag tag;
@@ -34,9 +37,10 @@ public class SongTagExtractor {
 	 */
 	public void extractTagsFromSong(Song song) {
 		try {
-			filename = Files.getNameWithoutExtension(song.getFilepath());
+			Path absolutePath = SYSTEM.getAbsoluteSongFilepath(song
+					.getFilepath());
 
-			AudioFile file = AudioFileIO.read(new File(song.getFilepath()));
+			AudioFile file = AudioFileIO.read(absolutePath.toFile());
 			tag = file.getTag();
 			AudioHeader header = file.getAudioHeader();
 

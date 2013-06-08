@@ -2,6 +2,8 @@ package ch.hsr.mixtape.application.service;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -9,8 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.persistence.EntityManager;
 
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.application.MusicDirectoryScanner;
 import ch.hsr.mixtape.model.SystemStatus;
@@ -22,7 +22,14 @@ import ch.hsr.mixtape.model.SystemStatus;
  */
 public class SystemService {
 
-	static final Logger LOG = LoggerFactory.getLogger(SystemService.class);
+	public static final String[] ALLOWED_MUSIC_FILETYPES = { "mp3", "ogg",
+			"m4a", "aac", "wmv" };
+
+	public static final String MIXTAPE_MUSIC_DATA_FILEPATH = System
+			.getenv("mixtapeMusicDir");
+
+	private static final Path MIXTAPE_MUSIC_DATA_PATH = Paths
+			.get(MIXTAPE_MUSIC_DATA_FILEPATH);
 
 	private EntityManager em = ApplicationFactory.getDatabaseService()
 			.getNewEntityManager();
@@ -34,6 +41,14 @@ public class SystemService {
 	public SystemService() {
 		df = (DecimalFormat) NumberFormat.getInstance();
 		df.setMaximumFractionDigits(2);
+	}
+
+	public Path getRelativeSongFilepath(Path absoluteSongFilepath) {
+		return MIXTAPE_MUSIC_DATA_PATH.relativize(absoluteSongFilepath);
+	}
+
+	public Path getAbsoluteSongFilepath(String relativeSongFilepath) {
+		return MIXTAPE_MUSIC_DATA_PATH.resolve(Paths.get(relativeSongFilepath));
 	}
 
 	/**
@@ -80,8 +95,13 @@ public class SystemService {
 		ss.setTotalNumberOfSongs(df.format(totalNumberOfSongs));
 		long numberOfAnalyzedSongs = getNumberOfAnalyzedSongs();
 		ss.setNumberOfAnalyzedSongs(df.format(numberOfAnalyzedSongs));
-		ss.setProgress(df.format(numberOfAnalyzedSongs * 100
-				/ totalNumberOfSongs));
+
+		if (totalNumberOfSongs > 0)
+			ss.setProgress(df.format(numberOfAnalyzedSongs * 100
+					/ totalNumberOfSongs));
+		else
+			ss.setProgress("0");
+
 		setNumberOfPendingSongs(ss);
 		setPendingSongs(ss);
 
