@@ -221,7 +221,21 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 			Song song = mapSong(songId);
-
+			
+			/* pathfinding:
+			 * 
+			 * new Playlist :
+			 * mixtape.initialMix(playlist)
+			 * 
+			 * add one song to playlist:
+			 * mixtape.mixAnotherSong(playlist, addedSong)
+			 * 
+			 * add multiple songs to playlist:
+			 * mixtape.mixMultipleSongs(playlist, addedSongs)
+			 * 
+			 */
+			
+			
 			// TODO do path-finding and add song at appropriate place
 			PlaylistItem lastItem;
 			List<PlaylistItem> playlistItems = playlist.getItems();

@@ -214,7 +214,7 @@ public class Song {
 
 	@Override
 	public int hashCode() {
-		return title.hashCode();
+		return filepath.hashCode();
 	}
 
 	@Override

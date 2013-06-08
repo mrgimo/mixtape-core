@@ -122,6 +122,17 @@ public class PlaylistSettings implements Cloneable {
 	public void setTemporalSimilarity(int temporalSimilarity) {
 		this.temporalSimilarity = temporalSimilarity;
 	}
+	
+	public double[] getFeatureWeighting() {
+		//TODO: order must be according to the extractors !
+		double[] weighting = new double[4];
+		weighting[0] = harmonicSimilarity;
+		weighting[1] = perceptualSimilarity;
+		weighting[2] = spectralSimilarity;
+		weighting[3] = temporalSimilarity;
+		
+		return weighting;
+	}
 
 	@Override
 	public PlaylistSettings clone() {

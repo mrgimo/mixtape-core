@@ -1,6 +1,7 @@
 package ch.hsr.mixtape.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class Playlist implements Cloneable {
 
 	private PlaylistSettings settings;
 
-	@OneToMany(cascade=CascadeType.ALL)
+	@OneToMany(cascade = CascadeType.ALL)
 	private List<PlaylistItem> items;
 
 	public Playlist() {
@@ -160,6 +161,20 @@ public class Playlist implements Cloneable {
 		p.items = clonedItems;
 		p.settings = this.settings.clone();
 		return p;
+	}
+
+	public PlaylistItem getLastItem() {
+		return items.get(items.size() - 1);
+	}
+
+	public List<Song> getSongsInPlaylist() {
+
+		ArrayList<Song> songsInPlaylist = new ArrayList<Song>();
+
+		for (PlaylistItem playlistItem : items)
+			songsInPlaylist.add(playlistItem.getCurrent());
+		
+		return songsInPlaylist;
 	}
 
 }
