@@ -329,10 +329,8 @@ public class Mixtape {
 		double[] featureWeighting = currentPlaylist.getSettings()
 				.getFeatureWeighting();
 
-		double distanceFirstToAddedSong = distanceBetween(firstSong.getId(),
+		double currentDistanceToAddedSong = distanceBetween(firstSong.getId(),
 				addedSong.getId(), featureWeighting);
-
-		double currentDistanceToAddedSong = distanceFirstToAddedSong;
 
 		boolean closerSongExists = false;
 
@@ -346,13 +344,9 @@ public class Mixtape {
 				double distanceToLastSong = distanceBetween(song.getId(),
 						mostSuitableSong.getId(), featureWeighting);
 
-				double distanceFirstToCurrentSong = distanceBetween(
-						firstSong.getId(), song.getId(), featureWeighting);
-
 				if (isMoreSuitable(distanceToAddedSong,
 						currentDistanceToAddedSong, distanceToLastSong,
-						currentDistanceToLastSong, distanceFirstToAddedSong,
-						distanceFirstToCurrentSong)) {
+						currentDistanceToLastSong)) {
 
 					mostSuitableSong = song;
 					currentDistanceToAddedSong = distanceToAddedSong;
@@ -362,11 +356,10 @@ public class Mixtape {
 			}
 
 			if (closerSongExists(currentDistanceToLastSong)) {
-				// TODO: why int? what am i supposed to do :<
-				int[] d = new int[4];
+				// TODO: set similarity? 
 
 				currentPlaylist.addItem(new PlaylistItem(mostSuitableSong,
-						lastSong, d[0], d[1], d[2], d[3], false));
+						lastSong, 0, 1, 2, 3, false));
 
 				lastSong = mostSuitableSong;
 				availableSongs.remove(lastSong);
@@ -388,12 +381,10 @@ public class Mixtape {
 
 	private boolean isMoreSuitable(double distanceToAddedSong,
 			double currentDistanceToAddedSong, double distanceToLastSong,
-			double currentDistanceToLastSong, double distanceFirstToAddedSong,
-			double distanceFirstToCurrentSong) {
+			double currentDistanceToLastSong) {
 
 		return distanceToAddedSong < currentDistanceToAddedSong
-				&& distanceToLastSong < currentDistanceToLastSong
-				&& distanceFirstToCurrentSong < distanceFirstToAddedSong;
+				&& distanceToLastSong < currentDistanceToLastSong;
 	}
 
 	private void stripNonCandidates(Playlist playlist, Song addedSong,
