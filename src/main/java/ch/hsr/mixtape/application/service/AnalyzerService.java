@@ -2,9 +2,7 @@ package ch.hsr.mixtape.application.service;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 import ch.hsr.mixtape.FooDistances;
 import ch.hsr.mixtape.model.Song;
@@ -17,18 +15,18 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 public class AnalyzerService {
 
-	ListeningExecutorService taskProcessor = MoreExecutors
-			.listeningDecorator(new ThreadPoolExecutor(1, 1, 0L,
-					TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>()));
+	ListeningExecutorService analyzingExecutor = MoreExecutors
+			.listeningDecorator(Executors.newSingleThreadExecutor());
 
-	public void analyze(List<Song> audioFiles) {
+	public void analyze(final List<Song> songs) {
 
-		ListenableFuture<List<FooDistances>> distances = taskProcessor
+		
+		ListenableFuture<List<FooDistances>> distances = analyzingExecutor
 				.submit(new Callable<List<FooDistances>>() {
 
 					@Override
 					public List<FooDistances> call() throws Exception {
-						return null; // analyzer.analyze(audioFiles);
+						return null; // mixTape.addSongs(songs);
 					}
 				});
 
@@ -37,16 +35,19 @@ public class AnalyzerService {
 
 					@Override
 					public void onSuccess(List<FooDistances> distances) {
-						persistDistances(distances);
+						persist(distances, songs);
+						// inform UI?
 					}
 
 					@Override
-					public void onFailure(Throwable arg0) {
+					public void onFailure(Throwable throwable) {
+						// inform UI?
 					}
 				});
 	}
 
-	private void persistDistances(List<FooDistances> distances) {
-		// persist distances in db
+
+	private void persist(List<FooDistances> distances, List<Song> songs) {
+		// persist songs & distances in db
 	}
 }

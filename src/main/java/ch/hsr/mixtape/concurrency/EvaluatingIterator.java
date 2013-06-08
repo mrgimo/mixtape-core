@@ -1,4 +1,4 @@
-package ch.hsr.mixtape;
+package ch.hsr.mixtape.concurrency;
 
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;

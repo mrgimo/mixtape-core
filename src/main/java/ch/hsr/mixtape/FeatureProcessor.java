@@ -1,13 +1,12 @@
 package ch.hsr.mixtape;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
+import ch.hsr.mixtape.concurrency.EvaluatingIterator;
 import ch.hsr.mixtape.features.FeatureExtractor;
 import ch.hsr.mixtape.model.Song;
 
-import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
@@ -15,71 +14,59 @@ public class FeatureProcessor<FeaturesOfWindow, FeaturesOfSong> {
 
 	private final FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor;
 
-	private Map<Song, EvaluatingIterator<FeaturesOfWindow>> featuresOfWindows = Maps.newHashMap();
-	private Map<Song, ListenableFuture<FeaturesOfSong>> featuresOfSongs = Maps.newHashMap();
-
 	private final ListeningExecutorService extractionExecutor;
 	private final ListeningExecutorService postprocessingExecutor;
 
+	private EvaluatingIterator<FeaturesOfWindow> featuresOfWindows;
+	private ListenableFuture<FeaturesOfSong> featureOfSong;
+
 	public FeatureProcessor(FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor,
-			ListeningExecutorService extractionExecutor, ListeningExecutorService postprocessingExecutor) {
+			ListeningExecutorService extractionExecutor,
+			ListeningExecutorService postprocessingExecutor) {
 		this.featureExtractor = featureExtractor;
+
 		this.extractionExecutor = extractionExecutor;
 		this.postprocessingExecutor = postprocessingExecutor;
+
+		featuresOfWindows = initExtraction(featureExtractor);
+		featureOfSong = initPostprocessing(featuresOfWindows);
 	}
 
-	public void process(Song song, double[] windowOfSamples) {
-		EvaluatingIterator<FeaturesOfWindow> iterator = featuresOfWindows.get(song);
-		ListenableFuture<FeaturesOfWindow> future = doExtract(windowOfSamples);
-
-		if (iterator != null)
-			iterator.put(future);
-		else
-			initNewSong(song, future);
+	private EvaluatingIterator<FeaturesOfWindow> initExtraction(
+			FeatureExtractor<FeaturesOfWindow, FeaturesOfSong> featureExtractor) {
+		return new EvaluatingIterator<>(doExtract(new double[featureExtractor.getWindowSize()]));
 	}
 
-	private ListenableFuture<FeaturesOfWindow> doExtract(final double[] window) {
-		return extractionExecutor.submit(new Callable<FeaturesOfWindow>() {
-
-			public FeaturesOfWindow call() throws Exception {
-				return featureExtractor.extractFrom(window);
-			}
-
-		});
-	}
-
-	private void initNewSong(Song song, ListenableFuture<FeaturesOfWindow> future) {
-		EvaluatingIterator<FeaturesOfWindow> iterator = new EvaluatingIterator<>(future);
-
-		featuresOfWindows.put(song, iterator);
-		featuresOfSongs.put(song, postprocess(song, iterator));
-	}
-
-	private ListenableFuture<FeaturesOfSong> postprocess(final Song song, final Iterator<FeaturesOfWindow> iterator) {
+	private ListenableFuture<FeaturesOfSong> initPostprocessing(final Iterator<FeaturesOfWindow> featuresOfWindows) {
 		return postprocessingExecutor.submit(new Callable<FeaturesOfSong>() {
 
 			public FeaturesOfSong call() throws Exception {
-				FeaturesOfSong featuresOfSong = featureExtractor.postprocess(iterator);
-				featuresOfWindows.remove(song);
-
-				return featuresOfSong;
+				return featureExtractor.postprocess(featuresOfWindows);
 			}
 
 		});
 	}
 
-	public void postprocess(final Song song) {
-		featuresOfWindows.get(song).finish();
+	public void process(double[] windowOfSamples) {
+		featuresOfWindows.put(doExtract(windowOfSamples));
 	}
 
-	public ListenableFuture<Double> distanceBetween(final Song x, final Song y) {
-		return extractionExecutor.submit(new Callable<Double>() {
+	private ListenableFuture<FeaturesOfWindow> doExtract(final double[] windowOfSamples) {
+		return extractionExecutor.submit(new Callable<FeaturesOfWindow>() {
 
-			public Double call() throws Exception {
-				return featureExtractor.distanceBetween(featuresOfSongs.get(x).get(), featuresOfSongs.get(y).get());
+			public FeaturesOfWindow call() throws Exception {
+				return featureExtractor.extractFrom(windowOfSamples);
 			}
 
 		});
+	}
+
+	public void postprocess() {
+		featuresOfWindows.finish();
+	}
+
+	public ListenableFuture<FeaturesOfSong> getFeaturesOfSong() {
+		return featureOfSong;
 	}
 
 	public int getWindowSize() {
