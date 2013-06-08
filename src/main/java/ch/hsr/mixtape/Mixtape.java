@@ -4,6 +4,7 @@ import static ch.hsr.mixtape.concurrency.CustomExecutors.exitingFixedExecutorSer
 import static ch.hsr.mixtape.concurrency.CustomExecutors.exitingFixedExecutorServiceWithBlockingTaskQueue;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -42,13 +43,13 @@ public class Mixtape {
 	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(AVAILABLE_PROCESSORS);
 	private final ListeningExecutorService postprocessingExecutor = exitingFixedExecutorService(4);
 
-	private final List<Song> songs;
-	private final List<Distance> distances;
-
 	private final FeatureExtractor<HarmonicFeaturesOfWindow, HarmonicFeaturesOfSong> harmonicFeatureExtractor = new HarmonicFeaturesExtractor();
 	private final FeatureExtractor<PerceptualFeaturesOfWindow, PerceptualFeaturesOfSong> perceptualFeatureExtractor = new PerceptualFeaturesExtractor();
 	private final FeatureExtractor<SpectralFeaturesOfWindow, SpectralFeaturesOfSong> spectralFeatureExtractor = new SpectralFeaturesExtractor();
 	private final FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> temporalFeatureExtractor = new TemporalFeaturesExtractor();
+
+	private List<Distance> distances;
+	private List<Song> songs;
 
 	public Mixtape(List<Song> songs, List<Distance> distances) {
 		this.songs = songs;
@@ -142,9 +143,10 @@ public class Mixtape {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		List<Song> availableSongs = getAvailableSongs();
+		List<Song> availableSongs = new ArrayList<Song>(getAllFinishedSongs());
 
-		stripUsedSongs(playlist, addedSongs, availableSongs);
+		availableSongs.removeAll(playlist.getSongsInPlaylist());
+		availableSongs.removeAll(addedSongs);
 
 		sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
 				.getSettings().getFeatureWeighting());
@@ -154,23 +156,26 @@ public class Mixtape {
 
 	}
 
-	public void mixAnotherSong(Playlist playlist, Song addedSong) throws InvalidPlaylistException {
-		List<Song> availableSongs = getAvailableSongs();
+	public void mixAnotherSong(Playlist playlist, Song addedSong)
+			throws InvalidPlaylistException {
+		ArrayList<Song> availableSongs = new ArrayList<Song>(getAllFinishedSongs());
 
-		stripUsedSongs(playlist, addedSong, availableSongs);
+		availableSongs.removeAll(playlist.getSongsInPlaylist());
+		availableSongs.remove(addedSong);
 
 		mix(playlist, addedSong, availableSongs);
 
 	}
 
 	// TODO: find good strategy -> maybe dont fetch all the time...
-	private List<Song> getAvailableSongs() {
-		return ApplicationFactory.getDatabaseService()
-				.getAllSongs();
+	private List<Song> getAllFinishedSongs() {
+		return ApplicationFactory.getDatabaseService().getAllSongs();
 	}
 
 	private void mix(Playlist currentPlaylist, Song addedSong,
 			List<Song> availableSongs) throws InvalidPlaylistException {
+
+		stripNonCandidates(currentPlaylist, addedSong, availableSongs);
 
 		Song firstSong = currentPlaylist.getLastItem().getCurrent();
 		Song lastSong = firstSong;
@@ -179,10 +184,8 @@ public class Mixtape {
 		double[] featureWeighting = currentPlaylist.getSettings()
 				.getFeatureWeighting();
 
-		double distanceFirstToAddedSong = distanceBetween(
-				mostSuitableSong.getId(), addedSong.getId(), featureWeighting);
-
-		double currentDistanceToAddedSong = distanceFirstToAddedSong;
+		double currentDistanceToAddedSong = distanceBetween(firstSong.getId(),
+				addedSong.getId(), featureWeighting);
 
 		boolean closerSongExists = false;
 
@@ -196,13 +199,9 @@ public class Mixtape {
 				double distanceToLastSong = distanceBetween(song.getId(),
 						mostSuitableSong.getId(), featureWeighting);
 
-				double distanceFirstToCurrentSong = distanceBetween(
-						firstSong.getId(), song.getId(), featureWeighting);
-
 				if (isMoreSuitable(distanceToAddedSong,
 						currentDistanceToAddedSong, distanceToLastSong,
-						currentDistanceToLastSong, distanceFirstToAddedSong,
-						distanceFirstToCurrentSong)) {
+						currentDistanceToLastSong)) {
 
 					mostSuitableSong = song;
 					currentDistanceToAddedSong = distanceToAddedSong;
@@ -212,11 +211,10 @@ public class Mixtape {
 			}
 
 			if (closerSongExists(currentDistanceToLastSong)) {
-				// TODO: why int? what am i supposed to do :<
-				int[] d = new int[4];
+				// TODO: set similarity?
 
 				currentPlaylist.addItem(new PlaylistItem(mostSuitableSong,
-						lastSong, d[0], d[1], d[2], d[3], false));
+						lastSong, 0, 1, 2, 3, false));
 
 				lastSong = mostSuitableSong;
 				availableSongs.remove(lastSong);
@@ -238,65 +236,65 @@ public class Mixtape {
 
 	private boolean isMoreSuitable(double distanceToAddedSong,
 			double currentDistanceToAddedSong, double distanceToLastSong,
-			double currentDistanceToLastSong, double distanceFirstToAddedSong,
-			double distanceFirstToCurrentSong) {
+			double currentDistanceToLastSong) {
 
 		return distanceToAddedSong < currentDistanceToAddedSong
-				&& distanceToLastSong < currentDistanceToLastSong
-				&& distanceFirstToCurrentSong < distanceFirstToAddedSong;
+				&& distanceToLastSong < currentDistanceToLastSong;
 	}
 
-	// TODO: merge somehow with other method or remove ?
-	private void stripUsedSongs(Playlist playlist, Song addedsong, List<Song> availableSongs) {
-		availableSongs.removeAll(playlist.getSongsInPlaylist());
-		availableSongs.remove(addedsong);
+	private void stripNonCandidates(Playlist playlist, Song addedSong,
+			List<Song> availableSongs) {
+
+		double[] featureWeighting = playlist.getSettings()
+				.getFeatureWeighting();
+		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
+
+		double distanceFirstToAddedSong = distanceBetween(
+				lastPlaylistSong.getId(), addedSong.getId(), featureWeighting);
+
+		for (Song song : availableSongs)
+			if (isNoCandidate(addedSong, featureWeighting, lastPlaylistSong,
+					distanceFirstToAddedSong, song))
+				availableSongs.remove(song);
+
 	}
 
-	private void stripUsedSongs(Playlist currentPlayList,
-			List<Song> addedSongs, List<Song> availableSongs) {
-		availableSongs.removeAll(currentPlayList.getSongsInPlaylist());
-		availableSongs.removeAll(addedSongs);
+	private boolean isNoCandidate(Song addedSong, double[] featureWeighting,
+			Song lastPlaylistSong, double distanceFirstToAddedSong, Song song) {
+
+		return !(distanceBetween(song.getId(), lastPlaylistSong.getId(),
+				featureWeighting) < distanceFirstToAddedSong && distanceBetween(
+				song.getId(), addedSong.getId(), featureWeighting) < distanceFirstToAddedSong);
 	}
 
-	private void sortBySong(Song referenceSong, List<Song> songsToSort,
-			double[] weighting) {
+	private void sortBySong(final Song referenceSong, List<Song> songsToSort,
+			final double[] weighting) {
 
-		if (songsToSort.size() > 2)
-			Collections.sort(songsToSort, new SortBySong(songsToSort.get(0),
-					weighting));
-	}
+		if (songsToSort.size() > 2) {
+			Collections.sort(songsToSort, new Comparator<Song>() {
 
-	private class SortBySong implements Comparator<Song> {
+				@Override
+				public int compare(Song x, Song y) {
 
-		private Song refSong;
-		private double[] weighting;
+					double distanceXtoRefSong = distanceBetween(x.getId(),
+							referenceSong.getId(), weighting);
+					double distanceYtoRefSong = distanceBetween(y.getId(),
+							referenceSong.getId(), weighting);
 
-		public SortBySong(Song song, double[] weighting) {
-			this.refSong = song;
-			this.weighting = weighting;
+					if (distanceXtoRefSong < distanceYtoRefSong)
+						return -1;
+
+					if (distanceXtoRefSong == distanceYtoRefSong)
+						if (x.getId() == y.getId())
+							return 0;
+						else
+							return x.getId() < y.getId() ? -1 : 1;
+
+					else
+						return 1;
+				}
+			});
 		}
-
-		@Override
-		public int compare(Song x, Song y) {
-
-			double distanceXtoRefSong = distanceBetween(x.getId(),
-					refSong.getId(), weighting);
-			double distanceYtoRefSong = distanceBetween(y.getId(),
-					refSong.getId(), weighting);
-
-			if (distanceXtoRefSong < distanceYtoRefSong)
-				return -1;
-
-			if (distanceXtoRefSong == distanceYtoRefSong)
-				if (x.getId() == y.getId())
-					return 0;
-				else
-					return x.getId() < y.getId() ? -1 : 1;
-
-			else
-				return 1;
-		}
-
 	}
 
 }

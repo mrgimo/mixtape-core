@@ -25,6 +25,8 @@ public class ApplicationFactory {
 
 	private static SystemSettings systemSettings;
 
+	private static AnalyzerService analyzerService;
+
 	public static DatabaseService getDatabaseService() {
 		if (databaseService == null) {
 			databaseService = new DatabaseService();
@@ -84,5 +86,14 @@ public class ApplicationFactory {
 		// }
 		// }
 		return systemSettings;
+	}
+
+	public static AnalyzerService getAnalyzerService() {
+		if (analyzerService == null) {
+			LOG.debug("Initializing AnalyzerService");
+			analyzerService = new AnalyzerService();
+		}
+		
+		return analyzerService;
 	}
 }

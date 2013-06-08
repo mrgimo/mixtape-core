@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,18 +14,20 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
-
-import ch.hsr.mixtape.application.SongTagExtractor;
 
 /**
  * @author Stefan Derungs
  */
 @NamedQueries({
+		@NamedQuery(name = "countAllSongs", query = "SELECT COUNT(s) FROM Song s"),
 		@NamedQuery(name = "getAllSongs", query = "SELECT s FROM Song s"),
-		@NamedQuery(name = "getNewSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NULL"),
+		@NamedQuery(name = "countPendingSongs", query = "SELECT COUNT(s) FROM Song s WHERE s.analyzeDate IS NULL"),
+		@NamedQuery(name = "getPendingSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NULL"),
+		@NamedQuery(name = "countAnalyzedSongs", query = "SELECT COUNT(s) FROM Song s WHERE s.analyzeDate IS NOT NULL"),
 		@NamedQuery(name = "getAnalysedSongs", query = "SELECT s FROM Song s WHERE s.analyzeDate IS NOT NULL"),
 		@NamedQuery(name = "findSongsByTerm", query = "SELECT s FROM Song s WHERE s.title LIKE :term OR s.artist LIKE :term OR s.album LIKE :term") })
 @Entity
@@ -36,15 +39,18 @@ public class Song {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private int id;
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(nullable = false)
 	private Date lastModified;
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(nullable = false, updatable = false)
 	private Date scanDate;
 
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(nullable = true)
 	private Date analyzeDate;
 
 	private int lengthInSeconds;
@@ -64,7 +70,6 @@ public class Song {
 	private FeaturesOfSong features;
 
 	public Song() {
-		scanDate = new Date();
 	}
 
 	public Song(String filepath, String title, String artist, String album) {
@@ -81,13 +86,11 @@ public class Song {
 	 * @throws IllegalArgumentException
 	 *             If there are any problems accessing the provided filepath.
 	 */
-	public Song(String filepath) throws IllegalArgumentException {
+	public Song(String filepath, Date scanDate) throws IllegalArgumentException {
 		this();
 		checkFilepathIsValid(filepath);
 		this.filepath = filepath;
-
-		SongTagExtractor extractor = new SongTagExtractor();
-		extractor.extractTagsFromSong(this);
+		this.scanDate = scanDate;
 	}
 
 	/**
@@ -96,8 +99,15 @@ public class Song {
 	 * @deprecated
 	 */
 	public Song(int id, String filepath) {
+		this();
 		this.id = id;
 		this.filepath = filepath;
+	}
+	
+	@PrePersist
+	@PreUpdate
+	protected void onUpdate() {
+		lastModified = new Date();
 	}
 
 	/**
@@ -135,12 +145,7 @@ public class Song {
 		}
 	}
 
-	@PrePersist
-	private void updateModifiedDate() {
-		lastModified = new Date();
-	}
-
-	public long getId() {
+	public int getId() {
 		return id;
 	}
 
