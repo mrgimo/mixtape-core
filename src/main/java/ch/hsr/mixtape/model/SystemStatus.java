@@ -1,26 +1,39 @@
 package ch.hsr.mixtape.model;
 
-import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-
+/**
+ * @author Stefan Derungs
+ */
 public class SystemStatus {
 
-	private DecimalFormat df;
+	private int numberOfCores;
 
-	public SystemStatus() {
-		df = (DecimalFormat) NumberFormat.getInstance();
-		df.setMaximumFractionDigits(2);
-	}
+	private String availableMemory;
+
+	private String currentSystemLoad;
+
+	private String databaseSize;
+
+	private String totalNumberOfSongs;
+
+	private String numberOfAnalyzedSongs;
+
+	private String numberOfPendingSongs;
+	
+	private String progress;
+
+	private List<Song> pendingSongs;
 
 	/**
 	 * Get the number of available cores for the JVM.
 	 */
 	public int getNumberOfCores() {
-		return Runtime.getRuntime().availableProcessors();
+		return numberOfCores;
+	}
+
+	public void setNumberOfCores(int numberOfCores) {
+		this.numberOfCores = numberOfCores;
 	}
 
 	/**
@@ -30,31 +43,22 @@ public class SystemStatus {
 	 *         the unit MB (Megabytes) or GB (Gigabytes) is added.
 	 */
 	public String getAvailableMemory() {
-		long memory = Runtime.getRuntime().maxMemory();
-		if (memory > 1073741824)
-			return df.format(memory / 1073741824F) + " GB";
-		return df.format(memory / 1048576F) + " MB";
+		return availableMemory;
+	}
+
+	public void setAvailableMemory(String availableMemory) {
+		this.availableMemory = availableMemory;
 	}
 
 	/**
 	 * Get the current system load in percent.
 	 */
 	public String getCurrentSystemLoad() {
-		double load = ManagementFactory.getOperatingSystemMXBean()
-				.getSystemLoadAverage();
-		return (String) (load < 0 ? "n/v" : load);
-		// // TODO
-		// try {
-		// long load = 0;
-		// Cpu[] cpus = sigar.getCpuList();
-		// for (Cpu cpu: cpus) {
-		// load += cpu.getTotal();
-		// }
-		// } catch (SigarException e) {
-		// e.printStackTrace();
-		// }
-		// return ManagementFactory.getOperatingSystemMXBean()
-		// .getSystemLoadAverage();
+		return currentSystemLoad;
+	}
+
+	public void setCurrentSystemLoad(String currentSystemLoad) {
+		this.currentSystemLoad = currentSystemLoad;
 	}
 
 	/**
@@ -64,36 +68,60 @@ public class SystemStatus {
 	 *         (Megabytes) or GB (Gigabytes) is added.
 	 */
 	public String getDatabaseSize() {
-		try {
-			File file = new File(System.getenv("mixtapeData") + "mixtapeDB");
-			long size = FileUtils.sizeOfDirectory(file);
-			if (size > 1073741824)
-				return df.format(size / 1073741824F) + " GB";
-			return df.format(size / 1048576F) + " MB";
-		} catch (Exception e) {
-			return "n/v";
-		}
+		return databaseSize;
+	}
+
+	public void setDatabaseSize(String databaseSize) {
+		this.databaseSize = databaseSize;
 	}
 
 	/**
 	 * Get the number of songs in database.
 	 */
 	public String getTotalNumberOfSongs() {
-		return df.format(32105);
+		return totalNumberOfSongs;
+	}
+
+	public void setTotalNumberOfSongs(String totalNumberOfSongs) {
+		this.totalNumberOfSongs = totalNumberOfSongs;
 	}
 
 	/**
 	 * Get number of analyzed songs in database.
 	 */
 	public String getNumberOfAnalyzedSongs() {
-		return df.format(32002);
+		return numberOfAnalyzedSongs;
+	}
+
+	public void setNumberOfAnalyzedSongs(String numberOfAnalyzedSongs) {
+		this.numberOfAnalyzedSongs = numberOfAnalyzedSongs;
 	}
 
 	/**
 	 * Get number of songs in database waiting for analysis.
 	 */
 	public String getNumberOfPendingSongs() {
-		return df.format(103);
+		return numberOfPendingSongs;
+	}
+
+	public void setNumberOfPendingSongs(String numberOfPendingSongs) {
+		this.numberOfPendingSongs = numberOfPendingSongs;
+	}
+	
+	public String getProgress() {
+		return progress;
+	}
+	
+	public void setProgress(String string) {
+		this.progress = string;
+	}
+
+	public List<Song> getPendingSongs() {
+		return pendingSongs;
+	}
+
+	public void setPendingSongs(List<Song> pendingSongs) {
+		this.pendingSongs = pendingSongs;
 	}
 
 }

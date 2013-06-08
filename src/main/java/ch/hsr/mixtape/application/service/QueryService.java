@@ -3,14 +3,8 @@ package ch.hsr.mixtape.application.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-
-import org.eclipse.persistence.internal.helper.DatabaseField;
-import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
-import org.eclipse.persistence.jpa.JpaEntityManager;
-import org.eclipse.persistence.queries.DatabaseQuery;
-import org.eclipse.persistence.sessions.DatabaseRecord;
-import org.eclipse.persistence.sessions.Session;
 
 import ch.hsr.mixtape.model.Song;
 
@@ -21,40 +15,21 @@ import ch.hsr.mixtape.model.Song;
  */
 public class QueryService {
 
-	private static final DatabaseService DB = ApplicationFactory
-			.getDatabaseService();
-
 	private static final int MAX_QUERY_RESULTS = 50;
+
+	private EntityManager em = ApplicationFactory.getDatabaseService()
+			.getNewEntityManager();
 
 	public List<Song> findSongsByTerm(String term, int maxResults) {
 		String queryString = setupQueryString(term);
-		TypedQuery<Song> query = DB.getEntityManager().createQuery(queryString,
-				Song.class);
+		TypedQuery<Song> query = em.createQuery(queryString, Song.class);
 
 		if (maxResults > 0 && maxResults <= MAX_QUERY_RESULTS)
 			query.setMaxResults(maxResults);
 		else
 			query.setMaxResults(MAX_QUERY_RESULTS);
 
-		debugQuery(query, term);
 		return query.getResultList();
-	}
-
-	/**
-	 * This method is just for debugging purposes.
-	 */
-	private void debugQuery(TypedQuery<Song> query, String term) {
-		Session session = DB.getEntityManager().unwrap(JpaEntityManager.class)
-				.getActiveSession();
-		DatabaseQuery dbQuery = ((EJBQueryImpl<Song>) query).getDatabaseQuery();
-
-		dbQuery.prepareCall(session, new DatabaseRecord());
-		System.err.println(dbQuery.getSQLString());
-
-		DatabaseRecord recordWithValues = new DatabaseRecord();
-		recordWithValues.add(new DatabaseField("term"), term);
-		System.err.println(dbQuery.getTranslatedSQLString(session,
-				recordWithValues));
 	}
 
 	/**
