@@ -1,9 +1,13 @@
 package ch.hsr.mixtape.application.service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.Mixtape;
+import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.SystemSettings;
 
 /**
@@ -100,10 +104,12 @@ public class ApplicationFactory {
 		return analyzerService;
 	}
 	
-	public static Mixtape getMixtapeService() {
+	public static Mixtape getMixtape() {
 		if (mixtapeService == null) {
 			LOG.debug("Initializing MixtapeService");
-			mixtapeService = new Mixtape();
+			EntityManager em = getDatabaseService().getNewEntityManager();
+			TypedQuery<Distance> query = em.createNamedQuery("getAllDistances", Distance.class);
+			mixtapeService = new Mixtape(query.getResultList());
 		}
 		
 		return mixtapeService;

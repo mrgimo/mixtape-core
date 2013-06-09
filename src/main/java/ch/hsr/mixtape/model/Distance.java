@@ -1,7 +1,19 @@
 package ch.hsr.mixtape.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQuery;
+
+@Entity
+@NamedQuery(name = "getAllDistances", query = "SELECT d FROM Distance d")
 public class Distance {
 
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int id;
+	
 	private Song songX;
 	private Song songY;
 
@@ -9,6 +21,9 @@ public class Distance {
 	private double perceptualDistance;
 	private double spectralDistance;
 	private double temporalDistance;
+	
+	public Distance() {
+	}
 
 	public Distance(Song songX, Song songY,
 			double harmonicDistance, double perceptualDistance, double spectralDistance, double temporalDistance) {
@@ -19,6 +34,10 @@ public class Distance {
 		this.perceptualDistance = perceptualDistance;
 		this.spectralDistance = spectralDistance;
 		this.temporalDistance = temporalDistance;
+	}
+	
+	public int gedId() {
+		return id;
 	}
 
 	public Song getSongX() {

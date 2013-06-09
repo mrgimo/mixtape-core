@@ -1,5 +1,11 @@
 package ch.hsr.mixtape.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+
 import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong;
 import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong;
 import ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong;
@@ -8,12 +14,27 @@ import ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong;
 /**
  * @author Stefan Derungs
  */
+@Entity
 public class FeaturesOfSong {
 
-	public final HarmonicFeaturesOfSong harmonic;
-	public final PerceptualFeaturesOfSong perceptual;
-	public final SpectralFeaturesOfSong spectral;
-	public final TemporalFeaturesOfSong temporal;
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int id;
+	
+	@Lob
+	public HarmonicFeaturesOfSong harmonic;
+	
+	@Lob
+	public PerceptualFeaturesOfSong perceptual;
+	
+	@Lob
+	public SpectralFeaturesOfSong spectral;
+	
+	@Lob
+	public TemporalFeaturesOfSong temporal;
+	
+	public FeaturesOfSong() {
+	}
 
 	public FeaturesOfSong(HarmonicFeaturesOfSong harmonic,
 			PerceptualFeaturesOfSong perceptual,

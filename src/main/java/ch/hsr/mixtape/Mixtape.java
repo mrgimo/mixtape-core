@@ -49,9 +49,6 @@ public class Mixtape {
 	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable.create();
 	private MixStrategy mixStrategy = new SmoothMix(this);
 	
-	public Mixtape() {
-	}
-
 	public Mixtape(Collection<Distance> distances) {
 		addDistances(distances);
 	}
