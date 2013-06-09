@@ -47,7 +47,7 @@ public class Mixtape {
 	private final TemporalFeaturesExtractor temporalFeatureExtractor = new TemporalFeaturesExtractor();
 
 	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable.create();
-	private MixStrategy mixStrategy = new MixNoDuplicates(this);
+	private MixStrategy mixStrategy = new SmoothMix(this);
 
 	public Mixtape(Collection<Distance> distances) {
 		addDistances(distances);
