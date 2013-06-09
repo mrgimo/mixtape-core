@@ -91,9 +91,11 @@ public class MixNoDuplicates implements MixStrategy{
 
 		double[] featureWeighting = currentPlaylist.getSettings()
 				.getFeatureWeighting();
+		
+		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
 
 		double currentDistanceToAddedSong = weightedVectorLength(
-				mixtape.distance(firstSong, addedSong), featureWeighting);
+				distancesAddedSong.get(firstSong), featureWeighting);
 
 		double mostSuitableDistanceToAddedSong = Double.POSITIVE_INFINITY;
 
@@ -105,7 +107,7 @@ public class MixNoDuplicates implements MixStrategy{
 
 			for (Song song : availableSongs) {
 				double distanceToAddedSong = weightedVectorLength(
-						mixtape.distance(song, addedSong), featureWeighting);
+						distancesAddedSong.get(song), featureWeighting);
 				double distanceToLastSong = weightedVectorLength(
 						mixtape.distance(song, mostSuitableSong),
 						featureWeighting);
