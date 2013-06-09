@@ -23,7 +23,7 @@ public class SystemSettings {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private int id;
 
 	@Temporal(TemporalType.DATE)
 	private Date lastModified;

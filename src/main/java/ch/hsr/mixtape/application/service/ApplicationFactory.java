@@ -3,6 +3,7 @@ package ch.hsr.mixtape.application.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.hsr.mixtape.Mixtape;
 import ch.hsr.mixtape.model.SystemSettings;
 
 /**
@@ -26,6 +27,8 @@ public class ApplicationFactory {
 	private static SystemSettings systemSettings;
 
 	private static AnalyzerService analyzerService;
+
+	private static Mixtape mixtapeService;
 
 	public static DatabaseService getDatabaseService() {
 		if (databaseService == null) {
@@ -96,4 +99,14 @@ public class ApplicationFactory {
 		
 		return analyzerService;
 	}
+	
+	public static Mixtape getMixtapeService() {
+		if (mixtapeService == null) {
+			LOG.debug("Initializing MixtapeService");
+			mixtapeService = new Mixtape();
+		}
+		
+		return mixtapeService;
+	}
+	
 }

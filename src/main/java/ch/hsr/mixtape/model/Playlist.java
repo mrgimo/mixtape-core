@@ -1,16 +1,19 @@
 package ch.hsr.mixtape.model;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.exception.PlaylistChangedException;
@@ -19,6 +22,7 @@ import ch.hsr.mixtape.exception.PlaylistChangedException;
  * @author Stefan Derungs
  */
 @Entity
+@NamedQueries({ @NamedQuery(name = "deleteAllPlaylists", query = "DELETE FROM Playlist p") })
 public class Playlist implements Cloneable {
 
 	private static final String UNINITIALIZED_PLAYLIST_MESSAGE = "Playlist has not been initialized. "
@@ -26,8 +30,9 @@ public class Playlist implements Cloneable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private int id;
 
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private PlaylistSettings settings;
 
 	@OneToMany(cascade = CascadeType.ALL)
@@ -36,18 +41,18 @@ public class Playlist implements Cloneable {
 	public Playlist() {
 		items = new ArrayList<PlaylistItem>();
 	}
-
+	
+	public Playlist(PlaylistSettings settings) {
+		super();
+		this.settings = settings;
+	}
+	
 	public boolean isInitialized() {
 		return settings != null;
 	}
 
 	public boolean isEmpty() {
 		return items.isEmpty();
-	}
-
-	public void resetPlaylist(PlaylistSettings settings) {
-		this.settings = settings;
-		items = new ArrayList<PlaylistItem>();
 	}
 
 	public Song getCurrentSong() {
@@ -94,7 +99,7 @@ public class Playlist implements Cloneable {
 	 * 
 	 * @return If no song is found -1 is returned.
 	 */
-	private int getSongIndexById(long songId) {
+	private int getSongIndexById(int songId) {
 		for (int i = 0; i < items.size(); i++) {
 			if (items.get(i).getCurrent().getId() == songId)
 				return i;
@@ -105,7 +110,7 @@ public class Playlist implements Cloneable {
 	/**
 	 * @throws InvalidPlaylistException
 	 */
-	public PlaylistItem removeItem(long songId) throws InvalidPlaylistException {
+	public PlaylistItem removeItem(int songId) throws InvalidPlaylistException {
 		if (!isInitialized())
 			throw new InvalidPlaylistException(UNINITIALIZED_PLAYLIST_MESSAGE);
 
@@ -123,7 +128,7 @@ public class Playlist implements Cloneable {
 	 * @param newPosition
 	 * @throws PlaylistChangedException
 	 */
-	public void alterSorting(long songId, int oldPosition, int newPosition)
+	public void alterSorting(int songId, int oldPosition, int newPosition)
 			throws PlaylistChangedException {
 		if (oldPosition == newPosition)
 			return;
@@ -173,7 +178,7 @@ public class Playlist implements Cloneable {
 
 		for (PlaylistItem playlistItem : items)
 			songsInPlaylist.add(playlistItem.getCurrent());
-		
+
 		return songsInPlaylist;
 	}
 

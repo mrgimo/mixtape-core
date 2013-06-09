@@ -30,21 +30,14 @@ public class PlaylistService {
 	private static final DatabaseService DB = ApplicationFactory
 			.getDatabaseService();
 
-	private ReentrantReadWriteLock playlistLock;
+	private ReentrantReadWriteLock playlistLock = new ReentrantReadWriteLock(
+			true);
 
-	private ReentrantLock subscriberLock;
+	private ReentrantLock subscriberLock = new ReentrantLock(true);
 
-	private Playlist playlist;
+	private Playlist playlist = new Playlist();
 
-	private ArrayList<PlaylistSubscriber> subscribers;
-
-	public PlaylistService() {
-		playlistLock = new ReentrantReadWriteLock(true);
-		subscriberLock = new ReentrantLock(true);
-		playlist = new Playlist();
-		subscribers = new ArrayList<PlaylistSubscriber>();
-		LOG.debug("Initialized PlaylistManager...");
-	}
+	private ArrayList<PlaylistSubscriber> subscribers = new ArrayList<PlaylistSubscriber>();
 
 	/**
 	 * Add subscriber if not already subscribed.
@@ -97,13 +90,15 @@ public class PlaylistService {
 					"Uninitialized playlist. You have to create a playlist first.");
 	}
 
-	public void createPlaylist(PlaylistSettings settings) {
+	public void createPlaylist(PlaylistSettings settings)
+			throws InvalidPlaylistException {
 		try {
 			playlistLock.writeLock().lock();
 			LOG.debug("Acquired Write-Lock in `createNewPlaylist`.");
 
-			playlist = new Playlist();
-			playlist.resetPlaylist(settings);
+			playlist = new Playlist(settings);
+			ApplicationFactory.getMixtapeService().initialMix(playlist);
+			
 
 			persistPlaylistAndNotifySubscribers();
 		} finally {
@@ -179,7 +174,7 @@ public class PlaylistService {
 	 *             Is thrown if the given oldPosition does not match with the
 	 *             songs current position.
 	 */
-	public void alterSorting(long songId, int oldPosition, int newPosition)
+	public void alterSorting(int songId, int oldPosition, int newPosition)
 			throws InvalidPlaylistException, PlaylistChangedException {
 		try {
 			playlistLock.writeLock().lock();
@@ -213,7 +208,7 @@ public class PlaylistService {
 	 * @throws EntityNotFoundException
 	 *             If song could not be found in database.
 	 */
-	public void addWish(long songId) throws InvalidPlaylistException,
+	public void addWish(int songId) throws InvalidPlaylistException,
 			EntityNotFoundException {
 		try {
 			playlistLock.writeLock().lock();
@@ -221,21 +216,19 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 			Song song = mapSong(songId);
-			
-			/* pathfinding:
+
+			/*
+			 * pathfinding:
 			 * 
-			 * new Playlist :
-			 * mixtape.initialMix(playlist)
+			 * new Playlist : mixtape.initialMix(playlist)
 			 * 
-			 * add one song to playlist:
-			 * mixtape.mixAnotherSong(playlist, addedSong)
+			 * add one song to playlist: mixtape.mixAnotherSong(playlist,
+			 * addedSong)
 			 * 
 			 * add multiple songs to playlist:
 			 * mixtape.mixMultipleSongs(playlist, addedSongs)
-			 * 
 			 */
-			
-			
+
 			// TODO do path-finding and add song at appropriate place
 			PlaylistItem lastItem;
 			List<PlaylistItem> playlistItems = playlist.getItems();
@@ -272,7 +265,7 @@ public class PlaylistService {
 	 *             Is thrown if either the given songPosition does not match
 	 *             with the songId or the songPosition does not exist at all.
 	 */
-	public void removeSong(long songId, int expectedSongPosition)
+	public void removeSong(int songId, int expectedSongPosition)
 			throws InvalidPlaylistException, PlaylistChangedException {
 		try {
 			playlistLock.writeLock().lock();
@@ -303,7 +296,7 @@ public class PlaylistService {
 	 * @throws EntityNotFoundException
 	 *             If song could not be found in database.
 	 */
-	private Song mapSong(long songId) throws EntityNotFoundException {
+	private Song mapSong(int songId) throws EntityNotFoundException {
 		LOG.debug("Looking for song id: " + songId);
 		Song song = DB.findObjectById(songId, Song.class);
 		if (song == null)

@@ -17,7 +17,7 @@ public class PlaylistSettings implements Cloneable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private int id;
 
 	@Temporal(TemporalType.DATE)
 	private Date creationDate;
@@ -49,11 +49,11 @@ public class PlaylistSettings implements Cloneable {
 		creationDate = new Date();
 	}
 
-	public long getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(int id) {
 		// Do nothing.
 		// Just keep it for JSP's sake.
 	}

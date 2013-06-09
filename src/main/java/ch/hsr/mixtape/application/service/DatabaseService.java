@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.eclipse.persistence.internal.helper.DatabaseField;
@@ -65,13 +66,22 @@ public class DatabaseService {
 	 */
 	public void shutdown() {
 		LOG.info("Shutting down database connection...");
-
+		
 		synchronized (entityManagers) {
 			for (EntityManager em : entityManagers) {
 				terminateEntityManager(em);
 			}
+			
+			EntityManager em = emFactory.createEntityManager();
+			em.getTransaction().begin();
+			Query query = em.createNamedQuery("deleteAllPlaylists");
+			query.executeUpdate();
+			em.getTransaction().commit();
+			em.close();
+			
+			emFactory.close();
 		}
-
+		
 		LOG.info("Database connection terminated...");
 	}
 
@@ -109,7 +119,7 @@ public class DatabaseService {
 				.getResultList();
 	}
 
-	public <T> T findObjectById(long entityId, Class<T> entityClass) {
+	public <T> T findObjectById(int entityId, Class<T> entityClass) {
 		T entity = localEM.find(entityClass, entityId);
 		LOG.debug("Found entity with Id " + entityId + " of type "
 				+ entityClass + ": " + (entity != null ? "YES" : "NO"));
