@@ -34,7 +34,7 @@ public class Playlist implements Cloneable {
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private PlaylistSettings settings;
-
+	
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<PlaylistItem> items;
 
