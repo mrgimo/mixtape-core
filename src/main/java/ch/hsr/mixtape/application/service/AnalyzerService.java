@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
-import ch.hsr.mixtape.FooDistances;
+import javax.persistence.EntityManager;
+
+import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Song;
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -20,21 +22,20 @@ public class AnalyzerService {
 
 	public void analyze(final List<Song> songs) {
 
-		
-		ListenableFuture<List<FooDistances>> distances = analyzingExecutor
-				.submit(new Callable<List<FooDistances>>() {
+		ListenableFuture<List<Distance>> distances = analyzingExecutor
+				.submit(new Callable<List<Distance>>() {
 
 					@Override
-					public List<FooDistances> call() throws Exception {
+					public List<Distance> call() throws Exception {
 						return null; // mixTape.addSongs(songs);
 					}
 				});
 
 		Futures.addCallback(distances,
-				new FutureCallback<List<FooDistances>>() {
+				new FutureCallback<List<Distance>>() {
 
 					@Override
-					public void onSuccess(List<FooDistances> distances) {
+					public void onSuccess(List<Distance> distances) {
 						persist(distances, songs);
 						// inform UI?
 					}
@@ -46,8 +47,19 @@ public class AnalyzerService {
 				});
 	}
 
+	private void persist(List<Distance> distances, List<Song> songs) {
 
-	private void persist(List<FooDistances> distances, List<Song> songs) {
-		// persist songs & distances in db
+		EntityManager entityManager = ApplicationFactory.getDatabaseService().getNewEntityManager();
+		entityManager.getTransaction().begin();
+
+		for (Song song : songs)
+			entityManager.persist(entityManager.merge(song));
+
+		for (Distance distance : distances)
+			entityManager.persist(entityManager.merge(distance));
+
+		entityManager.getTransaction().commit();
+		ApplicationFactory.getDatabaseService().closeEntityManager(entityManager);
+
 	}
 }
