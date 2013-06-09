@@ -216,6 +216,8 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 			Song song = mapSong(songId);
+			
+			ApplicationFactory.getMixtapeService().mixAnotherSong(playlist, song);
 
 			/*
 			 * pathfinding:

@@ -48,7 +48,6 @@ public class AnalyzerService {
 	}
 
 	private void persist(List<Distance> distances, List<Song> songs) {
-
 		EntityManager entityManager = ApplicationFactory.getDatabaseService().getNewEntityManager();
 		entityManager.getTransaction().begin();
 
