@@ -75,7 +75,7 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 
 		HarmonicFeaturesOfSong featuresOfSong = new HarmonicFeaturesOfSong();
 
-		featuresOfSong.fudamentals = Ints.toArray(fundamentals);
+		featuresOfSong.fundamentals = Ints.toArray(fundamentals);
 		featuresOfSong.inharmonicity = Ints.toArray(inharmonicity);
 		featuresOfSong.oddToEvenHarmonicEnergyRatio = Ints.toArray(oddToEvenHarmonicEnergyRatio);
 		featuresOfSong.tristimulus = Ints.toArray(tristimulus);
@@ -113,7 +113,7 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 
 	public double distanceBetween(HarmonicFeaturesOfSong x, HarmonicFeaturesOfSong y) {
 		return MathUtils.vectorLength(
-				nid.distanceBetween(x.fudamentals, y.fudamentals),
+				nid.distanceBetween(x.fundamentals, y.fundamentals),
 				nid.distanceBetween(x.inharmonicity, y.inharmonicity),
 				nid.distanceBetween(x.oddToEvenHarmonicEnergyRatio, y.oddToEvenHarmonicEnergyRatio),
 				nid.distanceBetween(x.tristimulus, y.tristimulus))
