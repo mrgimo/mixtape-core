@@ -2,7 +2,7 @@ package ch.hsr.mixtape.model;
 
 import java.io.File;
 
-import ch.hsr.mixtape.audio.AudioChannel;
+import ch.hsr.mixtape.io.AudioChannel;
 
 public class SongStream {
 	

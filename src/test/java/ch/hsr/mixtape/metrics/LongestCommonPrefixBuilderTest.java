@@ -2,7 +2,7 @@ package ch.hsr.mixtape.metrics;
 
 import org.junit.Test;
 
-import ch.hsr.mixtape.metrics.LongestCommonPrefixBuilder;
+import ch.hsr.mixtape.nid.LongestCommonPrefixBuilder;
 import static org.junit.Assert.*;
 
 public class LongestCommonPrefixBuilderTest {

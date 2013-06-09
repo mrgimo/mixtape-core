@@ -14,7 +14,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import ch.hsr.mixtape.features.temporal.SpectralDescription.SpectralDescriptionType;
+import ch.hsr.mixtape.processing.temporal.PhaseVocoder;
+import ch.hsr.mixtape.processing.temporal.Tempo;
+import ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType;
 
 /**
  * Test class for ensuring Aubio's Tempo-class stability during refactoring.

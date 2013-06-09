@@ -15,6 +15,8 @@ import java.util.Collection;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import ch.hsr.mixtape.io.FileFinder;
+
 public class FileFinderTest {
 
 	private static final String EMPTY_DIRECTORY_PATH = "empty_directory";
