@@ -40,7 +40,8 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 
 public class Mixtape {
 
-	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
+	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime
+			.getRuntime().availableProcessors();
 	private static final int NUMBER_OF_FEATURE_EXTRACTORS = 4;
 
 	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(NUMBER_OF_AVAILABLE_PROCESSORS);
@@ -52,7 +53,8 @@ public class Mixtape {
 	private final SpectralFeaturesExtractor spectralFeatureExtractor = new SpectralFeaturesExtractor();
 	private final TemporalFeaturesExtractor temporalFeatureExtractor = new TemporalFeaturesExtractor();
 
-	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable.create();
+	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable
+			.create();
 
 	public Mixtape(Collection<Distance> distances) {
 		addDistances(distances);
@@ -84,7 +86,8 @@ public class Mixtape {
 		return addedDistances;
 	}
 
-	public Collection<Distance> addSong(Song song) throws IOException, InterruptedException, ExecutionException {
+	public Collection<Distance> addSong(Song song) throws IOException,
+			InterruptedException, ExecutionException {
 		FeaturesOfSong features = extractFeaturesOf(song);
 		song.setFeatures(features);
 
@@ -94,7 +97,8 @@ public class Mixtape {
 		return Lists.newArrayList(distances);
 	}
 
-	private FeaturesOfSong extractFeaturesOf(Song song) throws IOException, InterruptedException, ExecutionException {
+	private FeaturesOfSong extractFeaturesOf(Song song) throws IOException,
+			InterruptedException, ExecutionException {
 		SampleWindowPublisher publisher = new SampleWindowPublisher(extractionExecutor, postprocessingExecutor);
 
 		ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher.register(harmonicFeatureExtractor);
@@ -104,11 +108,8 @@ public class Mixtape {
 
 		publisher.publish(song);
 
-		return new FeaturesOfSong(
-				harmonic.get(),
-				perceptual.get(),
-				spectral.get(),
-				temporal.get());
+		return new FeaturesOfSong(harmonic.get(), perceptual.get(),
+				spectral.get(), temporal.get());
 	}
 
 	private Collection<Distance> calcDistancesTo(Song song) {
@@ -194,24 +195,26 @@ public class Mixtape {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		List<Song> availableSongs = new ArrayList<Song>(
-				distanceTable.columnKeySet());
-
-		availableSongs.removeAll(playlist.getSongsInPlaylist());
-		availableSongs.removeAll(addedSongs);
-
 		sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
 				.getSettings().getFeatureWeighting());
 
-		for (Song song : addedSongs)
+		for (Song song : addedSongs) {
+
+			List<Song> availableSongs = Lists.newArrayList(distanceTable
+					.columnKeySet());
+
+			availableSongs.removeAll(playlist.getSongsInPlaylist());
+			availableSongs.removeAll(addedSongs);
+
 			mix(playlist, song, availableSongs);
+		}
 
 	}
 
 	public void mixAnotherSong(Playlist playlist, Song addedSong)
 			throws InvalidPlaylistException {
-		ArrayList<Song> availableSongs = new ArrayList<Song>(
-				distanceTable.columnKeySet());
+		ArrayList<Song> availableSongs = Lists.newArrayList(distanceTable
+				.columnKeySet());
 
 		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.remove(addedSong);
@@ -234,6 +237,8 @@ public class Mixtape {
 
 		double currentDistanceToAddedSong = weightedVectorLength(
 				distanceTable.get(firstSong, addedSong), featureWeighting);
+		
+		double mostSuitableDistanceToAddedSong = Double.POSITIVE_INFINITY;
 
 		boolean closerSongExists = false;
 
@@ -248,14 +253,14 @@ public class Mixtape {
 						distanceTable.get(song, mostSuitableSong),
 						featureWeighting);
 
-				if (isMoreSuitable(distanceToAddedSong,
-						currentDistanceToAddedSong, distanceToLastSong,
-						currentDistanceToLastSong)) {
+				if (distanceToAddedSong < currentDistanceToAddedSong)
+					if (distanceToLastSong < currentDistanceToLastSong) {
 
-					mostSuitableSong = song;
-					currentDistanceToAddedSong = distanceToAddedSong;
-					currentDistanceToLastSong = distanceToLastSong;
-				}
+						mostSuitableSong = song;
+						mostSuitableDistanceToAddedSong = distanceToAddedSong;
+						currentDistanceToLastSong = distanceToLastSong;
+					} else
+						availableSongs.remove(song);
 
 			}
 
@@ -266,6 +271,7 @@ public class Mixtape {
 						lastSong, 0, 1, 2, 3, false));
 
 				lastSong = mostSuitableSong;
+				currentDistanceToAddedSong = mostSuitableDistanceToAddedSong;
 				availableSongs.remove(lastSong);
 				closerSongExists = true;
 
@@ -299,14 +305,6 @@ public class Mixtape {
 
 	private boolean closerSongExists(double currentDistanceToLastSong) {
 		return currentDistanceToLastSong != Double.POSITIVE_INFINITY;
-	}
-
-	private boolean isMoreSuitable(double distanceToAddedSong,
-			double currentDistanceToAddedSong, double distanceToLastSong,
-			double currentDistanceToLastSong) {
-
-		return distanceToAddedSong < currentDistanceToAddedSong
-				&& distanceToLastSong < currentDistanceToLastSong;
 	}
 
 	private void stripNonCandidates(Playlist playlist, Song addedSong,
