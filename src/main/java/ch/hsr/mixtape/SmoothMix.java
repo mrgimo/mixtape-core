@@ -60,9 +60,10 @@ public class SmoothMix implements MixStrategy {
 		for (Song song : addedSongs) {
 
 			List<Song> availableSongs = mixtape.getSongs();
-
-			availableSongs.removeAll(playlist.getSongsInPlaylist());
 			availableSongs.removeAll(addedSongs);
+
+			if (!playlist.getSettings().allowDuplicates())
+				availableSongs.removeAll(playlist.getSongsInPlaylist());
 
 			mix(playlist, song, availableSongs);
 		}
@@ -73,12 +74,12 @@ public class SmoothMix implements MixStrategy {
 	public void mixAnotherSong(Playlist playlist, Song addedSong)
 			throws InvalidPlaylistException {
 		List<Song> availableSongs = mixtape.getSongs();
-
-		availableSongs.removeAll(playlist.getSongsInPlaylist());
 		availableSongs.remove(addedSong);
 
-		mix(playlist, addedSong, availableSongs);
+		if (!playlist.getSettings().allowDuplicates())
+			availableSongs.removeAll(playlist.getSongsInPlaylist());
 
+		mix(playlist, addedSong, availableSongs);
 	}
 
 	private void mix(Playlist currentPlaylist, Song addedSong,
@@ -145,7 +146,7 @@ public class SmoothMix implements MixStrategy {
 			boolean isUserWish) {
 
 		Distance distance = mixtape.distance(lastSong, mostSuitableSong);
-		
+
 		int harmonicSimilarity = (int) (distance.getHarmonicDistance() / FastMath
 				.sqrt(HarmonicFeaturesOfSong.NUMBER_OF_HARMONIC_FEATURES) * (double) playlistSettings
 				.getHarmonicSimilarity());
