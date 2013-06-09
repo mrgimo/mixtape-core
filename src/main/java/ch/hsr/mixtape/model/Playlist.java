@@ -99,7 +99,7 @@ public class Playlist implements Cloneable {
 	 * 
 	 * @return If no song is found -1 is returned.
 	 */
-	private int getSongIndexById(int songId) {
+	public int getSongIndexById(int songId) {
 		for (int i = 0; i < items.size(); i++) {
 			if (items.get(i).getCurrent().getId() == songId)
 				return i;
@@ -117,32 +117,6 @@ public class Playlist implements Cloneable {
 		return items.remove(getSongIndexById(songId));
 	}
 
-	/**
-	 * Alter order of a listed song.
-	 * 
-	 * @param songId
-	 * @param oldPosition
-	 *            The purpose of this parameter is to overcome the problem of
-	 *            concurrent playlist changes when playlist viewed by different
-	 *            users is out of sync (e.g. over webinterface).
-	 * @param newPosition
-	 * @throws PlaylistChangedException
-	 */
-	public void alterSorting(int songId, int oldPosition, int newPosition)
-			throws PlaylistChangedException {
-		if (oldPosition == newPosition)
-			return;
-
-		if (getSongIndexById(songId) != oldPosition)
-			throw new PlaylistChangedException(
-					"Song position did not match. Resorting song in playlist failed "
-							+ "due to changed playlist. Try again after updating "
-							+ "your playlist view.");
-
-		PlaylistItem item = items.remove(oldPosition);
-		items.add(newPosition, item);
-		// TODO: update similarities
-	}
 
 	/**
 	 * Advance playlist to the next song, only if there are any songs left in

@@ -15,6 +15,7 @@ import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.FeaturesOfSong;
 import ch.hsr.mixtape.model.Playlist;
+import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.Song;
 import ch.hsr.mixtape.processing.SampleWindowPublisher;
 import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesExtractor;
@@ -185,5 +186,4 @@ public class Mixtape {
 		mixStrategy.mixAnotherSong(playlist, addedSong);
 
 	}
-
 }

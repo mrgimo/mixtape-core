@@ -7,18 +7,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.math3.util.FastMath;
-
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.PlaylistSettings;
 import ch.hsr.mixtape.model.Song;
-import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong;
-import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong;
-import ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong;
-import ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong;
 
 public class SmoothMix implements MixStrategy {
 

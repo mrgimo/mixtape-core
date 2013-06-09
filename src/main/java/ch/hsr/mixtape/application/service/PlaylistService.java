@@ -1,5 +1,8 @@
 package ch.hsr.mixtape.application.service;
 
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getMixtape;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.exception.PlaylistChangedException;
+import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.PlaylistSettings;
@@ -27,8 +31,7 @@ public class PlaylistService {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(PlaylistService.class);
 
-	private static final DatabaseService DB = ApplicationFactory
-			.getDatabaseService();
+	private static final DatabaseService DB = getDatabaseService();
 
 	private ReentrantReadWriteLock playlistLock = new ReentrantReadWriteLock(
 			true);
@@ -97,8 +100,7 @@ public class PlaylistService {
 			LOG.debug("Acquired Write-Lock in `createNewPlaylist`.");
 
 			playlist = new Playlist(settings);
-			ApplicationFactory.getMixtape().initialMix(playlist);
-			
+			getMixtape().initialMix(playlist);
 
 			persistPlaylistAndNotifySubscribers();
 		} finally {
@@ -182,9 +184,19 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 
-			playlist.alterSorting(songId, oldPosition, newPosition);
+			if (oldPosition == newPosition)
+				return;
 
-			updatePlaylistItems();
+			if (playlist.getSongIndexById(songId) != oldPosition)
+				throw new PlaylistChangedException(
+						"Song position did not match. Resorting song in playlist failed "
+								+ "due to changed playlist. Try again after updating "
+								+ "your playlist view.");
+
+			List<PlaylistItem> playlistItems = playlist.getItems();
+			moveItem(oldPosition, newPosition, playlistItems);
+			updateAntecessors(oldPosition, newPosition, playlistItems);
+
 			persistPlaylistAndNotifySubscribers();
 			LOG.debug("Resorted song with id " + songId + ".");
 		} finally {
@@ -193,8 +205,41 @@ public class PlaylistService {
 		}
 	}
 
-	private void updatePlaylistItems() {
-		playlist.getItems();
+	private void moveItem(int oldPosition, int newPosition, List<PlaylistItem> playlistItems) {
+		PlaylistItem item = playlistItems.remove(oldPosition);
+		playlistItems.add(newPosition, item);
+	}
+
+	private void updateAntecessors(int oldPosition, int newPosition, List<PlaylistItem> playlistItems) {
+
+		PlaylistItem oldSuccessor = playlistItems.get(oldPosition + 1);
+		oldSuccessor.setAntecessor(playlistItems.get(oldPosition).getCurrent());
+		updateSimilarity(oldSuccessor);
+
+		PlaylistItem movedItem = playlistItems.get(newPosition);
+		movedItem.setAntecessor(playlistItems.get(newPosition - 1).getCurrent());
+		updateSimilarity(movedItem);
+
+		PlaylistItem newSuccessor = playlistItems.get(newPosition + 1);
+		newSuccessor.setAntecessor(movedItem.getCurrent());
+		updateSimilarity(newSuccessor);
+	}
+
+	private void updateSimilarity(PlaylistItem playlistItem) {
+		Distance distance = getMixtape().distanceBetween(playlistItem.getCurrent(), playlistItem.getAntecessor());
+
+		PlaylistSettings playlistSettings = playlist.getSettings();
+
+		int harmonicSimilarity = (int) (distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
+		int perceptualSimilarity = (int) (distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity());
+		int spectralSimilarity = (int) (distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
+		int temporalSimilarity = (int) (distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
+
+		playlistItem.setHarmonicSimilarity(harmonicSimilarity);
+		playlistItem.setPerceptualSimilarity(perceptualSimilarity);
+		playlistItem.setSpectralSimilarity(spectralSimilarity);
+		playlistItem.setTemporalSimilarity(temporalSimilarity);
+
 	}
 
 	/**
@@ -216,37 +261,9 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 			Song song = mapSong(songId);
-			
-			ApplicationFactory.getMixtapeService().mixAnotherSong(playlist, song);
 
-			/*
-			 * pathfinding:
-			 * 
-			 * new Playlist : mixtape.initialMix(playlist)
-			 * 
-			 * add one song to playlist: mixtape.mixAnotherSong(playlist,
-			 * addedSong)
-			 * 
-			 * add multiple songs to playlist:
-			 * mixtape.mixMultipleSongs(playlist, addedSongs)
-			 */
+			getMixtape().mixAnotherSong(playlist, song);
 
-			// TODO do path-finding and add song at appropriate place
-			PlaylistItem lastItem;
-			List<PlaylistItem> playlistItems = playlist.getItems();
-			if (!playlistItems.isEmpty())
-				lastItem = playlistItems.get(playlistItems.size() - 1);
-			else
-				lastItem = null;
-
-			// ArrayList<PlaylistItem> items = Pathfinder.findPath(song,
-			// lastItem,
-			// playlist.getSettings());
-			// playlist.addAllItems(items);
-			//
-			// DistanceUpdater.updatePlaylistDistances(playlist);
-
-			updatePlaylistItems();
 			persistPlaylistAndNotifySubscribers();
 			LOG.debug("Added wish:" + song.getTitle() + ".");
 		} finally {
@@ -275,13 +292,22 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 
-			PlaylistItem removed;
-			if ((removed = playlist.removeItem(songId)) != null) {
-				updatePlaylistItems();
+			List<PlaylistItem> playlistItems = playlist.getItems();
+
+			int songIndexById = playlist.getSongIndexById(songId);
+
+			if (songIndexById != -1) {
+				PlaylistItem removed = playlistItems.remove(songIndexById);
 				persistPlaylistAndNotifySubscribers();
 				LOG.debug("Removed song " + removed.getCurrent().getTitle()
 						+ " from playlist.");
+
+				if (playlistItems.size() > songIndexById) {
+					playlistItems.get(songIndexById).setAntecessor(playlistItems.get(songIndexById - 1).getCurrent());
+					updateSimilarity(playlistItems.get(songIndexById));
+				}
 			}
+
 		} catch (IndexOutOfBoundsException e) {
 			PlaylistChangedException ex = new PlaylistChangedException(
 					"Removing song from playlist failed due to changed playlist. "

@@ -23,28 +23,28 @@ public class PlaylistItem {
 	 */
 	private boolean userWish;
 
-	private Song antecessor;
+	private Song antecessorSimilarity;
 
-	private int harmonic;
+	private int harmonicSimilarity;
 
-	private int spectral;
+	private int spectralSimilarity;
 
-	private int temporal;
+	private int temporalSimilarity;
 
-	private int perceptual;
+	private int perceptualSimilarity;
 
 	public PlaylistItem() {
 	}
 
-	public PlaylistItem(Song current, Song antecessor, int harmonic,
-			int perceptual, int spectral, int temporal, boolean isUserWish) {
+	public PlaylistItem(Song current, Song antecessor, int harmonicSimilarity,
+			int perceptualSimilarity, int spectralSimilarity, int temporalSimilarity, boolean isUserWish) {
 		this.current = current;
 		this.userWish = isUserWish;
-		this.antecessor = antecessor;
-		this.harmonic = harmonic;
-		this.perceptual = perceptual;
-		this.spectral = spectral;
-		this.temporal = temporal;
+		this.antecessorSimilarity = antecessor;
+		this.harmonicSimilarity = harmonicSimilarity;
+		this.perceptualSimilarity = perceptualSimilarity;
+		this.spectralSimilarity = spectralSimilarity;
+		this.temporalSimilarity = temporalSimilarity;
 	}
 
 	public Song getCurrent() {
@@ -60,36 +60,47 @@ public class PlaylistItem {
 	}
 
 	public Song getAntecessor() {
-		return antecessor;
+		return antecessorSimilarity;
 	}
-
-	public void resetAntecessor(Song antecessor, int harmonic,
-			int perceptual, int spectral, int temporal) {
-		this.antecessor = antecessor;
-		this.harmonic = harmonic;
-		this.perceptual = perceptual;
-		this.spectral = spectral;
-		this.temporal = temporal;
+	
+	public void setAntecessor(Song antecessor) {
+		this.antecessorSimilarity = antecessor;
 	}
 
 	public int getTotal() {
-		return (harmonic + perceptual + spectral + temporal) / 4;
+		return (harmonicSimilarity + perceptualSimilarity + spectralSimilarity + temporalSimilarity) / 4;
 	}
 
-	public int getHarmonic() {
-		return harmonic;
+	public int getHarmonicSimilarity() {
+		return harmonicSimilarity;
 	}
 	
-	public int getPerceptual() {
-		return perceptual;
+	public int getPerceptualSimilarity() {
+		return perceptualSimilarity;
 	}
 
-	public int getSpectral() {
-		return spectral;
+	public int getSpectralSimilarity() {
+		return spectralSimilarity;
 	}
 	
-	public int getTemporal() {
-		return temporal;
+	public int getTemporalSimilarity() {
+		return temporalSimilarity;
+	}
+	
+	public void setHarmonicSimilarity(int harmonicSimilarity) {
+		this.harmonicSimilarity = harmonicSimilarity;
+	}
+	
+	public void setPerceptualSimilarity(int perceptualSimilarity) {
+		this.perceptualSimilarity = perceptualSimilarity;
+	}
+	
+	public void setSpectralSimilarity(int spectralSimilarity) {
+		this.spectralSimilarity = spectralSimilarity;
+	}
+	
+	public void setTemporalSimilarity(int temporalSimilarity) {
+		this.temporalSimilarity = temporalSimilarity;
 	}
 
 }
