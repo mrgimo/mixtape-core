@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import ch.hsr.mixtape.nid.NormalizedInformationDistance;
+
 public class NormalizedInformationDistanceTest {
 
 	// @Test

@@ -1,9 +1,9 @@
 package ch.hsr.mixtape.model;
 
-import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesOfSong;
-import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesOfSong;
-import ch.hsr.mixtape.features.spectral.SpectralFeaturesOfSong;
-import ch.hsr.mixtape.features.temporal.TemporalFeaturesOfSong;
+import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong;
+import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong;
+import ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong;
+import ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong;
 
 /**
  * @author Stefan Derungs

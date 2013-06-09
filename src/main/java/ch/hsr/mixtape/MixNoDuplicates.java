@@ -1,6 +1,6 @@
 package ch.hsr.mixtape;
 
-import static ch.hsr.mixtape.MathUtils.vectorLength;
+import static ch.hsr.mixtape.util.MathUtils.vectorLength;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,14 +10,14 @@ import java.util.Map;
 import org.apache.commons.math3.util.FastMath;
 
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
-import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesOfSong;
-import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesOfSong;
-import ch.hsr.mixtape.features.spectral.SpectralFeaturesOfSong;
-import ch.hsr.mixtape.features.temporal.TemporalFeaturesOfSong;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.Song;
+import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong;
+import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong;
+import ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong;
+import ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong;
 
 public class MixNoDuplicates implements MixStrategy{
 

@@ -4,7 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 
 import org.junit.Test;
 
-import ch.hsr.mixtape.metrics.SuffixArrayBuilder;
+import ch.hsr.mixtape.nid.SuffixArrayBuilder;
 
 public class SkewTest {
 

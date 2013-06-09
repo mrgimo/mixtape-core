@@ -12,18 +12,19 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
-import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesExtractor;
-import ch.hsr.mixtape.features.harmonic.HarmonicFeaturesOfSong;
-import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesExtractor;
-import ch.hsr.mixtape.features.perceptual.PerceptualFeaturesOfSong;
-import ch.hsr.mixtape.features.spectral.SpectralFeaturesExtractor;
-import ch.hsr.mixtape.features.spectral.SpectralFeaturesOfSong;
-import ch.hsr.mixtape.features.temporal.TemporalFeaturesExtractor;
-import ch.hsr.mixtape.features.temporal.TemporalFeaturesOfSong;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.FeaturesOfSong;
 import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.Song;
+import ch.hsr.mixtape.processing.SampleWindowPublisher;
+import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesExtractor;
+import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong;
+import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesExtractor;
+import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong;
+import ch.hsr.mixtape.processing.spectral.SpectralFeaturesExtractor;
+import ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong;
+import ch.hsr.mixtape.processing.temporal.TemporalFeaturesExtractor;
+import ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong;
 
 import com.google.common.base.Function;
 import com.google.common.collect.HashBasedTable;
@@ -33,8 +34,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 
 public class Mixtape {
 
-	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime
-			.getRuntime().availableProcessors();
+	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	private static final int NUMBER_OF_FEATURE_EXTRACTORS = 4;
 
 	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(NUMBER_OF_AVAILABLE_PROCESSORS);
@@ -46,10 +46,7 @@ public class Mixtape {
 	private final SpectralFeaturesExtractor spectralFeatureExtractor = new SpectralFeaturesExtractor();
 	private final TemporalFeaturesExtractor temporalFeatureExtractor = new TemporalFeaturesExtractor();
 
-	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable
-			.create();
-
-	// TODO: chose strategy based on smthg ;)
+	private HashBasedTable<Song, Song, Distance> distanceTable = HashBasedTable.create();
 	private MixStrategy mixStrategy = new MixNoDuplicates(this);
 
 	public Mixtape(Collection<Distance> distances) {
@@ -82,8 +79,7 @@ public class Mixtape {
 		return addedDistances;
 	}
 
-	public Collection<Distance> addSong(Song song) throws IOException,
-			InterruptedException, ExecutionException {
+	public Collection<Distance> addSong(Song song) throws IOException, InterruptedException, ExecutionException {
 		FeaturesOfSong features = extractFeaturesOf(song);
 		song.setFeatures(features);
 
@@ -93,31 +89,27 @@ public class Mixtape {
 		return Lists.newArrayList(distances);
 	}
 
-	private FeaturesOfSong extractFeaturesOf(Song song) throws IOException,
-			InterruptedException, ExecutionException {
-		SampleWindowPublisher publisher = new SampleWindowPublisher(
-				extractionExecutor, postprocessingExecutor);
+	private FeaturesOfSong extractFeaturesOf(Song song) throws IOException, InterruptedException, ExecutionException {
+		SampleWindowPublisher publisher = new SampleWindowPublisher(extractionExecutor, postprocessingExecutor);
 
-		ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher
-				.register(harmonicFeatureExtractor);
-		ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher
-				.register(perceptualFeatureExtractor);
-		ListenableFuture<SpectralFeaturesOfSong> spectral = publisher
-				.register(spectralFeatureExtractor);
-		ListenableFuture<TemporalFeaturesOfSong> temporal = publisher
-				.register(temporalFeatureExtractor);
+		ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher.register(harmonicFeatureExtractor);
+		ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher.register(perceptualFeatureExtractor);
+		ListenableFuture<SpectralFeaturesOfSong> spectral = publisher.register(spectralFeatureExtractor);
+		ListenableFuture<TemporalFeaturesOfSong> temporal = publisher.register(temporalFeatureExtractor);
 
 		publisher.publish(song);
 
-		return new FeaturesOfSong(harmonic.get(), perceptual.get(),
-				spectral.get(), temporal.get());
+		return new FeaturesOfSong(
+				harmonic.get(),
+				perceptual.get(),
+				spectral.get(),
+				temporal.get());
 	}
 
 	private Collection<Distance> calcDistancesTo(Song song) {
 		Set<Song> currentSongs = distanceTable.rowKeySet();
 
-		List<ListenableFuture<Distance>> distances = Lists
-				.newArrayListWithCapacity(currentSongs.size() + 1);
+		List<ListenableFuture<Distance>> distances = Lists.newArrayListWithCapacity(currentSongs.size() + 1);
 		distances.add(calcDistanceBetween(song, song));
 
 		for (Song currentSong : currentSongs)
@@ -141,8 +133,7 @@ public class Mixtape {
 				});
 	}
 
-	private ListenableFuture<Distance> calcDistanceBetween(final Song newSong,
-			final Song oldSong) {
+	private ListenableFuture<Distance> calcDistanceBetween(final Song newSong, final Song oldSong) {
 		return distanceExecutor.submit(new Callable<Distance>() {
 
 			public Distance call() throws Exception {
@@ -152,13 +143,11 @@ public class Mixtape {
 				FeaturesOfSong x = newSong.getFeatures();
 				FeaturesOfSong y = oldSong.getFeatures();
 
-				return new Distance(newSong, oldSong, harmonicFeatureExtractor
-						.distanceBetween(x.harmonic, y.harmonic),
-						perceptualFeatureExtractor.distanceBetween(
-								x.perceptual, y.perceptual),
-						spectralFeatureExtractor.distanceBetween(x.spectral,
-								y.spectral), temporalFeatureExtractor
-								.distanceBetween(x.temporal, y.temporal));
+				return new Distance(newSong, oldSong,
+						harmonicFeatureExtractor.distanceBetween(x.harmonic, y.harmonic),
+						perceptualFeatureExtractor.distanceBetween(x.perceptual, y.perceptual),
+						spectralFeatureExtractor.distanceBetween(x.spectral, y.spectral),
+						temporalFeatureExtractor.distanceBetween(x.temporal, y.temporal));
 			}
 
 		});
@@ -184,19 +173,15 @@ public class Mixtape {
 		return Lists.newArrayList(distanceTable.values());
 	}
 
-	// MIXING !
-
 	public void initialMix(Playlist playList) throws InvalidPlaylistException {
 		mixStrategy.initialMix(playList);
 	}
 
-	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
-			throws InvalidPlaylistException {
+	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs) throws InvalidPlaylistException {
 		mixStrategy.mixMultipleSongs(playlist, addedSongs);
 	}
 
-	public void mixAnotherSong(Playlist playlist, Song addedSong)
-			throws InvalidPlaylistException {
+	public void mixAnotherSong(Playlist playlist, Song addedSong) throws InvalidPlaylistException {
 		mixStrategy.mixAnotherSong(playlist, addedSong);
 
 	}
