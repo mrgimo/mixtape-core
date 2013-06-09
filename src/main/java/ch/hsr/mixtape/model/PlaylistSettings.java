@@ -44,7 +44,7 @@ public class PlaylistSettings implements Cloneable {
 	private int spectralSimilarity;
 
 	private int temporalSimilarity;
-	
+
 	private boolean allowDuplicates = false;
 
 	public PlaylistSettings() {
@@ -124,8 +124,7 @@ public class PlaylistSettings implements Cloneable {
 	public void setTemporalSimilarity(int temporalSimilarity) {
 		this.temporalSimilarity = temporalSimilarity;
 	}
-	
-	
+
 	public boolean allowDuplicates() {
 		return allowDuplicates;
 	}
@@ -133,7 +132,7 @@ public class PlaylistSettings implements Cloneable {
 	public void allowDuplicates(boolean allowDuplicates) {
 		this.allowDuplicates = allowDuplicates;
 	}
-	
+
 	@Override
 	public PlaylistSettings clone() {
 		PlaylistSettings ps = new PlaylistSettings();
@@ -144,7 +143,8 @@ public class PlaylistSettings implements Cloneable {
 		ps.spectralSimilarity = this.spectralSimilarity;
 		ps.startLengthInMinutes = this.startLengthInMinutes;
 		ps.startLengthInSongs = this.startLengthInSongs;
-		ps.startSongs = Lists.newArrayList(this.startSongs);
+		if (startSongs != null)
+			ps.startSongs = Lists.newArrayList(this.startSongs);
 		ps.temporalSimilarity = this.temporalSimilarity;
 		return ps;
 	}
