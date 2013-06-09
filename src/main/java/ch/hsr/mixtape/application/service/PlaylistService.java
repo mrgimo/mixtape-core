@@ -97,7 +97,7 @@ public class PlaylistService {
 			LOG.debug("Acquired Write-Lock in `createNewPlaylist`.");
 
 			playlist = new Playlist(settings);
-			ApplicationFactory.getMixtapeService().initialMix(playlist);
+			ApplicationFactory.getMixtape().initialMix(playlist);
 			
 
 			persistPlaylistAndNotifySubscribers();
