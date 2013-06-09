@@ -6,6 +6,8 @@ import static ch.hsr.mixtape.util.MathUtils.vectorLength;
 
 import java.util.Iterator;
 
+import org.apache.commons.math3.util.FastMath;
+
 import ch.hsr.mixtape.nid.NormalizedInformationDistance;
 import ch.hsr.mixtape.processing.FeatureExtractor;
 
@@ -14,8 +16,10 @@ public class SpectralFeaturesExtractor implements
 
 	private static final int WINDOW_SIZE = 512;
 	private static final int WINDOW_OVERLAP = 0;
-	private static final int SPECTRAL_FEATURES_DIMENSION = 5;
 
+	private static final int SPECTRAL_FEATURES_DIMENSION = 5;
+	private static final double NORMALIZATION_FACTOR = 1.0 / FastMath.sqrt(SPECTRAL_FEATURES_DIMENSION);
+	
 	private SpectralCentroid spectralCentroid = new SpectralCentroid();
 	private SpectralKurtosis spectralKurtosis = new SpectralKurtosis();
 	private SpectralOddToEvenRatio spectralOddToEvenRatio = new SpectralOddToEvenRatio();
@@ -73,7 +77,7 @@ public class SpectralFeaturesExtractor implements
 		spectralDistances[3] = nid.distanceBetween(x.spectralSkewness, y.spectralSkewness);
 		spectralDistances[4] = nid.distanceBetween(x.spectralSpread, y.spectralSpread);
 
-		return vectorLength(spectralDistances);
+		return vectorLength(spectralDistances) * NORMALIZATION_FACTOR;
 	}
 
 	public int getWindowSize() {

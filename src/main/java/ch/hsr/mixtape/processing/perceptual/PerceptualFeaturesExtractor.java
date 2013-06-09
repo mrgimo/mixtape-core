@@ -5,6 +5,8 @@ import static ch.hsr.mixtape.util.MathUtils.vectorLength;
 
 import java.util.Iterator;
 
+import org.apache.commons.math3.util.FastMath;
+
 import ch.hsr.mixtape.nid.NormalizedInformationDistance;
 import ch.hsr.mixtape.processing.FeatureExtractor;
 
@@ -16,6 +18,7 @@ public class PerceptualFeaturesExtractor implements
 	private static final double SAMPLE_RATE = 44100;
 
 	private static final int PERCEPTUAL_FEATURES_DIMENSION = 12;
+	private static final double NORMALIZATION_FACTOR = 1.0 / FastMath.sqrt(PERCEPTUAL_FEATURES_DIMENSION);
 
 	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
 	private PerceptualQuantizer perceptualQuantizer = new PerceptualQuantizer();
@@ -69,7 +72,7 @@ public class PerceptualFeaturesExtractor implements
 		distances[10] = nid.distanceBetween(x.mfcc11, y.mfcc11);
 		distances[11] = nid.distanceBetween(x.mfcc12, y.mfcc12);
 
-		return vectorLength(distances);
+		return vectorLength(distances) * NORMALIZATION_FACTOR;
 	}
 
 	@Override

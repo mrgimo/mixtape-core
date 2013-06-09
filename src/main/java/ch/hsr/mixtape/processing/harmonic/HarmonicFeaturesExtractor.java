@@ -3,6 +3,8 @@ package ch.hsr.mixtape.processing.harmonic;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.math3.util.FastMath;
+
 import ch.hsr.mixtape.nid.NormalizedInformationDistance;
 import ch.hsr.mixtape.processing.FeatureExtractor;
 import ch.hsr.mixtape.util.MathUtils;
@@ -15,6 +17,9 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 
 	private static final int WINDOW_SIZE = 4096;
 	private static final int WINDOW_OVERLAP = 2048;
+	
+	private static final int NUMBER_OF_HARMONIC_FEATURES = 4;
+	private static final double NORMALIZATION_FACTOR = 1.0 / FastMath.sqrt(NUMBER_OF_HARMONIC_FEATURES);
 
 	private FundamentalFrequencies fundamentals = new FundamentalFrequencies(WINDOW_SIZE);
 	private Harmonics harmonics = new Harmonics();
@@ -63,7 +68,8 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 
 			fundamentals.addAll(quantizeFundamentals(featuresOfWindow.fundamentals));
 			inharmonicity.add(quantizeInharmonicity(featuresOfWindow.inharmonicity));
-			oddToEvenHarmonicEnergyRatio.add(quantizeOddToEvenHarmonicEnergyRatio(featuresOfWindow.oddToEvenHarmonicEnergyRatio));
+			oddToEvenHarmonicEnergyRatio
+					.add(quantizeOddToEvenHarmonicEnergyRatio(featuresOfWindow.oddToEvenHarmonicEnergyRatio));
 			tristimulus.addAll(quantizeTristimulus(featuresOfWindow.tristimulus));
 		}
 
@@ -110,7 +116,8 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 				nid.distanceBetween(x.fudamentals, y.fudamentals),
 				nid.distanceBetween(x.inharmonicity, y.inharmonicity),
 				nid.distanceBetween(x.oddToEvenHarmonicEnergyRatio, y.oddToEvenHarmonicEnergyRatio),
-				nid.distanceBetween(x.tristimulus, y.tristimulus));
+				nid.distanceBetween(x.tristimulus, y.tristimulus))
+				* NORMALIZATION_FACTOR;
 	}
 
 	public int getWindowSize() {

@@ -1,9 +1,7 @@
 package ch.hsr.mixtape.processing.perceptual;
 
 public class PerceptualFeaturesOfSong {
-	
-	public static final int NUMBER_OF_PERCEPTUAL_FEATURES = 12;
-	
+
 	public int[] mfcc1;
 	public int[] mfcc2;
 	public int[] mfcc3;

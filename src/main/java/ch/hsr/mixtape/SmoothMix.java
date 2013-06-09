@@ -110,7 +110,7 @@ public class SmoothMix implements MixStrategy {
 				double distanceToAddedSong = weightedVectorLength(
 						distancesAddedSong.get(song), playlistSettings);
 				double distanceToLastSong = weightedVectorLength(
-						mixtape.distance(song, mostSuitableSong),
+						mixtape.distanceBetween(song, mostSuitableSong),
 						playlistSettings);
 
 				if (distanceToAddedSong < currentDistanceToAddedSong)
@@ -145,48 +145,31 @@ public class SmoothMix implements MixStrategy {
 	private PlaylistItem createPlaylistItem(Song lastSong, Song mostSuitableSong, PlaylistSettings playlistSettings,
 			boolean isUserWish) {
 
-		Distance distance = mixtape.distance(lastSong, mostSuitableSong);
+		Distance distance = mixtape.distanceBetween(lastSong, mostSuitableSong);
 
-		int harmonicSimilarity = (int) (distance.getHarmonicDistance() / FastMath
-				.sqrt(HarmonicFeaturesOfSong.NUMBER_OF_HARMONIC_FEATURES) * (double) playlistSettings
-				.getHarmonicSimilarity());
+		int harmonicSimilarity = (int) (distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
+		int perceptualSimilarity = (int) (distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity());
+		int spectralSimilarity = (int) (distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
+		int temporalSimilarity = (int) (distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
 
-		int perceptualSimilarity = (int) (distance.getPerceptualDistance() / FastMath
-				.sqrt(PerceptualFeaturesOfSong.NUMBER_OF_PERCEPTUAL_FEATURES)
-				* (double) playlistSettings.getPerceptualSimilarity());
-
-		int spectralSimilarity = (int) (distance.getSpectralDistance() / FastMath
-				.sqrt(SpectralFeaturesOfSong.NUMBER_OF_SPECTRAL_FEATURES)
-				* (double) playlistSettings.getSpectralSimilarity());
-
-		int temporalSimilarity = (int) (distance.getTemporalDistance() / FastMath
-				.sqrt(TemporalFeaturesOfSong.NUMBER_OF_TEMPORAL_FEATURES)
-				* (double) playlistSettings.getTemporalSimilarity());
-
-		return new PlaylistItem(mostSuitableSong, lastSong, harmonicSimilarity, perceptualSimilarity,
-				spectralSimilarity, temporalSimilarity, isUserWish);
+		return new PlaylistItem(
+				mostSuitableSong,
+				lastSong,
+				harmonicSimilarity,
+				perceptualSimilarity,
+				spectralSimilarity,
+				temporalSimilarity,
+				isUserWish);
 	}
 
 	private double weightedVectorLength(Distance distance,
 			PlaylistSettings playlistSettings) {
 
 		return vectorLength(
-				distance.getHarmonicDistance()
-						/ FastMath
-								.sqrt(HarmonicFeaturesOfSong.NUMBER_OF_HARMONIC_FEATURES)
-						* (double) playlistSettings.getHarmonicSimilarity() / 100,
-				distance.getPerceptualDistance()
-						/ FastMath
-								.sqrt(PerceptualFeaturesOfSong.NUMBER_OF_PERCEPTUAL_FEATURES)
-						* (double) playlistSettings.getPerceptualSimilarity() / 100,
-				distance.getSpectralDistance()
-						/ FastMath
-								.sqrt(SpectralFeaturesOfSong.NUMBER_OF_SPECTRAL_FEATURES)
-						* (double) playlistSettings.getSpectralSimilarity() / 100,
-				distance.getTemporalDistance()
-						/ FastMath
-								.sqrt(TemporalFeaturesOfSong.NUMBER_OF_TEMPORAL_FEATURES)
-						* (double) playlistSettings.getTemporalSimilarity() / 100);
+				distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity() * 0.01,
+				distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity() * 0.01,
+				distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity() * 0.01,
+				distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity() * 0.01);
 	}
 
 	private boolean closerSongExists(double currentDistanceToLastSong) {

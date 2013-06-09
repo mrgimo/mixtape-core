@@ -153,7 +153,7 @@ public class Mixtape {
 		});
 	}
 
-	public Distance distance(Song songX, Song songY) {
+	public Distance distanceBetween(Song songX, Song songY) {
 		return distanceTable.get(songX, songY);
 	}
 
