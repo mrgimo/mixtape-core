@@ -19,7 +19,7 @@ import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.Song;
 
-public class MixNoDuplicates implements MixStrategy{
+public class MixNoDuplicates implements MixStrategy {
 
 	private Mixtape mixtape;
 
@@ -91,7 +91,7 @@ public class MixNoDuplicates implements MixStrategy{
 
 		double[] featureWeighting = currentPlaylist.getSettings()
 				.getFeatureWeighting();
-		
+
 		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
 
 		double currentDistanceToAddedSong = weightedVectorLength(
