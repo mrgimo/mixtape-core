@@ -13,6 +13,7 @@ import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
+import ch.hsr.mixtape.model.PlaylistSettings;
 import ch.hsr.mixtape.model.Song;
 import ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong;
 import ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong;
@@ -54,7 +55,7 @@ public class MixNoDuplicates implements MixStrategy {
 			throws InvalidPlaylistException {
 
 		sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
-				.getSettings().getFeatureWeighting());
+				.getSettings());
 
 		for (Song song : addedSongs) {
 
@@ -89,13 +90,12 @@ public class MixNoDuplicates implements MixStrategy {
 		Song lastSong = firstSong;
 		Song mostSuitableSong = firstSong;
 
-		double[] featureWeighting = currentPlaylist.getSettings()
-				.getFeatureWeighting();
+		PlaylistSettings playlistSettings = currentPlaylist.getSettings();
 
 		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
 
 		double currentDistanceToAddedSong = weightedVectorLength(
-				distancesAddedSong.get(firstSong), featureWeighting);
+				distancesAddedSong.get(firstSong), playlistSettings);
 
 		double mostSuitableDistanceToAddedSong = Double.POSITIVE_INFINITY;
 
@@ -107,10 +107,10 @@ public class MixNoDuplicates implements MixStrategy {
 
 			for (Song song : availableSongs) {
 				double distanceToAddedSong = weightedVectorLength(
-						distancesAddedSong.get(song), featureWeighting);
+						distancesAddedSong.get(song), playlistSettings);
 				double distanceToLastSong = weightedVectorLength(
 						mixtape.distance(song, mostSuitableSong),
-						featureWeighting);
+						playlistSettings);
 
 				if (distanceToAddedSong < currentDistanceToAddedSong)
 					if (distanceToLastSong < currentDistanceToLastSong) {
@@ -145,21 +145,21 @@ public class MixNoDuplicates implements MixStrategy {
 	}
 
 	private double weightedVectorLength(Distance distance,
-			double[] featureWeighting) {
+			PlaylistSettings playlistSettings) {
 
 		return vectorLength(
 				distance.getHarmonicDistance()
 						/ FastMath
-								.sqrt(HarmonicFeaturesOfSong.NUMBER_OF_HARMONIC_FEATURES),
+								.sqrt(HarmonicFeaturesOfSong.NUMBER_OF_HARMONIC_FEATURES) * (double) playlistSettings.getHarmonicSimilarity() / 100,
 				distance.getPerceptualDistance()
 						/ FastMath
-								.sqrt(PerceptualFeaturesOfSong.NUMBER_OF_PERCEPTUAL_FEATURES),
+								.sqrt(PerceptualFeaturesOfSong.NUMBER_OF_PERCEPTUAL_FEATURES * (double) playlistSettings.getPerceptualSimilarity() / 100),
 				distance.getSpectralDistance()
 						/ FastMath
-								.sqrt(SpectralFeaturesOfSong.NUMBER_OF_SPECTRAL_FEATURES),
+								.sqrt(SpectralFeaturesOfSong.NUMBER_OF_SPECTRAL_FEATURES * (double) playlistSettings.getSpectralSimilarity() / 100),
 				distance.getTemporalDistance()
 						/ FastMath
-								.sqrt(TemporalFeaturesOfSong.NUMBER_OF_TEMPORAL_FEATURES));
+								.sqrt(TemporalFeaturesOfSong.NUMBER_OF_TEMPORAL_FEATURES * (double) playlistSettings.getTemporalSimilarity() / 100));
 	}
 
 	private boolean closerSongExists(double currentDistanceToLastSong) {
@@ -169,8 +169,6 @@ public class MixNoDuplicates implements MixStrategy {
 	private void stripNonCandidates(Playlist playlist, Song addedSong,
 			List<Song> availableSongs) {
 
-		double[] featureWeighting = playlist.getSettings()
-				.getFeatureWeighting();
 		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
 
 		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
@@ -179,28 +177,28 @@ public class MixNoDuplicates implements MixStrategy {
 
 		double distanceFirstToAddedSong = weightedVectorLength(
 				distancesLastPlaylistSong.get(distancesAddedSong),
-				featureWeighting);
+				playlist.getSettings());
 
 		for (Song song : availableSongs)
 
-			if (isNoCandidate(featureWeighting, distancesAddedSong,
+			if (isNoCandidate(playlist.getSettings(), distancesAddedSong,
 					distancesLastPlaylistSong, distanceFirstToAddedSong, song))
 				availableSongs.remove(song);
 
 	}
 
-	private boolean isNoCandidate(double[] featureWeighting,
+	private boolean isNoCandidate(PlaylistSettings playlistSettings,
 			Map<Song, Distance> distancesAddedSong,
 			Map<Song, Distance> distancesLastPlaylistSong,
 			double distanceFirstToAddedSong, Song song) {
 
 		return !(weightedVectorLength(distancesLastPlaylistSong.get(song),
-				featureWeighting) < distanceFirstToAddedSong && weightedVectorLength(
-				distancesAddedSong.get(song), featureWeighting) < distanceFirstToAddedSong);
+				playlistSettings) < distanceFirstToAddedSong && weightedVectorLength(
+				distancesAddedSong.get(song), playlistSettings) < distanceFirstToAddedSong);
 	}
 
 	private void sortBySong(final Song referenceSong, List<Song> songsToSort,
-			final double[] weighting) {
+			final PlaylistSettings playlistSettings) {
 
 		if (songsToSort.size() > 2) {
 
@@ -213,9 +211,9 @@ public class MixNoDuplicates implements MixStrategy {
 				public int compare(Song x, Song y) {
 
 					double distanceXtoRefSong = weightedVectorLength(
-							distancesReferenceSong.get(x), weighting);
+							distancesReferenceSong.get(x), playlistSettings);
 					double distanceYtoRefSong = weightedVectorLength(
-							distancesReferenceSong.get(y), weighting);
+							distancesReferenceSong.get(y), playlistSettings);
 
 					if (distanceXtoRefSong < distanceYtoRefSong)
 						return -1;

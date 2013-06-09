@@ -33,6 +33,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
 public class Mixtape {
+	
+	public enum FeatureOrdering {
+		HARMONIC, PERCEPTUAL, SPECTRAL, TEMPORAL
+	}
 
 	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	private static final int NUMBER_OF_FEATURE_EXTRACTORS = 4;
