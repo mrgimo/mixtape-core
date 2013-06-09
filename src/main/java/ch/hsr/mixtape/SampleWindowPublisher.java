@@ -17,7 +17,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
-public class SamplePublisher {
+public class SampleWindowPublisher {
 
 	private final ListeningExecutorService extractionExecutor;
 	private final ListeningExecutorService postprocessingExecutor;
@@ -32,7 +32,7 @@ public class SamplePublisher {
 
 	private List<FeatureProcessor<?, ?>> processors = Lists.newArrayList();
 
-	public SamplePublisher(ListeningExecutorService extractionExecutor, ListeningExecutorService postprocessingExecutor) {
+	public SampleWindowPublisher(ListeningExecutorService extractionExecutor, ListeningExecutorService postprocessingExecutor) {
 		this.extractionExecutor = extractionExecutor;
 		this.postprocessingExecutor = postprocessingExecutor;
 	}
