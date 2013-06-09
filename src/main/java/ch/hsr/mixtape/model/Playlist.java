@@ -34,19 +34,17 @@ public class Playlist implements Cloneable {
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private PlaylistSettings settings;
-	
+
 	@OneToMany(cascade = CascadeType.ALL)
-	private List<PlaylistItem> items;
+	private List<PlaylistItem> items = new ArrayList<PlaylistItem>();
 
 	public Playlist() {
-		items = new ArrayList<PlaylistItem>();
 	}
-	
+
 	public Playlist(PlaylistSettings settings) {
-		super();
 		this.settings = settings;
 	}
-	
+
 	public boolean isInitialized() {
 		return settings != null;
 	}
@@ -134,10 +132,12 @@ public class Playlist implements Cloneable {
 		Playlist p = new Playlist();
 		p.id = -1;
 
-		ArrayList<PlaylistItem> clonedItems = new ArrayList<PlaylistItem>(
-				this.items.size());
-		Collections.copy(clonedItems, this.items);
-		p.items = clonedItems;
+		if (items != null) {
+			ArrayList<PlaylistItem> clonedItems = new ArrayList<PlaylistItem>(
+					this.items.size());
+			Collections.copy(clonedItems, this.items);
+			p.items = clonedItems;
+		}
 		p.settings = this.settings.clone();
 		return p;
 	}
