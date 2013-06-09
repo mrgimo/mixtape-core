@@ -145,17 +145,19 @@ public class Mixtape {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		List<Song> availableSongs = Lists.newArrayList(distanceTable
-				.columnKeySet());
-
-		availableSongs.removeAll(playlist.getSongsInPlaylist());
-		availableSongs.removeAll(addedSongs);
-
 		sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
 				.getSettings().getFeatureWeighting());
 
-		for (Song song : addedSongs)
+		for (Song song : addedSongs) {
+
+			List<Song> availableSongs = Lists.newArrayList(distanceTable
+					.columnKeySet());
+
+			availableSongs.removeAll(playlist.getSongsInPlaylist());
+			availableSongs.removeAll(addedSongs);
+
 			mix(playlist, song, availableSongs);
+		}
 
 	}
 
@@ -185,6 +187,8 @@ public class Mixtape {
 
 		double currentDistanceToAddedSong = weightedVectorLength(
 				distanceTable.get(firstSong, addedSong), featureWeighting);
+		
+		double mostSuitableDistanceToAddedSong = Double.POSITIVE_INFINITY;
 
 		boolean closerSongExists = false;
 
@@ -199,14 +203,14 @@ public class Mixtape {
 						distanceTable.get(song, mostSuitableSong),
 						featureWeighting);
 
-				if (isMoreSuitable(distanceToAddedSong,
-						currentDistanceToAddedSong, distanceToLastSong,
-						currentDistanceToLastSong)) {
+				if (distanceToAddedSong < currentDistanceToAddedSong)
+					if (distanceToLastSong < currentDistanceToLastSong) {
 
-					mostSuitableSong = song;
-					currentDistanceToAddedSong = distanceToAddedSong;
-					currentDistanceToLastSong = distanceToLastSong;
-				}
+						mostSuitableSong = song;
+						mostSuitableDistanceToAddedSong = distanceToAddedSong;
+						currentDistanceToLastSong = distanceToLastSong;
+					} else
+						availableSongs.remove(song);
 
 			}
 
@@ -217,6 +221,7 @@ public class Mixtape {
 						lastSong, 0, 1, 2, 3, false));
 
 				lastSong = mostSuitableSong;
+				currentDistanceToAddedSong = mostSuitableDistanceToAddedSong;
 				availableSongs.remove(lastSong);
 				closerSongExists = true;
 
@@ -250,14 +255,6 @@ public class Mixtape {
 
 	private boolean closerSongExists(double currentDistanceToLastSong) {
 		return currentDistanceToLastSong != Double.POSITIVE_INFINITY;
-	}
-
-	private boolean isMoreSuitable(double distanceToAddedSong,
-			double currentDistanceToAddedSong, double distanceToLastSong,
-			double currentDistanceToLastSong) {
-
-		return distanceToAddedSong < currentDistanceToAddedSong
-				&& distanceToLastSong < currentDistanceToLastSong;
 	}
 
 	private void stripNonCandidates(Playlist playlist, Song addedSong,
