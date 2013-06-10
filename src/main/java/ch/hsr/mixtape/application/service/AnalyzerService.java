@@ -1,5 +1,8 @@
 package ch.hsr.mixtape.application.service;
 
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getMixtape;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -22,32 +25,30 @@ public class AnalyzerService {
 
 	public void analyze(final List<Song> songs) {
 
-		ListenableFuture<List<Distance>> distances = analyzingExecutor
-				.submit(new Callable<List<Distance>>() {
+		ListenableFuture<Collection<Distance>> distances = analyzingExecutor
+				.submit(new Callable<Collection<Distance>>() {
 
 					@Override
-					public List<Distance> call() throws Exception {
-						return null; // mixTape.addSongs(songs);
+					public Collection<Distance> call() throws Exception {
+						return getMixtape().addSongs(songs); 
 					}
 				});
 
 		Futures.addCallback(distances,
-				new FutureCallback<List<Distance>>() {
+				new FutureCallback<Collection<Distance>>() {
 
 					@Override
-					public void onSuccess(List<Distance> distances) {
+					public void onSuccess(Collection<Distance> distances) {
 						persist(distances, songs);
-						// inform UI?
 					}
 
 					@Override
 					public void onFailure(Throwable throwable) {
-						// inform UI?
 					}
 				});
 	}
 
-	private void persist(List<Distance> distances, List<Song> songs) {
+	private void persist(Collection<Distance> distances, List<Song> songs) {
 		EntityManager entityManager = ApplicationFactory.getDatabaseService().getNewEntityManager();
 		entityManager.getTransaction().begin();
 
