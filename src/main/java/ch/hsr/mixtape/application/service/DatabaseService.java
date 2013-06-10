@@ -21,8 +21,6 @@ import org.eclipse.persistence.sessions.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.model.Song;
-
 /**
  * @author Stefan Derungs
  */
@@ -35,12 +33,12 @@ public class DatabaseService {
 
 	private List<EntityManager> entityManagers = new ArrayList<EntityManager>();
 
-	private EntityManager localEM;
+	private EntityManager localEM = getNewEntityManager();
 
 	public DatabaseService() {
 		emFactory = Persistence
 				.createEntityManagerFactory("mixtapePersistence");
-		localEM = getNewEntityManager();
+		
 		LOG.info("Initialized EntityManager...");
 	}
 
@@ -48,6 +46,8 @@ public class DatabaseService {
 		synchronized (entityManagers) {
 			EntityManager em = emFactory.createEntityManager();
 			entityManagers.add(em);
+			
+			entityManagers.notifyAll();
 			return em;
 		}
 	}
@@ -57,6 +57,8 @@ public class DatabaseService {
 			entityManagers.remove(em);
 			if (em.isOpen())
 				em.close();
+			
+			entityManagers.notifyAll();
 		}
 	}
 
@@ -101,30 +103,14 @@ public class DatabaseService {
 		em.close();
 	}
 
-	public List<Song> getAllSongs() {
-		return localEM.createNamedQuery("getAllSongs", Song.class)
-				.getResultList();
-	}
-
-	public List<Song> getPendingSongs() {
-		return localEM.createNamedQuery("getPendingSongs", Song.class)
-				.getResultList();
-	}
-
-	public List<Song> getAnalysedSongs() {
-		return localEM.createNamedQuery("getAnalysedSongs", Song.class)
-				.getResultList();
-	}
-
-	public <T> T findObjectById(int entityId, Class<T> entityClass) {
-		return localEM.find(entityClass, entityId);
-	}
-
 	public <T> void persist(T entity, Class<T> entityClass) {
-		localEM.getTransaction().begin();
-		localEM.persist(localEM.merge(entity));
-		localEM.getTransaction().commit();
-		LOG.debug("Persisted entity of type " + entityClass + ".");
+		synchronized (localEM) {
+			localEM.getTransaction().begin();
+			localEM.persist(localEM.merge(entity));
+			localEM.getTransaction().commit();
+			LOG.debug("Persisted entity of type " + entityClass + ".");
+			localEM.notifyAll();
+		}
 	}
 
 	/**
