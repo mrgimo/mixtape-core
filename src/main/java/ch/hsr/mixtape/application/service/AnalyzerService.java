@@ -1,8 +1,10 @@
 package ch.hsr.mixtape.application.service;
 
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
 import static ch.hsr.mixtape.application.service.ApplicationFactory.getMixtape;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -22,7 +24,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 public class AnalyzerService {
-	
+
 	private static final Logger LOG = LoggerFactory
 			.getLogger(AnalyzerService.class);
 
@@ -36,7 +38,7 @@ public class AnalyzerService {
 
 					@Override
 					public Collection<Distance> call() throws Exception {
-						return getMixtape().addSongs(songs); 
+						return getMixtape().addSongs(songs);
 					}
 				});
 
@@ -45,6 +47,7 @@ public class AnalyzerService {
 
 					@Override
 					public void onSuccess(Collection<Distance> distances) {
+						LOG.info("Analysing songs successful. Going to persist now.");
 						persist(distances, songs);
 					}
 
@@ -56,17 +59,23 @@ public class AnalyzerService {
 	}
 
 	private void persist(Collection<Distance> distances, List<Song> songs) {
-		EntityManager entityManager = ApplicationFactory.getDatabaseService().getNewEntityManager();
+		EntityManager entityManager = getDatabaseService()
+				.getNewEntityManager();
 		entityManager.getTransaction().begin();
 
-		for (Song song : songs)
-			entityManager.persist(entityManager.merge(song));
+		for (Song song : songs) {
+			song.setAnalyzeDate(new Date());
+			entityManager.merge(song);
+		}
+
+		entityManager.flush();
+		LOG.info("Flushed songs.");
 
 		for (Distance distance : distances)
-			entityManager.persist(entityManager.merge(distance));
+			entityManager.persist(distance);
 
 		entityManager.getTransaction().commit();
-		ApplicationFactory.getDatabaseService().closeEntityManager(entityManager);
+		getDatabaseService().closeEntityManager(entityManager);
 
 	}
 }

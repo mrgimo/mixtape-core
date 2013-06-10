@@ -88,13 +88,12 @@ public class MusicDirectoryScanner implements Runnable {
 				// in database. If not done on a per transaction base, the
 				// rollback would undo all successful/unique writes.
 				em.getTransaction().begin();
-				em.persist(em.merge(song));
+				em.persist(song);
 				em.getTransaction().commit();
 			} catch (Exception e) {
 				continue;
 			}
 
-			songsForAnalyzer.add(song);
 		}
 	}
 
