@@ -37,7 +37,7 @@ public class QueryService {
 	 * LIKE-statement.
 	 */
 	private String setupQueryString(String term) {
-		final String query_base = "SELECT s FROM Song s WHERE ###WHERE###";
+		final String query_base = "SELECT s FROM Song s WHERE (###WHERE###) AND s.analyzeDate IS NOT NULL";
 		final String title_or = "LOWER(s.title) LIKE ':term' OR ";
 		final String artist_or = "LOWER(s.artist) LIKE ':term' OR ";
 		final String album_or = "LOWER(s.album) LIKE ':term' OR ";

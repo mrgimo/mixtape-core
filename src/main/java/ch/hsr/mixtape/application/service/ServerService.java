@@ -20,7 +20,7 @@ import ch.hsr.mixtape.model.SystemStatus;
  * 
  * @author Stefan Derungs
  */
-public class SystemService {
+public class ServerService {
 
 	public static final String[] ALLOWED_MUSIC_FILETYPES = { "mp3", "ogg",
 			"m4a", "aac", "wmv" };
@@ -38,7 +38,7 @@ public class SystemService {
 
 	private AtomicBoolean scanningMusicDirectory = new AtomicBoolean(false);
 
-	public SystemService() {
+	public ServerService() {
 		df = (DecimalFormat) NumberFormat.getInstance();
 		df.setMaximumFractionDigits(2);
 	}
