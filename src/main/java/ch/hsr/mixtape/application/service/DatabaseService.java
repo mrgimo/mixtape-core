@@ -66,22 +66,22 @@ public class DatabaseService {
 	 */
 	public void shutdown() {
 		LOG.info("Shutting down database connection...");
-		
+
 		synchronized (entityManagers) {
 			for (EntityManager em : entityManagers) {
 				terminateEntityManager(em);
 			}
-			
+
 			EntityManager em = emFactory.createEntityManager();
 			em.getTransaction().begin();
 			Query query = em.createNamedQuery("deleteAllPlaylists");
 			query.executeUpdate();
 			em.getTransaction().commit();
 			em.close();
-			
+
 			emFactory.close();
 		}
-		
+
 		LOG.info("Database connection terminated...");
 	}
 
@@ -107,11 +107,8 @@ public class DatabaseService {
 	}
 
 	public List<Song> getPendingSongs() {
-		final TypedQuery<Song> query = localEM.createNamedQuery(
-				"getPendingSongs", Song.class);
-		List<Song> results = query.getResultList();
-		System.err.println("Found matches: " + results.size());
-		return results;
+		return localEM.createNamedQuery("getPendingSongs", Song.class)
+				.getResultList();
 	}
 
 	public List<Song> getAnalysedSongs() {
@@ -120,10 +117,7 @@ public class DatabaseService {
 	}
 
 	public <T> T findObjectById(int entityId, Class<T> entityClass) {
-		T entity = localEM.find(entityClass, entityId);
-		LOG.debug("Found entity with Id " + entityId + " of type "
-				+ entityClass + ": " + (entity != null ? "YES" : "NO"));
-		return entity;
+		return localEM.find(entityClass, entityId);
 	}
 
 	public <T> void persist(T entity, Class<T> entityClass) {
