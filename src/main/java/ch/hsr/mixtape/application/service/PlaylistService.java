@@ -229,10 +229,10 @@ public class PlaylistService {
 
 		PlaylistSettings playlistSettings = playlist.getSettings();
 
-		int harmonicSimilarity = (int) (distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
-		int perceptualSimilarity = (int) (distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity());
-		int spectralSimilarity = (int) (distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
-		int temporalSimilarity = (int) (distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
+		int harmonicSimilarity = (int) (100 - distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
+		int perceptualSimilarity = (int) (100 - distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity());
+		int spectralSimilarity = (int) (100 - distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
+		int temporalSimilarity = (int) (100 - distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
 
 		playlistItem.setHarmonicSimilarity(harmonicSimilarity);
 		playlistItem.setPerceptualSimilarity(perceptualSimilarity);
