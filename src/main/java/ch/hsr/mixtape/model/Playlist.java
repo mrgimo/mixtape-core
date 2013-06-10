@@ -16,7 +16,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
-import ch.hsr.mixtape.exception.PlaylistChangedException;
 
 /**
  * @author Stefan Derungs

@@ -1,5 +1,6 @@
 package ch.hsr.mixtape.application.service;
 
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
 import static ch.hsr.mixtape.application.service.ApplicationFactory.getMixtape;
 
 import java.util.Collection;
@@ -59,7 +60,7 @@ public class AnalyzerService {
 			entityManager.persist(entityManager.merge(distance));
 
 		entityManager.getTransaction().commit();
-		ApplicationFactory.getDatabaseService().closeEntityManager(entityManager);
+		getDatabaseService().closeEntityManager(entityManager);
 
 	}
 }
