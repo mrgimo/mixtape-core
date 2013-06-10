@@ -9,6 +9,9 @@ import java.util.concurrent.Executors;
 
 import javax.persistence.EntityManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Song;
 
@@ -19,6 +22,9 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 public class AnalyzerService {
+	
+	private static final Logger LOG = LoggerFactory
+			.getLogger(AnalyzerService.class);
 
 	ListeningExecutorService analyzingExecutor = MoreExecutors
 			.listeningDecorator(Executors.newSingleThreadExecutor());
@@ -44,6 +50,7 @@ public class AnalyzerService {
 
 					@Override
 					public void onFailure(Throwable throwable) {
+						LOG.error("Error during analysing songs.", throwable);
 					}
 				});
 	}

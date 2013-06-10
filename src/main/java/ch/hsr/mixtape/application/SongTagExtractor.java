@@ -9,8 +9,6 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 
-import ch.hsr.mixtape.application.service.ApplicationFactory;
-import ch.hsr.mixtape.application.service.ServerService;
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -25,9 +23,6 @@ public class SongTagExtractor {
 
 	private static final int DEFAULT_SAMPLING_RATE_IN_HZ = 44100;
 
-	private static final ServerService SYSTEM = ApplicationFactory
-			.getServerService();
-
 	private String filename;
 
 	private Tag tag;
@@ -37,7 +32,7 @@ public class SongTagExtractor {
 	 */
 	public void extractTagsFromSong(Song song) {
 		try {
-			Path absolutePath = SYSTEM.getAbsoluteSongFilepath(song
+			Path absolutePath = SongPathResolver.getAbsoluteSongFilepath(song
 					.getFilepath());
 
 			AudioFile file = AudioFileIO.read(absolutePath.toFile());

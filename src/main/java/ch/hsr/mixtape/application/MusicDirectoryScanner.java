@@ -41,7 +41,7 @@ public class MusicDirectoryScanner implements Runnable {
 	public void run() {
 		try {
 			File directory = Paths.get(
-					ServerService.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
+					SongPathResolver.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
 
 			try {
 				scanDirectory(directory);
@@ -55,7 +55,8 @@ public class MusicDirectoryScanner implements Runnable {
 		} catch (Exception e) {
 			LOG.error("An error occurred during music directory scanning.", e);
 		} finally {
-			getServerService().compareAndSetScanningMusicDirectory(true, false, this);
+			getServerService().compareAndSetScanningMusicDirectory(true, false,
+					this);
 		}
 	}
 
@@ -76,7 +77,8 @@ public class MusicDirectoryScanner implements Runnable {
 				continue;
 			}
 
-			Path relativePath = getServerService().getRelativeSongFilepath(file.toPath());
+			Path relativePath = SongPathResolver.getRelativeSongFilepath(file
+					.toPath());
 			Song song = new Song(relativePath.toString(), new Date());
 			extractor.extractTagsFromSong(song);
 
