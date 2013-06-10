@@ -168,7 +168,6 @@ public class PlaylistService {
 	 *            check the playlist has not changed since the last request.
 	 * @param newPosition
 	 *            The songs new position.
-	 * @return
 	 * @return True if oldPosition equals newPosition and no sorting is needed
 	 *         or if sorting successful.
 	 * @throws InvalidPlaylistException
