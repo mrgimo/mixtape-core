@@ -1,5 +1,9 @@
 package ch.hsr.mixtape.application;
 
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getAnalyzerService;
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
+import static ch.hsr.mixtape.application.service.ApplicationFactory.getServerService;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,8 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.service.ApplicationFactory;
-import ch.hsr.mixtape.application.service.SystemService;
+import ch.hsr.mixtape.application.service.ServerService;
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -28,13 +31,9 @@ public class MusicDirectoryScanner implements Runnable {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(MusicDirectoryScanner.class);
 
-	private static final SystemService SYSTEM = ApplicationFactory
-			.getSystemService();
-
 	private SongTagExtractor extractor = new SongTagExtractor();
 
-	private EntityManager em = ApplicationFactory.getDatabaseService()
-			.getNewEntityManager();
+	private EntityManager em = getDatabaseService().getNewEntityManager();
 
 	private List<Song> songsForAnalyzer = new ArrayList<Song>();
 
@@ -42,7 +41,7 @@ public class MusicDirectoryScanner implements Runnable {
 	public void run() {
 		try {
 			File directory = Paths.get(
-					SystemService.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
+					ServerService.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
 
 			try {
 				scanDirectory(directory);
@@ -51,19 +50,19 @@ public class MusicDirectoryScanner implements Runnable {
 				return;
 			}
 
-			// ApplicationFactory.getAnalyzerService().analyze(songsForAnalyzer);
+			getAnalyzerService().analyze(songsForAnalyzer);
 
 		} catch (Exception e) {
 			LOG.error("An error occurred during music directory scanning.", e);
 		} finally {
-			SYSTEM.compareAndSetScanningMusicDirectory(true, false, this);
+			getServerService().compareAndSetScanningMusicDirectory(true, false, this);
 		}
 	}
 
 	private void scanDirectory(File directory) throws Exception {
 		@SuppressWarnings("unchecked")
 		Collection<File> files = FileUtils.listFiles(directory,
-				SystemService.ALLOWED_MUSIC_FILETYPES, true);
+				ServerService.ALLOWED_MUSIC_FILETYPES, true);
 		Iterator<File> iterator = files.iterator();
 
 		while (iterator.hasNext()) {
@@ -77,7 +76,7 @@ public class MusicDirectoryScanner implements Runnable {
 				continue;
 			}
 
-			Path relativePath = SYSTEM.getRelativeSongFilepath(file.toPath());
+			Path relativePath = getServerService().getRelativeSongFilepath(file.toPath());
 			Song song = new Song(relativePath.toString(), new Date());
 			extractor.extractTagsFromSong(song);
 

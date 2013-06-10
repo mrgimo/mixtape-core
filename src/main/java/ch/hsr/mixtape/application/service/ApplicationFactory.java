@@ -26,7 +26,7 @@ public class ApplicationFactory {
 
 	private static QueryService queryService;
 
-	private static SystemService systemService;
+	private static ServerService serverService;
 
 	private static SystemSettings systemSettings;
 
@@ -69,13 +69,13 @@ public class ApplicationFactory {
 		return queryService;
 	}
 
-	public static SystemService getSystemService() {
-		if (systemService == null) {
-			LOG.debug("Initializing SystemService");
-			systemService = new SystemService();
+	public static ServerService getServerService() {
+		if (serverService == null) {
+			LOG.debug("Initializing ServerService");
+			serverService = new ServerService();
 		}
 
-		return systemService;
+		return serverService;
 	}
 
 	public static SystemSettings getSystemSettings() /* throws FirstRunException */{

@@ -10,7 +10,7 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 
 import ch.hsr.mixtape.application.service.ApplicationFactory;
-import ch.hsr.mixtape.application.service.SystemService;
+import ch.hsr.mixtape.application.service.ServerService;
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -25,8 +25,8 @@ public class SongTagExtractor {
 
 	private static final int DEFAULT_SAMPLING_RATE_IN_HZ = 44100;
 
-	private static final SystemService SYSTEM = ApplicationFactory
-			.getSystemService();
+	private static final ServerService SYSTEM = ApplicationFactory
+			.getServerService();
 
 	private String filename;
 
