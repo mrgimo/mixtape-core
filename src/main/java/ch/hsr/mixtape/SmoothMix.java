@@ -2,8 +2,6 @@ package ch.hsr.mixtape;
 
 import static ch.hsr.mixtape.util.MathUtils.vectorLength;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +11,8 @@ import ch.hsr.mixtape.model.Playlist;
 import ch.hsr.mixtape.model.PlaylistItem;
 import ch.hsr.mixtape.model.PlaylistSettings;
 import ch.hsr.mixtape.model.Song;
+
+import com.google.common.collect.Lists;
 
 public class SmoothMix implements MixStrategy {
 
@@ -48,7 +48,7 @@ public class SmoothMix implements MixStrategy {
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
 
-		sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
+		addedSongs = sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
 				.getSettings());
 
 		for (Song song : addedSongs) {
@@ -142,7 +142,8 @@ public class SmoothMix implements MixStrategy {
 		Distance distance = mixtape.distanceBetween(lastSong, mostSuitableSong);
 
 		int harmonicSimilarity = (int) (100 - distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
-		int perceptualSimilarity = (int) (100 - distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity());
+		int perceptualSimilarity = (int) (100 - distance.getPerceptualDistance()
+				* playlistSettings.getPerceptualSimilarity());
 		int spectralSimilarity = (int) (100 - distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
 		int temporalSimilarity = (int) (100 - distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
 
@@ -201,38 +202,67 @@ public class SmoothMix implements MixStrategy {
 				distancesAddedSong.get(song), playlistSettings) < distanceFirstToAddedSong);
 	}
 
-	private void sortBySong(final Song referenceSong, List<Song> songsToSort,
+	/*
+	 * @ commented code, maybe test both ways
+	 */
+	private List<Song> sortBySong(final Song referenceSong, List<Song> songsToSort,
 			final PlaylistSettings playlistSettings) {
 
 		if (songsToSort.size() > 2) {
 
-			final Map<Song, Distance> distancesReferenceSong = mixtape
-					.distances(referenceSong);
+//			final Map<Song, Distance> distancesReferenceSong = mixtape
+//					.distances(referenceSong);
 
-			Collections.sort(songsToSort, new Comparator<Song>() {
+			List<Song> sortedSongs = Lists.newArrayListWithCapacity(songsToSort.size());
+			Song lastSongInList = referenceSong;
 
-				@Override
-				public int compare(Song x, Song y) {
+			for (int i = 0; i < songsToSort.size(); i++) {
+				Song mostSuitableCandidate = referenceSong;
+				Map<Song, Distance> distancesLast = mixtape.distances(lastSongInList);
+				double distanceMostSuitabletoLast = Double.POSITIVE_INFINITY;
+				for (Song song : songsToSort) {
+					double distanceToLast = weightedVectorLength(distancesLast.get(song),
+							playlistSettings);
 
-					double distanceXtoRefSong = weightedVectorLength(
-							distancesReferenceSong.get(x), playlistSettings);
-					double distanceYtoRefSong = weightedVectorLength(
-							distancesReferenceSong.get(y), playlistSettings);
+					if (distanceToLast < distanceMostSuitabletoLast) {
+						mostSuitableCandidate = song;
+						distanceMostSuitabletoLast = distanceToLast;
+					}
 
-					if (distanceXtoRefSong < distanceYtoRefSong)
-						return -1;
-
-					if (distanceXtoRefSong == distanceYtoRefSong)
-						if (x.getId() == y.getId())
-							return 0;
-						else
-							return x.getId() < y.getId() ? -1 : 1;
-
-					else
-						return 1;
+					sortedSongs.add(mostSuitableCandidate);
+					lastSongInList = mostSuitableCandidate;
+					songsToSort.remove(mostSuitableCandidate);
 				}
-			});
+			}
+			
+			return sortedSongs;
+
+//			Collections.sort(songsToSort, new Comparator<Song>() {
+//
+//				@Override
+//				public int compare(Song x, Song y) {
+//
+//					double distanceXtoRefSong = weightedVectorLength(
+//							distancesReferenceSong.get(x), playlistSettings);
+//					double distanceYtoRefSong = weightedVectorLength(
+//							distancesReferenceSong.get(y), playlistSettings);
+//
+//					if (distanceXtoRefSong < distanceYtoRefSong)
+//						return -1;
+//
+//					if (distanceXtoRefSong == distanceYtoRefSong)
+//						if (x.getId() == y.getId())
+//							return 0;
+//						else
+//							return x.getId() < y.getId() ? -1 : 1;
+//
+//					else
+//						return 1;
+//				}
+//			});
 		}
+		else
+			return songsToSort;
 	}
 
 }
