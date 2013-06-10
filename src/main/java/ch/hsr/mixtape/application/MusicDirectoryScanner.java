@@ -50,6 +50,8 @@ public class MusicDirectoryScanner implements Runnable {
 				return;
 			}
 
+			LOG.info("Finished scanning music directory. Found "
+					+ songsForAnalyzer.size() + " new songs.");
 			getAnalyzerService().analyze(songsForAnalyzer);
 
 		} catch (Exception e) {
@@ -94,6 +96,7 @@ public class MusicDirectoryScanner implements Runnable {
 				continue;
 			}
 
+			songsForAnalyzer.add(song);
 		}
 	}
 

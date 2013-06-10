@@ -32,6 +32,7 @@ public class AnalyzerService {
 			.listeningDecorator(Executors.newSingleThreadExecutor());
 
 	public void analyze(final List<Song> songs) {
+		LOG.info("Submitted "+songs.size()+" song(s) for analysis.");
 
 		ListenableFuture<Collection<Distance>> distances = analyzingExecutor
 				.submit(new Callable<Collection<Distance>>() {
@@ -47,7 +48,7 @@ public class AnalyzerService {
 
 					@Override
 					public void onSuccess(Collection<Distance> distances) {
-						LOG.info("Analysing songs successful. Going to persist now.");
+						LOG.info("Analysing songs successful.");
 						persist(distances, songs);
 					}
 
@@ -59,6 +60,7 @@ public class AnalyzerService {
 	}
 
 	private void persist(Collection<Distance> distances, List<Song> songs) {
+		LOG.info("Persisting now...");
 		EntityManager entityManager = getDatabaseService()
 				.getNewEntityManager();
 		entityManager.getTransaction().begin();
