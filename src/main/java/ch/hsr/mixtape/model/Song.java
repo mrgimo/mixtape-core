@@ -194,9 +194,9 @@ public class Song {
 
 	@Override
 	public String toString() {
-		return "===========\nFilepath: " + relativeFilepath + "\nTitle: "
-				+ title + "\nArtist: " + artist + "\nAlbum: " + album
-				+ "\nLengthInSeconds: " + lengthInSeconds
+		return "===========\nId: " + id + "\nFilepath: " + relativeFilepath
+				+ "\nTitle: " + title + "\nArtist: " + artist + "\nAlbum: "
+				+ album + "\nLengthInSeconds: " + lengthInSeconds
 				+ "\nSampleRateInHz: " + sampleRateInHz + "\n===========";
 	}
 

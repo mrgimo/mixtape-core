@@ -2,12 +2,13 @@ package ch.hsr.mixtape.processing;
 
 import static java.lang.System.arraycopy;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
+import ch.hsr.mixtape.application.SongPathResolver;
 import ch.hsr.mixtape.io.AudioChannel;
 import ch.hsr.mixtape.model.Song;
 
@@ -77,7 +78,8 @@ public class SampleWindowPublisher {
 		readPositions = new int[processors.size()];
 		writePosition = 0;
 
-		channel = AudioChannel.load(new File(song.getFilepath()));
+		Path absoluteSongPath = SongPathResolver.getAbsoluteSongFilepath(song.getFilepath());
+		channel = AudioChannel.load(absoluteSongPath.toFile());
 		byteBuffer = ByteBuffer.allocate(calcByteBufferSize(channel, sampleBuffer.length));
 	}
 

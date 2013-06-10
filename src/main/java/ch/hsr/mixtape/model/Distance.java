@@ -5,28 +5,33 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
 
 @Entity
 @NamedQuery(name = "getAllDistances", query = "SELECT d FROM Distance d")
 public class Distance {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
+
+	@OneToOne
 	private Song songX;
+
+	@OneToOne
 	private Song songY;
 
 	private double harmonicDistance;
 	private double perceptualDistance;
 	private double spectralDistance;
 	private double temporalDistance;
-	
+
 	public Distance() {
 	}
 
-	public Distance(Song songX, Song songY,
-			double harmonicDistance, double perceptualDistance, double spectralDistance, double temporalDistance) {
+	public Distance(Song songX, Song songY, double harmonicDistance,
+			double perceptualDistance, double spectralDistance,
+			double temporalDistance) {
 		this.songX = songX;
 		this.songY = songY;
 
@@ -35,7 +40,7 @@ public class Distance {
 		this.spectralDistance = spectralDistance;
 		this.temporalDistance = temporalDistance;
 	}
-	
+
 	public int gedId() {
 		return id;
 	}

@@ -1,5 +1,7 @@
 package ch.hsr.mixtape.io;
 
+import it.sauronsoftware.jave.EncoderException;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,7 +13,17 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.hsr.mixtape.application.AudioConverter;
+
 public class AudioChannel implements ReadableByteChannel {
+
+	private static final Logger LOG = LoggerFactory
+			.getLogger(AudioChannel.class);
+	public static final String TEMPORARY_FILE_NAME = "temporary_extraction_file.ogg";
+	private static AudioConverter converter = new AudioConverter();
 
 	private ReadableByteChannel channel;
 	private AudioProperties properties;
@@ -32,18 +44,29 @@ public class AudioChannel implements ReadableByteChannel {
 	}
 
 	private static AudioProperties getAudioProperties(AudioFormat format) {
-		return new AudioProperties(format.getSampleRate(), format.getSampleSizeInBits(), format.getChannels());
+		return new AudioProperties(format.getSampleRate(),
+				format.getSampleSizeInBits(), format.getChannels());
 	}
 
 	private static AudioInputStream open(File file) {
 		try {
 			return tryOpen(file);
 		} catch (UnsupportedAudioFileException | IOException exception) {
-			throw new RuntimeException(exception);
+			LOG.warn("Submitted file not supported for native decoding. "
+					+ "Trying to convert to supported format now.");
+			File out = new File(TEMPORARY_FILE_NAME);
+			try {
+				converter.transcode(file, out, "ogg", 2);
+				return tryOpen(out);
+			} catch (UnsupportedAudioFileException | EncoderException
+					| IOException e) {
+				throw new RuntimeException(exception);
+			}
 		}
 	}
 
-	private static AudioInputStream tryOpen(File file) throws UnsupportedAudioFileException, IOException {
+	private static AudioInputStream tryOpen(File file)
+			throws UnsupportedAudioFileException, IOException {
 		AudioInputStream sourceStream = AudioSystem.getAudioInputStream(file);
 
 		AudioFormat sourceFormat = sourceStream.getFormat();
@@ -58,11 +81,13 @@ public class AudioChannel implements ReadableByteChannel {
 
 		int numberOfChannels = sourceFormat.getChannels();
 
-		int sampleSizeInBits = getSampleSizeInBits(sourceFormat.getSampleSizeInBits());
+		int sampleSizeInBits = getSampleSizeInBits(sourceFormat
+				.getSampleSizeInBits());
 		int frameSizeInBytes = (sampleSizeInBits / 8) * numberOfChannels;
 
-		return new AudioFormat(AudioProperties.ENCODING, sampleRate, sampleSizeInBits, numberOfChannels,
-				frameSizeInBytes, frameRate, AudioProperties.BIG_ENDIAN);
+		return new AudioFormat(AudioProperties.ENCODING, sampleRate,
+				sampleSizeInBits, numberOfChannels, frameSizeInBytes,
+				frameRate, AudioProperties.BIG_ENDIAN);
 	}
 
 	private static int getSampleSizeInBits(int sampleSizeInBits) {

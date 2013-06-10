@@ -2,7 +2,6 @@ package ch.hsr.mixtape.application;
 
 import static ch.hsr.mixtape.application.service.ApplicationFactory.getAnalyzerService;
 import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getServerService;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
@@ -37,11 +37,25 @@ public class MusicDirectoryScanner implements Runnable {
 
 	private List<Song> songsForAnalyzer = new ArrayList<Song>();
 
+	private AtomicBoolean scanningMusicDirectory = new AtomicBoolean(false);
+
+	public boolean isScanningMusicDirectory() {
+		return scanningMusicDirectory.get();
+	}
+
+	/**
+	 * @return See {@link AtomicBoolean#compareAndSet(boolean, boolean)}
+	 */
+	public boolean compareAndSetScanning(boolean expect,
+			boolean update) {
+		return scanningMusicDirectory.compareAndSet(expect, update);
+	}
+
 	@Override
 	public void run() {
 		try {
 			File directory = Paths.get(
-					ServerService.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
+					SongPathResolver.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
 
 			try {
 				scanDirectory(directory);
@@ -50,12 +64,14 @@ public class MusicDirectoryScanner implements Runnable {
 				return;
 			}
 
+			LOG.info("Finished scanning music directory. Found "
+					+ songsForAnalyzer.size() + " new songs.");
 			getAnalyzerService().analyze(songsForAnalyzer);
 
 		} catch (Exception e) {
 			LOG.error("An error occurred during music directory scanning.", e);
 		} finally {
-			getServerService().compareAndSetScanningMusicDirectory(true, false, this);
+			scanningMusicDirectory.set(false);
 		}
 	}
 
@@ -76,7 +92,8 @@ public class MusicDirectoryScanner implements Runnable {
 				continue;
 			}
 
-			Path relativePath = getServerService().getRelativeSongFilepath(file.toPath());
+			Path relativePath = SongPathResolver.getRelativeSongFilepath(file
+					.toPath());
 			Song song = new Song(relativePath.toString(), new Date());
 			extractor.extractTagsFromSong(song);
 
@@ -86,7 +103,7 @@ public class MusicDirectoryScanner implements Runnable {
 				// in database. If not done on a per transaction base, the
 				// rollback would undo all successful/unique writes.
 				em.getTransaction().begin();
-				em.persist(em.merge(song));
+				em.persist(song);
 				em.getTransaction().commit();
 			} catch (Exception e) {
 				continue;
