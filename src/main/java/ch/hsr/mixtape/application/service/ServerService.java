@@ -1,16 +1,22 @@
 package ch.hsr.mixtape.application.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.application.MusicDirectoryScanner;
+import ch.hsr.mixtape.io.AudioChannel;
 import ch.hsr.mixtape.model.SystemStatus;
 
 /**
@@ -23,44 +29,51 @@ public class ServerService {
 	public static final String[] ALLOWED_MUSIC_FILETYPES = { "mp3", "ogg",
 			"m4a", "aac", "wmv" };
 
+	private static final Logger LOG = LoggerFactory
+			.getLogger(ServerService.class);
+
 	private EntityManager em = ApplicationFactory.getDatabaseService()
 			.getNewEntityManager();
 
-	private DecimalFormat df;
+	private MusicDirectoryScanner directoryScanner;
 
-	private AtomicBoolean scanningMusicDirectory = new AtomicBoolean(false);
+	private Thread directoryScannerThread;
+
+	private DecimalFormat df;
 
 	public ServerService() {
 		df = (DecimalFormat) NumberFormat.getInstance();
 		df.setMaximumFractionDigits(2);
 	}
 
-	/**
-	 * @param caller
-	 *            To make this method only callable from MusicDirectoryScanner.
-	 * @return See {@link AtomicBoolean#compareAndSet(boolean, boolean)}
-	 */
-	public boolean compareAndSetScanningMusicDirectory(boolean expect,
-			boolean update, Object caller) {
-		if (!(caller instanceof MusicDirectoryScanner))
-			return false;
-
-		return scanningMusicDirectory.compareAndSet(expect, update);
+	public void shutdown() {
+		Path tempExtractionFile = Paths.get(AudioChannel.TEMPORARY_FILE_NAME);
+		try {
+			Files.deleteIfExists(tempExtractionFile);
+		} catch (IOException e) {
+			LOG.error("Error during shutdown: Temporary extraction"
+					+ " file could not be deleted.", e);
+		}
 	}
 
 	public boolean isScanningMusicDirectory() {
-		return scanningMusicDirectory.get();
+		return directoryScanner != null
+				&& directoryScanner.isScanningMusicDirectory();
 	}
 
 	/**
 	 * @return True if scanner thread could be started. False else.
 	 */
 	public boolean scanMusicDirectory() {
-		if (!scanningMusicDirectory.compareAndSet(false, true))
+		if (directoryScanner == null
+				|| !directoryScanner.isScanningMusicDirectory())
+			directoryScanner = new MusicDirectoryScanner();
+
+		if (!directoryScanner.compareAndSetScanning(false, true))
 			return false;
 
-		Thread scanner = new Thread(new MusicDirectoryScanner());
-		scanner.start();
+		directoryScannerThread = new Thread(directoryScanner);
+		directoryScannerThread.start();
 		return true;
 	}
 

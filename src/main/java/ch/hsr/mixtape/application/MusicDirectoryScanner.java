@@ -2,7 +2,6 @@ package ch.hsr.mixtape.application;
 
 import static ch.hsr.mixtape.application.service.ApplicationFactory.getAnalyzerService;
 import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getServerService;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.persistence.EntityManager;
 
@@ -37,6 +37,20 @@ public class MusicDirectoryScanner implements Runnable {
 
 	private List<Song> songsForAnalyzer = new ArrayList<Song>();
 
+	private AtomicBoolean scanningMusicDirectory = new AtomicBoolean(false);
+
+	public boolean isScanningMusicDirectory() {
+		return scanningMusicDirectory.get();
+	}
+
+	/**
+	 * @return See {@link AtomicBoolean#compareAndSet(boolean, boolean)}
+	 */
+	public boolean compareAndSetScanning(boolean expect,
+			boolean update) {
+		return scanningMusicDirectory.compareAndSet(expect, update);
+	}
+
 	@Override
 	public void run() {
 		try {
@@ -57,8 +71,7 @@ public class MusicDirectoryScanner implements Runnable {
 		} catch (Exception e) {
 			LOG.error("An error occurred during music directory scanning.", e);
 		} finally {
-			getServerService().compareAndSetScanningMusicDirectory(true, false,
-					this);
+			scanningMusicDirectory.set(false);
 		}
 	}
 
