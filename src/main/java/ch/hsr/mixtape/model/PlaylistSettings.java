@@ -1,5 +1,6 @@
 package ch.hsr.mixtape.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class PlaylistSettings {
 	/**
 	 * Song from where to start building a playlist.
 	 */
-	private List<Song> startSongs;
+	private List<Song> startSongs = new ArrayList<Song>();
 
 	/**
 	 * Minimum amount of playtime to set up initial playlist.
