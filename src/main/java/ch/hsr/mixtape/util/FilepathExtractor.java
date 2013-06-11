@@ -1,4 +1,4 @@
-package ch.hsr.mixtape.application;
+package ch.hsr.mixtape.util;
 
 import java.io.File;
 

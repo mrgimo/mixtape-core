@@ -18,8 +18,8 @@ import javax.sound.sampled.AudioInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.hsr.mixtape.AudioConverter;
 import ch.hsr.mixtape.application.ApplicationFactory;
-import ch.hsr.mixtape.application.AudioConverter;
 import ch.hsr.mixtape.application.StreamSongBundle;
 import ch.hsr.mixtape.application.StreamSubscriber;
 import ch.hsr.mixtape.exception.InvalidPlaylistException;

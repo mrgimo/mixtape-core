@@ -16,7 +16,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.AudioConverter;
+import ch.hsr.mixtape.AudioConverter;
 
 public class AudioChannel implements ReadableByteChannel {
 
