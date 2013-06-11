@@ -109,7 +109,7 @@ public class PlaylistService {
 	}
 
 	/**
-	 * Returns a clone of the current playlist.
+	 * Returns the current playlist.
 	 * 
 	 * @throws InvalidPlaylistException
 	 */
@@ -120,7 +120,7 @@ public class PlaylistService {
 
 			ensurePlaylistIsInitialized();
 
-			return playlist.clone();
+			return playlist;
 		} finally {
 			playlistLock.readLock().unlock();
 			LOG.debug("Released Read-Lock in `getPlaylist`.");

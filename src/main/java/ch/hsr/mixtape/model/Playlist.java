@@ -1,7 +1,6 @@
 package ch.hsr.mixtape.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -22,7 +21,7 @@ import ch.hsr.mixtape.exception.InvalidPlaylistException;
  */
 @Entity
 @NamedQueries({ @NamedQuery(name = "deleteAllPlaylists", query = "DELETE FROM Playlist p") })
-public class Playlist implements Cloneable {
+public class Playlist {
 
 	private static final String UNINITIALIZED_PLAYLIST_MESSAGE = "Playlist has not been initialized. "
 			+ "You have to initialize and define playlist settings first.";
@@ -85,10 +84,10 @@ public class Playlist implements Cloneable {
 	}
 
 	/**
-	 * Clones the current playlist settings and returns the clone.
+	 * Get the current playlist settings.
 	 */
 	public PlaylistSettings getSettings() {
-		return settings.clone();
+		return settings;
 	}
 
 	/**
@@ -124,21 +123,6 @@ public class Playlist implements Cloneable {
 			return;
 
 		items.remove(0);
-	}
-
-	@Override
-	public Playlist clone() {
-		Playlist p = new Playlist();
-		p.id = -1;
-
-		if (items != null) {
-			ArrayList<PlaylistItem> clonedItems = new ArrayList<PlaylistItem>(
-					this.items.size());
-			Collections.copy(clonedItems, this.items);
-			p.items = clonedItems;
-		}
-		p.settings = this.settings.clone();
-		return p;
 	}
 
 	public PlaylistItem getLastItem() {

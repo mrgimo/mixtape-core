@@ -10,10 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import com.google.common.collect.Lists;
-
 @Entity
-public class PlaylistSettings implements Cloneable {
+public class PlaylistSettings {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -131,22 +129,6 @@ public class PlaylistSettings implements Cloneable {
 
 	public void allowDuplicates(boolean allowDuplicates) {
 		this.allowDuplicates = allowDuplicates;
-	}
-
-	@Override
-	public PlaylistSettings clone() {
-		PlaylistSettings ps = new PlaylistSettings();
-		ps.creationDate = new Date();
-		ps.harmonicSimilarity = this.harmonicSimilarity;
-		ps.id = -1;
-		ps.perceptualSimilarity = this.perceptualSimilarity;
-		ps.spectralSimilarity = this.spectralSimilarity;
-		ps.startLengthInMinutes = this.startLengthInMinutes;
-		ps.startLengthInSongs = this.startLengthInSongs;
-		if (startSongs != null)
-			ps.startSongs = Lists.newArrayList(this.startSongs);
-		ps.temporalSimilarity = this.temporalSimilarity;
-		return ps;
 	}
 
 }
