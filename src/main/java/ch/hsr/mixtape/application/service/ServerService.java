@@ -124,7 +124,7 @@ public class ServerService {
 	private void setCurrentSystemLoad(SystemStatus ss) {
 		double load = ManagementFactory.getOperatingSystemMXBean()
 				.getSystemLoadAverage();
-		ss.setCurrentSystemLoad((String) (load < 0 ? "n/v" : load));
+		ss.setCurrentSystemLoad(load < 0 ? "n/v" : df.format(load));
 	}
 
 	/**
