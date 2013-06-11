@@ -41,6 +41,7 @@ public class SmoothMix implements MixStrategy {
 			// TODO: how to handle this?
 			System.out.println("at least 2 songs needed for initial mix");
 		}
+		System.out.println("test");
 
 	}
 
@@ -61,7 +62,7 @@ public class SmoothMix implements MixStrategy {
 
 			mix(playlist, song, availableSongs);
 		}
-
+		System.out.println("asdf");
 	}
 
 	@Override
@@ -132,7 +133,7 @@ public class SmoothMix implements MixStrategy {
 
 		} while (closerSongExists);
 
-		currentPlaylist.addItem(createPlaylistItem(lastSong, mostSuitableSong, playlistSettings, true));
+		currentPlaylist.addItem(createPlaylistItem(lastSong, addedSong, playlistSettings, true));
 
 	}
 
@@ -210,31 +211,32 @@ public class SmoothMix implements MixStrategy {
 	private List<Song> sortByDistance(final Song referenceSong, List<Song> songsToSort,
 			final PlaylistSettings playlistSettings) {
 
-		if (songsToSort.size() > 2) {
+		if (songsToSort.size() > 1) {
 
 //			final Map<Song, Distance> distancesReferenceSong = mixtape
 //					.distances(referenceSong);
-
+			List<Song> unsortedSongs = Lists.<Song>newArrayList(songsToSort);
 			List<Song> sortedSongs = Lists.newArrayListWithCapacity(songsToSort.size());
 			Song lastSongInList = referenceSong;
 
-			for (int i = 0; i < songsToSort.size(); i++) {
-				Song mostSuitableCandidate = referenceSong;
+			while (!unsortedSongs.isEmpty()) {
+				Song mostSuitableCandidate = unsortedSongs.get(0);
 				Map<Song, Distance> distancesLast = mixtape.distances(lastSongInList);
 				double distanceMostSuitabletoLast = Double.POSITIVE_INFINITY;
-				for (Song song : songsToSort) {
-					double distanceToLast = weightedVectorLength(distancesLast.get(song),
+				for (int y = 0; y < unsortedSongs.size(); y++) {
+					double distanceToLast = weightedVectorLength(distancesLast.get(unsortedSongs.get(y)),
 							playlistSettings);
 
 					if (distanceToLast < distanceMostSuitabletoLast) {
-						mostSuitableCandidate = song;
+						mostSuitableCandidate = unsortedSongs.get(y);
 						distanceMostSuitabletoLast = distanceToLast;
 					}
 
+				}
+				
 					sortedSongs.add(mostSuitableCandidate);
 					lastSongInList = mostSuitableCandidate;
-					songsToSort.remove(mostSuitableCandidate);
-				}
+					unsortedSongs.remove(mostSuitableCandidate);
 			}
 			
 			return sortedSongs;

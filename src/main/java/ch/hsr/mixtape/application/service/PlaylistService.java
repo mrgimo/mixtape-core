@@ -119,7 +119,7 @@ public class PlaylistService {
 
 			playlist = new Playlist(settings);
 			getMixtape().initialMix(playlist);
-
+			
 			persistPlaylist(true);
 			notifySubscribers();
 		} finally {
