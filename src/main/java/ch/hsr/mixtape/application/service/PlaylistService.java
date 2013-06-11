@@ -119,7 +119,7 @@ public class PlaylistService {
 
 			playlist = new Playlist(settings);
 			getMixtape().initialMix(playlist);
-			
+
 			persistPlaylist(true);
 			notifySubscribers();
 		} finally {
@@ -234,18 +234,27 @@ public class PlaylistService {
 	private void updateAntecessors(int oldPosition, int newPosition,
 			List<PlaylistItem> playlistItems) {
 
-		PlaylistItem oldSuccessor = playlistItems.get(oldPosition + 1);
-		oldSuccessor.setAntecessor(playlistItems.get(oldPosition).getCurrent());
-		updateSimilarity(oldSuccessor);
+		if (oldPosition + 1 < playlistItems.size()) {
+			PlaylistItem oldSuccessor = playlistItems.get(oldPosition + 1);
+			oldSuccessor.setAntecessor(playlistItems.get(oldPosition).getCurrent());
+			updateSimilarity(oldSuccessor);
+		}
 
 		PlaylistItem movedItem = playlistItems.get(newPosition);
-		movedItem
-				.setAntecessor(playlistItems.get(newPosition - 1).getCurrent());
-		updateSimilarity(movedItem);
 
-		PlaylistItem newSuccessor = playlistItems.get(newPosition + 1);
-		newSuccessor.setAntecessor(movedItem.getCurrent());
-		updateSimilarity(newSuccessor);
+		if (newPosition - 1 >= 0) {
+			movedItem
+					.setAntecessor(playlistItems.get(newPosition - 1).getCurrent());
+			updateSimilarity(movedItem);
+		}
+		
+		if (newPosition + 1 < playlistItems.size()) {
+
+			PlaylistItem newSuccessor = playlistItems.get(newPosition + 1);
+			newSuccessor.setAntecessor(movedItem.getCurrent());
+			updateSimilarity(newSuccessor);
+		}
+
 	}
 
 	private void updateSimilarity(PlaylistItem playlistItem) {
