@@ -23,6 +23,7 @@ import ch.hsr.mixtape.application.MusicDirectoryScanner;
  * @author Stefan Derungs
  */
 @NamedQueries({
+		@NamedQuery(name = "findMaxId", query = "SELECT MAX(s.id) FROM Song s"),
 		@NamedQuery(name = "countAllSongs", query = "SELECT COUNT(s) FROM Song s"),
 		@NamedQuery(name = "getAllSongs", query = "SELECT s FROM Song s"),
 		@NamedQuery(name = "countPendingSongs", query = "SELECT COUNT(s) FROM Song s WHERE s.analyzeDate IS NULL"),

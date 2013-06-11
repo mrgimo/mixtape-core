@@ -2,11 +2,13 @@ package ch.hsr.mixtape.application.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import ch.hsr.mixtape.application.ApplicationFactory;
+import ch.hsr.mixtape.model.PlaylistSettings;
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -90,6 +92,33 @@ public class QueryService {
 	public List<Song> getAnalysedSongs() {
 		return em.createNamedQuery("getAnalysedSongs", Song.class)
 				.getResultList();
+	}
+
+	/**
+	 * This method can e.g. be used to start generating a playlist with no
+	 * {@link PlaylistSettings#startSongs} set.
+	 * 
+	 * To preserve jpa standard compatibility and because JPA doesn't support
+	 * RAND()/RANDOM() function in ORDER BY clause, the randomness is calculated
+	 * in this method.
+	 * 
+	 * This method should be used with caution as it generates a lot of database
+	 * queries.
+	 * 
+	 * @return Returns a random song.
+	 */
+	public Song getRandomSong() {
+		Song maxIdSong = em.createNamedQuery("findMaxId", Song.class)
+				.setMaxResults(1).getSingleResult();
+		Random rand = new Random();
+
+		Song found = null;
+		while (found == null) {
+			int checkId = rand.nextInt(maxIdSong.getId() + 1);
+			found = em.find(Song.class, checkId);
+		}
+
+		return found;
 	}
 
 }
