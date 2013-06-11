@@ -25,9 +25,9 @@ public class SmoothMix implements MixStrategy {
 
 	@Override
 	public void initialMix(Playlist playList) throws InvalidPlaylistException {
-		List<Song> startSongs = playList.getSettings().getStartSongs();
+		List<Song> startSongs = Lists.<Song>newArrayList( playList.getSettings().getStartSongs());
 		if (startSongs.size() > 1) {
-			Song initialSong = playList.getSettings().getStartSongs().get(0);
+			Song initialSong = startSongs.get(0);
 
 			playList.addItem(new PlaylistItem(initialSong, null,
 					Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE,
@@ -79,7 +79,7 @@ public class SmoothMix implements MixStrategy {
 	private void mix(Playlist currentPlaylist, Song addedSong,
 			List<Song> availableSongs) throws InvalidPlaylistException {
 
-		stripNonCandidates(currentPlaylist, addedSong, availableSongs);
+		availableSongs = stripNonCandidates(currentPlaylist, addedSong, availableSongs);
 
 		Song firstSong = currentPlaylist.getLastItem().getCurrent();
 		Song lastSong = firstSong;
@@ -171,9 +171,10 @@ public class SmoothMix implements MixStrategy {
 		return currentDistanceToLastSong != Double.POSITIVE_INFINITY;
 	}
 
-	private void stripNonCandidates(Playlist playlist, Song addedSong,
+	private List<Song> stripNonCandidates(Playlist playlist, Song addedSong,
 			List<Song> availableSongs) {
 
+		List<Song> candidates = Lists.<Song>newArrayList();
 		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
 
 		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
@@ -181,23 +182,24 @@ public class SmoothMix implements MixStrategy {
 				.distances(lastPlaylistSong);
 
 		double distanceFirstToAddedSong = weightedVectorLength(
-				distancesLastPlaylistSong.get(distancesAddedSong),
+				distancesLastPlaylistSong.get(addedSong),
 				playlist.getSettings());
 
 		for (Song song : availableSongs)
 
-			if (isNoCandidate(playlist.getSettings(), distancesAddedSong,
+			if (isCandidate(playlist.getSettings(), distancesAddedSong,
 					distancesLastPlaylistSong, distanceFirstToAddedSong, song))
-				availableSongs.remove(song);
-
+				candidates.add(song);
+		
+		return candidates;
 	}
 
-	private boolean isNoCandidate(PlaylistSettings playlistSettings,
+	private boolean isCandidate(PlaylistSettings playlistSettings,
 			Map<Song, Distance> distancesAddedSong,
 			Map<Song, Distance> distancesLastPlaylistSong,
 			double distanceFirstToAddedSong, Song song) {
 
-		return !(weightedVectorLength(distancesLastPlaylistSong.get(song),
+		return (weightedVectorLength(distancesLastPlaylistSong.get(song),
 				playlistSettings) < distanceFirstToAddedSong && weightedVectorLength(
 				distancesAddedSong.get(song), playlistSettings) < distanceFirstToAddedSong);
 	}
