@@ -1,15 +1,12 @@
 package ch.hsr.mixtape.application.service;
 
-import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
 import static ch.hsr.mixtape.application.ApplicationFactory.getMixtape;
 import static ch.hsr.mixtape.application.ApplicationFactory.getQueryService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
@@ -36,64 +33,7 @@ public class PlaylistService {
 	private ReentrantReadWriteLock playlistLock = new ReentrantReadWriteLock(
 			true);
 
-	private ReentrantLock subscriberLock = new ReentrantLock(true);
-
 	private Playlist playlist = new Playlist();
-
-	private ArrayList<PlaylistSubscriber> subscribers = new ArrayList<PlaylistSubscriber>();
-
-	private EntityManager em;
-
-	public PlaylistService() {
-		em = getDatabaseService().getNewEntityManager();
-	}
-
-	/**
-	 * Add subscriber if not already subscribed.
-	 */
-	public void subscribeToPlaylist(PlaylistSubscriber subscriber) {
-		try {
-			subscriberLock.lock();
-			LOG.debug("Acquired Write-Lock in `subscribeToPlaylist`.");
-
-			if (!subscribers.contains(subscriber))
-				subscribers.add(subscriber);
-		} finally {
-			subscriberLock.unlock();
-			LOG.debug("Released Write-Lock in `subscribeToPlaylist`.");
-		}
-	}
-
-	/**
-	 * Remove subscriber if present.
-	 */
-	public void unsubscribeFromPlaylist(PlaylistSubscriber subscriber) {
-		try {
-			subscriberLock.lock();
-			LOG.debug("Acquired Write-Lock in `unsubscribeFromPlaylist`.");
-
-			subscribers.remove(subscriber);
-		} finally {
-			subscriberLock.unlock();
-			LOG.debug("Released Write-Lock in `unsubscribeFromPlaylist`.");
-		}
-	}
-
-	private void persistPlaylist(boolean isNewPlaylist) {
-		// em.getTransaction().begin();
-		//
-		// if (isNewPlaylist)
-		// em.persist(playlist);
-		// else
-		// em.merge(playlist);
-		//
-		// em.getTransaction().commit();
-	}
-
-	private void notifySubscribers() {
-		for (PlaylistSubscriber ps : subscribers)
-			ps.notifyPlaylistChanged();
-	}
 
 	public boolean isPlaylistInitialized() {
 		return playlist != null && playlist.isInitialized();
@@ -119,9 +59,6 @@ public class PlaylistService {
 
 			playlist = new Playlist(settings);
 			getMixtape().initialMix(playlist);
-
-			persistPlaylist(true);
-			notifySubscribers();
 		} finally {
 			playlistLock.writeLock().unlock();
 			LOG.debug("Released Write-Lock in `createNewPlaylist`.");
@@ -170,9 +107,6 @@ public class PlaylistService {
 			ensurePlaylistIsInitialized();
 
 			playlist.advance();
-
-			persistPlaylist(false);
-			notifySubscribers();
 		} finally {
 			playlistLock.writeLock().unlock();
 			LOG.debug("Released Read-Lock in `advance`.");
@@ -216,8 +150,6 @@ public class PlaylistService {
 			moveItem(oldPosition, newPosition, playlistItems);
 			updateAntecessors(oldPosition, newPosition, playlistItems);
 
-			persistPlaylist(false);
-			notifySubscribers();
 			LOG.debug("Resorted song with id " + songId + ".");
 		} finally {
 			playlistLock.writeLock().unlock();
@@ -302,8 +234,6 @@ public class PlaylistService {
 
 			getMixtape().mixAnotherSong(playlist, song);
 
-			persistPlaylist(false);
-			notifySubscribers();
 			LOG.debug("Added wish:" + song.getTitle() + ".");
 		} finally {
 			playlistLock.writeLock().unlock();
@@ -337,8 +267,6 @@ public class PlaylistService {
 
 			if (songIndexById != -1) {
 				PlaylistItem removed = playlistItems.remove(songIndexById);
-				persistPlaylist(false);
-				notifySubscribers();
 				LOG.debug("Removed song " + removed.getCurrent().getTitle()
 						+ " from playlist.");
 
