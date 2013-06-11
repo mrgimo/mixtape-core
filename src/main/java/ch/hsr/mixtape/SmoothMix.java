@@ -61,8 +61,8 @@ public class SmoothMix implements MixStrategy {
 				availableSongs.removeAll(playlist.getSongsInPlaylist());
 
 			mix(playlist, song, availableSongs);
-			System.out.println("done");
 		}
+		System.out.println("asdf");
 	}
 
 	@Override
@@ -211,31 +211,32 @@ public class SmoothMix implements MixStrategy {
 	private List<Song> sortByDistance(final Song referenceSong, List<Song> songsToSort,
 			final PlaylistSettings playlistSettings) {
 
-		if (songsToSort.size() > 2) {
+		if (songsToSort.size() > 1) {
 
 //			final Map<Song, Distance> distancesReferenceSong = mixtape
 //					.distances(referenceSong);
-
+			List<Song> unsortedSongs = Lists.<Song>newArrayList(songsToSort);
 			List<Song> sortedSongs = Lists.newArrayListWithCapacity(songsToSort.size());
 			Song lastSongInList = referenceSong;
 
-			for (int i = 0; i < songsToSort.size(); i++) {
-				Song mostSuitableCandidate = referenceSong;
+			while (!unsortedSongs.isEmpty()) {
+				Song mostSuitableCandidate = unsortedSongs.get(0);
 				Map<Song, Distance> distancesLast = mixtape.distances(lastSongInList);
 				double distanceMostSuitabletoLast = Double.POSITIVE_INFINITY;
-				for (int y = 0; y < songsToSort.size(); y++) {
-					double distanceToLast = weightedVectorLength(distancesLast.get(songsToSort.get(y)),
+				for (int y = 0; y < unsortedSongs.size(); y++) {
+					double distanceToLast = weightedVectorLength(distancesLast.get(unsortedSongs.get(y)),
 							playlistSettings);
 
 					if (distanceToLast < distanceMostSuitabletoLast) {
-						mostSuitableCandidate = songsToSort.get(y);
+						mostSuitableCandidate = unsortedSongs.get(y);
 						distanceMostSuitabletoLast = distanceToLast;
 					}
 
+				}
+				
 					sortedSongs.add(mostSuitableCandidate);
 					lastSongInList = mostSuitableCandidate;
-					songsToSort.remove(mostSuitableCandidate);
-				}
+					unsortedSongs.remove(mostSuitableCandidate);
 			}
 			
 			return sortedSongs;
