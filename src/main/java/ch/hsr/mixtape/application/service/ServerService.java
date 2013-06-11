@@ -1,5 +1,6 @@
 package ch.hsr.mixtape.application.service;
 
+import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -8,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
 
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.application.MusicDirectoryScanner;
+import ch.hsr.mixtape.application.SongPathResolver;
 import ch.hsr.mixtape.io.AudioChannel;
 import ch.hsr.mixtape.model.SystemStatus;
 
@@ -45,9 +48,22 @@ public class ServerService {
 	public ServerService() {
 		df = (DecimalFormat) NumberFormat.getInstance();
 		df.setMaximumFractionDigits(2);
+		
+		startUp();
+	}
+
+	public void startUp() {
+		for (Entry<String, String> s : System.getenv().entrySet())
+			System.out.println(s.getKey() + ": " + s.getValue());
+
+		String musicDirPath = SongPathResolver.MUSIC_DIRECTORY_FILEPATH;
+		if (musicDirPath == null || musicDirPath.isEmpty())
+			throw new RuntimeException("No MusicData Filepath defined!");
 	}
 
 	public void shutdown() {
+		LOG.info("Shutthing down mixtape...");
+		LOG.info("Deleting temporary files...");
 		Path tempExtractionFile = Paths.get(AudioChannel.TEMPORARY_FILE_NAME);
 		try {
 			Files.deleteIfExists(tempExtractionFile);
@@ -55,6 +71,10 @@ public class ServerService {
 			LOG.error("Error during shutdown: Temporary extraction"
 					+ " file could not be deleted.", e);
 		}
+		
+		LOG.info("Shutting down database service...");
+		getDatabaseService().shutdown();
+		LOG.info("Database service shut down.");
 	}
 
 	public boolean isScanningMusicDirectory() {

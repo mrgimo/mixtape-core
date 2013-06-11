@@ -6,7 +6,6 @@ import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -46,16 +45,14 @@ public class MusicDirectoryScanner implements Runnable {
 	/**
 	 * @return See {@link AtomicBoolean#compareAndSet(boolean, boolean)}
 	 */
-	public boolean compareAndSetScanning(boolean expect,
-			boolean update) {
+	public boolean compareAndSetScanning(boolean expect, boolean update) {
 		return scanningMusicDirectory.compareAndSet(expect, update);
 	}
 
 	@Override
 	public void run() {
 		try {
-			File directory = Paths.get(
-					SongPathResolver.MIXTAPE_MUSIC_DATA_FILEPATH).toFile();
+			File directory = SongPathResolver.getMusicDataPath().toFile();
 
 			try {
 				scanDirectory(directory);

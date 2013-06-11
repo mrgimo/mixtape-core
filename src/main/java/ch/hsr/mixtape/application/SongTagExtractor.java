@@ -10,6 +10,7 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 
 import ch.hsr.mixtape.model.Song;
+import ch.hsr.mixtape.util.FilepathExtractor;
 
 /**
  * Extracts ID3 tags from songs. Where no ID3 tags are found default values are
@@ -34,6 +35,8 @@ public class SongTagExtractor {
 		try {
 			Path absolutePath = SongPathResolver.getAbsoluteSongFilepath(song
 					.getFilepath());
+			
+			filename = FilepathExtractor.getBasename(song.getFilepath()); 
 
 			AudioFile file = AudioFileIO.read(absolutePath.toFile());
 			tag = file.getTag();

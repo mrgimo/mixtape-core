@@ -59,7 +59,7 @@ public class Song {
 
 	/**
 	 * Filepath relative to
-	 * {@link MusicDirectoryScanner#MIXTAPE_MUSIC_DATA_FILEPATH}.
+	 * {@link MusicDirectoryScanner#MUSIC_DIRECTORY_FILEPATH}.
 	 */
 	@Column(unique = true)
 	private String relativeFilepath;

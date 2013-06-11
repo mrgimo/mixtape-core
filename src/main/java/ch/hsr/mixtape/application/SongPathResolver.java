@@ -11,11 +11,10 @@ import java.nio.file.Paths;
  */
 public class SongPathResolver {
 
-	public static final String MIXTAPE_MUSIC_DATA_FILEPATH = System
+	public static final String MUSIC_DIRECTORY_FILEPATH = System
 			.getenv("mixtapeMusicDir");
 
-	public static final Path MIXTAPE_MUSIC_DATA_PATH = Paths
-			.get(MIXTAPE_MUSIC_DATA_FILEPATH);
+	private static Path MIXTAPE_MUSIC_DATA_PATH;
 
 	public static Path getRelativeSongFilepath(Path absoluteSongFilepath) {
 		if (!absoluteSongFilepath.isAbsolute())
@@ -30,6 +29,20 @@ public class SongPathResolver {
 			return path;
 
 		return MIXTAPE_MUSIC_DATA_PATH.resolve(path);
+	}
+
+	public static Path getMusicDataPath() {
+		if (MIXTAPE_MUSIC_DATA_PATH == null) {
+			try {
+				MIXTAPE_MUSIC_DATA_PATH = Paths
+						.get(MUSIC_DIRECTORY_FILEPATH);
+			} catch (Exception e) {
+				throw new RuntimeException(
+						"MusicDataFilepath could not be retrieved.", e);
+			}
+		}
+
+		return MIXTAPE_MUSIC_DATA_PATH;
 	}
 
 }
