@@ -1,4 +1,4 @@
-package ch.hsr.mixtape.application.service;
+package ch.hsr.mixtape.application;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -7,6 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.Mixtape;
+import ch.hsr.mixtape.application.service.AnalyzerService;
+import ch.hsr.mixtape.application.service.DatabaseService;
+import ch.hsr.mixtape.application.service.PlaylistService;
+import ch.hsr.mixtape.application.service.PlaylistStreamService;
+import ch.hsr.mixtape.application.service.QueryService;
+import ch.hsr.mixtape.application.service.ServerService;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.SystemSettings;
 

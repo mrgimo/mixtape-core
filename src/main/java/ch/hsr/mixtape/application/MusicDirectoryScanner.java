@@ -1,7 +1,7 @@
 package ch.hsr.mixtape.application;
 
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getAnalyzerService;
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
+import static ch.hsr.mixtape.application.ApplicationFactory.getAnalyzerService;
+import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
 
 import java.io.File;
 import java.nio.file.Files;

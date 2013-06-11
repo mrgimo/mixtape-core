@@ -1,7 +1,7 @@
 package ch.hsr.mixtape.application.service;
 
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getMixtape;
+import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
+import static ch.hsr.mixtape.application.ApplicationFactory.getMixtape;
 
 import java.util.Collection;
 import java.util.Date;

@@ -1,7 +1,8 @@
 package ch.hsr.mixtape.application.service;
 
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getDatabaseService;
-import static ch.hsr.mixtape.application.service.ApplicationFactory.getMixtape;
+import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
+import static ch.hsr.mixtape.application.ApplicationFactory.getMixtape;
+import static ch.hsr.mixtape.application.ApplicationFactory.getQueryService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,6 @@ public class PlaylistService {
 
 	private static final Logger LOG = LoggerFactory
 			.getLogger(PlaylistService.class);
-
-	private static final DatabaseService DB = getDatabaseService();
 
 	private ReentrantReadWriteLock playlistLock = new ReentrantReadWriteLock(
 			true);
@@ -74,7 +73,7 @@ public class PlaylistService {
 	}
 
 	private void persistPlaylistAndNotifySubscribers() {
-		DB.persist(playlist, Playlist.class);
+		getDatabaseService().persist(playlist, Playlist.class);
 
 		for (PlaylistSubscriber ps : subscribers)
 			ps.notifyPlaylistChanged();
@@ -325,7 +324,7 @@ public class PlaylistService {
 	 */
 	private Song mapSong(int songId) throws EntityNotFoundException {
 		LOG.debug("Looking for song id: " + songId);
-		Song song = DB.findObjectById(songId, Song.class);
+		Song song = getQueryService().findObjectById(songId, Song.class);
 		if (song == null)
 			throw new EntityNotFoundException("The song with id " + songId
 					+ " was not found.");

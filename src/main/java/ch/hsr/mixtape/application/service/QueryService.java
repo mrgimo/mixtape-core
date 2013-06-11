@@ -6,6 +6,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.model.Song;
 
 /**
@@ -19,6 +20,10 @@ public class QueryService {
 
 	private EntityManager em = ApplicationFactory.getDatabaseService()
 			.getNewEntityManager();
+
+	public <T> T findObjectById(int entityId, Class<T> entityClass) {
+		return em.find(entityClass, entityId);
+	}
 
 	public List<Song> findSongsByTerm(String term, int maxResults) {
 		String queryString = setupQueryString(term);
@@ -71,6 +76,20 @@ public class QueryService {
 				terms.add("%" + s.toLowerCase().trim() + "%");
 		}
 		return terms;
+	}
+
+	public List<Song> getAllSongs() {
+		return em.createNamedQuery("getAllSongs", Song.class).getResultList();
+	}
+
+	public List<Song> getPendingSongs() {
+		return em.createNamedQuery("getPendingSongs", Song.class)
+				.getResultList();
+	}
+
+	public List<Song> getAnalysedSongs() {
+		return em.createNamedQuery("getAnalysedSongs", Song.class)
+				.getResultList();
 	}
 
 }

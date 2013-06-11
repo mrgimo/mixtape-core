@@ -1,4 +1,4 @@
-package ch.hsr.mixtape.application;
+package ch.hsr.mixtape;
 
 import it.sauronsoftware.jave.AudioAttributes;
 import it.sauronsoftware.jave.AudioInfo;

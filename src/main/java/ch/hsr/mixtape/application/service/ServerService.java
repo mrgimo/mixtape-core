@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.application.MusicDirectoryScanner;
 import ch.hsr.mixtape.io.AudioChannel;
 import ch.hsr.mixtape.model.SystemStatus;
@@ -174,7 +175,7 @@ public class ServerService {
 	}
 
 	private void setPendingSongs(SystemStatus ss) {
-		ss.setPendingSongs(ApplicationFactory.getDatabaseService()
+		ss.setPendingSongs(ApplicationFactory.getQueryService()
 				.getPendingSongs());
 	}
 

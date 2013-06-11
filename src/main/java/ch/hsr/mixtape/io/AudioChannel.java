@@ -16,7 +16,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.AudioConverter;
+import ch.hsr.mixtape.AudioConverter;
 
 public class AudioChannel implements ReadableByteChannel {
 
@@ -52,8 +52,10 @@ public class AudioChannel implements ReadableByteChannel {
 		try {
 			return tryOpen(file);
 		} catch (UnsupportedAudioFileException | IOException exception) {
-			LOG.warn("Submitted file not supported for native decoding. "
-					+ "Trying to convert to supported format now.");
+			LOG.warn("File not supported for native decoding: "
+					+ file.getAbsolutePath());
+			LOG.warn("Trying to convert to supported format now.");
+			
 			File out = new File(TEMPORARY_FILE_NAME);
 			try {
 				converter.transcode(file, out, "ogg", 2);
