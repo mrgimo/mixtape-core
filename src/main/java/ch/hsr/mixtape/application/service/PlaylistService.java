@@ -43,7 +43,7 @@ public class PlaylistService {
 	private ArrayList<PlaylistSubscriber> subscribers = new ArrayList<PlaylistSubscriber>();
 
 	private EntityManager em;
-	
+
 	public PlaylistService() {
 		em = getDatabaseService().getNewEntityManager();
 	}
@@ -78,16 +78,16 @@ public class PlaylistService {
 			LOG.debug("Released Write-Lock in `unsubscribeFromPlaylist`.");
 		}
 	}
-	
+
 	private void persistPlaylist(boolean isNewPlaylist) {
-			em.getTransaction().begin();
-			
-			if (isNewPlaylist)
-				em.persist(playlist);
-			else
-				em.merge(playlist);
-			
-			em.getTransaction().commit();
+		// em.getTransaction().begin();
+		//
+		// if (isNewPlaylist)
+		// em.persist(playlist);
+		// else
+		// em.merge(playlist);
+		//
+		// em.getTransaction().commit();
 	}
 
 	private void notifySubscribers() {
@@ -113,6 +113,9 @@ public class PlaylistService {
 		try {
 			playlistLock.writeLock().lock();
 			LOG.debug("Acquired Write-Lock in `createNewPlaylist`.");
+
+			if (settings.getStartSongs() == null)
+				settings.setStartSongs(new ArrayList<Song>());
 
 			playlist = new Playlist(settings);
 			getMixtape().initialMix(playlist);
@@ -222,19 +225,22 @@ public class PlaylistService {
 		}
 	}
 
-	private void moveItem(int oldPosition, int newPosition, List<PlaylistItem> playlistItems) {
+	private void moveItem(int oldPosition, int newPosition,
+			List<PlaylistItem> playlistItems) {
 		PlaylistItem item = playlistItems.remove(oldPosition);
 		playlistItems.add(newPosition, item);
 	}
 
-	private void updateAntecessors(int oldPosition, int newPosition, List<PlaylistItem> playlistItems) {
+	private void updateAntecessors(int oldPosition, int newPosition,
+			List<PlaylistItem> playlistItems) {
 
 		PlaylistItem oldSuccessor = playlistItems.get(oldPosition + 1);
 		oldSuccessor.setAntecessor(playlistItems.get(oldPosition).getCurrent());
 		updateSimilarity(oldSuccessor);
 
 		PlaylistItem movedItem = playlistItems.get(newPosition);
-		movedItem.setAntecessor(playlistItems.get(newPosition - 1).getCurrent());
+		movedItem
+				.setAntecessor(playlistItems.get(newPosition - 1).getCurrent());
 		updateSimilarity(movedItem);
 
 		PlaylistItem newSuccessor = playlistItems.get(newPosition + 1);
@@ -243,14 +249,20 @@ public class PlaylistService {
 	}
 
 	private void updateSimilarity(PlaylistItem playlistItem) {
-		Distance distance = getMixtape().distanceBetween(playlistItem.getCurrent(), playlistItem.getAntecessor());
+		Distance distance = getMixtape().distanceBetween(
+				playlistItem.getCurrent(), playlistItem.getAntecessor());
 
 		PlaylistSettings playlistSettings = playlist.getSettings();
 
-		int harmonicSimilarity = (int) (100 - distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
-		int perceptualSimilarity = (int) (100 - distance.getPerceptualDistance() * playlistSettings.getPerceptualSimilarity());
-		int spectralSimilarity = (int) (100 - distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
-		int temporalSimilarity = (int) (100 - distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
+		int harmonicSimilarity = (int) (100 - distance.getHarmonicDistance()
+				* playlistSettings.getHarmonicSimilarity());
+		int perceptualSimilarity = (int) (100 - distance
+				.getPerceptualDistance()
+				* playlistSettings.getPerceptualSimilarity());
+		int spectralSimilarity = (int) (100 - distance.getSpectralDistance()
+				* playlistSettings.getSpectralSimilarity());
+		int temporalSimilarity = (int) (100 - distance.getTemporalDistance()
+				* playlistSettings.getTemporalSimilarity());
 
 		playlistItem.setHarmonicSimilarity(harmonicSimilarity);
 		playlistItem.setPerceptualSimilarity(perceptualSimilarity);
@@ -322,7 +334,8 @@ public class PlaylistService {
 						+ " from playlist.");
 
 				if (playlistItems.size() > songIndexById) {
-					playlistItems.get(songIndexById).setAntecessor(playlistItems.get(songIndexById - 1).getCurrent());
+					playlistItems.get(songIndexById).setAntecessor(
+							playlistItems.get(songIndexById - 1).getCurrent());
 					updateSimilarity(playlistItems.get(songIndexById));
 				}
 			}
