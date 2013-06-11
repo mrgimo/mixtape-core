@@ -1,6 +1,7 @@
 package ch.hsr.mixtape.application.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -36,19 +37,45 @@ public class DatabaseService {
 	private EntityManager localEM;
 
 	public DatabaseService() {
+//		emFactory = Persistence.createEntityManagerFactory("mixtapePersistence",
+//				getEMFactoryOverrides());
+
 		emFactory = Persistence
 				.createEntityManagerFactory("mixtapePersistence");
-		
+
 		localEM = getNewEntityManager();
-		
+
 		LOG.info("Initialized EntityManager...");
+	}
+
+	private Map<String, Object> getEMFactoryOverrides() {
+		Map<String, String> systemEnv = System.getenv();
+		String dbPath = systemEnv.get("mixtapeData").trim();
+		if (dbPath.endsWith("/"))
+			dbPath = dbPath.substring(0, dbPath.length() - 1);
+
+		Map<String, Object> configOverrides = new HashMap<String, Object>();
+		for (Entry<String, String> env : systemEnv.entrySet()) {
+			if (env.getKey().contains("javax.persistence.jdbc.url")) {
+				configOverrides.put("javax.persistence.jdbc.url", env
+						.getValue().replace("mixtapeData", dbPath));
+			} else if (env.getKey().contains("eclipselink.logging.file")) {
+				configOverrides.put("eclipselink.logging.file", env.getValue()
+						.replace("mixtapeData", dbPath));
+			} else if (env.getKey()
+					.contains("eclipselink.application-location")) {
+				configOverrides.put("eclipselink.application-location", env
+						.getValue().replace("mixtapeData", dbPath));
+			}
+		}
+		return configOverrides;
 	}
 
 	public EntityManager getNewEntityManager() {
 		synchronized (entityManagers) {
 			EntityManager em = emFactory.createEntityManager();
 			entityManagers.add(em);
-			
+
 			entityManagers.notifyAll();
 			return em;
 		}
@@ -59,7 +86,7 @@ public class DatabaseService {
 			entityManagers.remove(em);
 			if (em.isOpen())
 				em.close();
-			
+
 			entityManagers.notifyAll();
 		}
 	}
