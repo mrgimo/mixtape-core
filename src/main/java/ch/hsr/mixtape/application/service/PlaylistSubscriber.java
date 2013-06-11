@@ -2,6 +2,6 @@ package ch.hsr.mixtape.application.service;
 
 public interface PlaylistSubscriber {
 
-	public void notifyPlaylistChanged();
+	public void notifyPlaylistChanged() throws RuntimeException;
 
 }
