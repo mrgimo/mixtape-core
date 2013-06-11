@@ -47,14 +47,14 @@ public class SmoothMix implements MixStrategy {
 	@Override
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs)
 			throws InvalidPlaylistException {
-
-		addedSongs = sortBySong(playlist.getLastItem().getCurrent(), addedSongs, playlist
+		List<Song> wishSongs = Lists.<Song>newArrayList(addedSongs);
+		 wishSongs = sortByDistance(playlist.getLastItem().getCurrent(), wishSongs, playlist
 				.getSettings());
 
-		for (Song song : addedSongs) {
+		for (Song song : wishSongs) {
 
 			List<Song> availableSongs = mixtape.getSongs();
-			availableSongs.removeAll(addedSongs);
+			availableSongs.removeAll(wishSongs);
 
 			if (!playlist.getSettings().allowDuplicates())
 				availableSongs.removeAll(playlist.getSongsInPlaylist());
@@ -205,7 +205,7 @@ public class SmoothMix implements MixStrategy {
 	/*
 	 * @ commented code, maybe test both ways
 	 */
-	private List<Song> sortBySong(final Song referenceSong, List<Song> songsToSort,
+	private List<Song> sortByDistance(final Song referenceSong, List<Song> songsToSort,
 			final PlaylistSettings playlistSettings) {
 
 		if (songsToSort.size() > 2) {
