@@ -33,11 +33,13 @@ public class DatabaseService {
 
 	private List<EntityManager> entityManagers = new ArrayList<EntityManager>();
 
-	private EntityManager localEM = getNewEntityManager();
+	private EntityManager localEM;
 
 	public DatabaseService() {
 		emFactory = Persistence
 				.createEntityManagerFactory("mixtapePersistence");
+		
+		localEM = getNewEntityManager();
 		
 		LOG.info("Initialized EntityManager...");
 	}
