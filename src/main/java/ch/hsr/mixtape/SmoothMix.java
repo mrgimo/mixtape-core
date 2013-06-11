@@ -41,6 +41,7 @@ public class SmoothMix implements MixStrategy {
 			// TODO: how to handle this?
 			System.out.println("at least 2 songs needed for initial mix");
 		}
+		System.out.println("test");
 
 	}
 
@@ -61,7 +62,6 @@ public class SmoothMix implements MixStrategy {
 
 			mix(playlist, song, availableSongs);
 		}
-
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class SmoothMix implements MixStrategy {
 
 		} while (closerSongExists);
 
-		currentPlaylist.addItem(createPlaylistItem(lastSong, mostSuitableSong, playlistSettings, true));
+		currentPlaylist.addItem(createPlaylistItem(addedSong, mostSuitableSong, playlistSettings, true));
 
 	}
 
@@ -222,12 +222,12 @@ public class SmoothMix implements MixStrategy {
 				Song mostSuitableCandidate = referenceSong;
 				Map<Song, Distance> distancesLast = mixtape.distances(lastSongInList);
 				double distanceMostSuitabletoLast = Double.POSITIVE_INFINITY;
-				for (Song song : songsToSort) {
-					double distanceToLast = weightedVectorLength(distancesLast.get(song),
+				for (int y = 0; y < songsToSort.size(); y++) {
+					double distanceToLast = weightedVectorLength(distancesLast.get(songsToSort.get(y)),
 							playlistSettings);
 
 					if (distanceToLast < distanceMostSuitabletoLast) {
-						mostSuitableCandidate = song;
+						mostSuitableCandidate = songsToSort.get(y);
 						distanceMostSuitabletoLast = distanceToLast;
 					}
 
