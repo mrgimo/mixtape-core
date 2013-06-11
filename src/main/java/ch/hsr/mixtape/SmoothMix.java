@@ -61,6 +61,7 @@ public class SmoothMix implements MixStrategy {
 				availableSongs.removeAll(playlist.getSongsInPlaylist());
 
 			mix(playlist, song, availableSongs);
+			System.out.println("done");
 		}
 	}
 
@@ -132,7 +133,7 @@ public class SmoothMix implements MixStrategy {
 
 		} while (closerSongExists);
 
-		currentPlaylist.addItem(createPlaylistItem(addedSong, mostSuitableSong, playlistSettings, true));
+		currentPlaylist.addItem(createPlaylistItem(lastSong, addedSong, playlistSettings, true));
 
 	}
 
