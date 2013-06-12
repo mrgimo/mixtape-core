@@ -10,7 +10,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import org.eclipse.persistence.internal.helper.DatabaseField;
@@ -100,16 +99,11 @@ public class DatabaseService {
 
 		synchronized (entityManagers) {
 			for (EntityManager em : entityManagers) {
+				LOG.info("Terminating entity manager resource: "+em);
 				terminateEntityManager(em);
 			}
-
-			EntityManager em = emFactory.createEntityManager();
-			em.getTransaction().begin();
-			Query query = em.createNamedQuery("deleteAllPlaylists");
-			query.executeUpdate();
-			em.getTransaction().commit();
-			em.close();
-
+			
+			LOG.info("Closing entity manager factory now...");
 			emFactory.close();
 		}
 

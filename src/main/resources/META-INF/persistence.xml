@@ -8,12 +8,7 @@
 
 		<!-- <provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider> -->
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-		
-		<class>ch.hsr.mixtape.model.PlaylistSettings</class>
 		<class>ch.hsr.mixtape.model.Song</class>
-		<class>ch.hsr.mixtape.model.SystemSettings</class>
-		<class>ch.hsr.mixtape.model.Playlist</class>
-		<class>ch.hsr.mixtape.model.PlaylistItem</class>
 		<class>ch.hsr.mixtape.model.Distance</class>
 		<class>ch.hsr.mixtape.processing.harmonic.HarmonicFeaturesOfSong</class>
 		<class>ch.hsr.mixtape.model.FeaturesOfSong</class>

@@ -3,37 +3,18 @@ package ch.hsr.mixtape.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 
 /**
  * @author Stefan Derungs
  */
-@Entity
-@NamedQueries({ @NamedQuery(name = "deleteAllPlaylists", query = "DELETE FROM Playlist p") })
 public class Playlist {
 
 	private static final String UNINITIALIZED_PLAYLIST_MESSAGE = "Playlist has not been initialized. "
 			+ "You have to initialize and define playlist settings first.";
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
-
-	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private PlaylistSettings settings;
 
-	@OneToMany(cascade = CascadeType.ALL)
 	private List<PlaylistItem> items = new ArrayList<PlaylistItem>();
 
 	public Playlist() {
