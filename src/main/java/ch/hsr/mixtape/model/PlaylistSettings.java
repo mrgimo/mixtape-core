@@ -20,13 +20,13 @@ public class PlaylistSettings {
 	 */
 	private int startLengthInSongs;
 
-	private int harmonicSimilarity;
+	private int harmonicSimilarity = 60;
 
-	private int perceptualSimilarity;
+	private int perceptualSimilarity = 50;
 
-	private int spectralSimilarity;
+	private int spectralSimilarity = 30;
 
-	private int temporalSimilarity;
+	private int temporalSimilarity = 50;
 
 	private boolean allowDuplicates = false;
 
