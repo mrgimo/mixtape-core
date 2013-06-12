@@ -68,8 +68,7 @@ public class HarmonicFeaturesExtractor implements FeatureExtractor<HarmonicFeatu
 
 			fundamentals.addAll(quantizeFundamentals(featuresOfWindow.fundamentals));
 			inharmonicity.add(quantizeInharmonicity(featuresOfWindow.inharmonicity));
-			oddToEvenHarmonicEnergyRatio
-					.add(quantizeOddToEvenHarmonicEnergyRatio(featuresOfWindow.oddToEvenHarmonicEnergyRatio));
+			oddToEvenHarmonicEnergyRatio.add(quantizeOddToEvenHarmonicEnergyRatio(featuresOfWindow.oddToEvenHarmonicEnergyRatio));
 			tristimulus.addAll(quantizeTristimulus(featuresOfWindow.tristimulus));
 		}
 
