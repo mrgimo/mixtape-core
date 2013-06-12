@@ -8,40 +8,32 @@ import static ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDes
 import static ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType.PHASE_FAST;
 import static ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType.SPECTRAL_DIFFERENCE;
 import static ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType.SPECTRAL_FLUX;
-import static ch.hsr.mixtape.util.MathUtils.limit;
-import static org.apache.commons.math3.util.FastMath.abs;
 
-import java.util.ArrayList;
+import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import weka.clusterers.ClusterEvaluation;
-import weka.clusterers.EM;
-import weka.core.Attribute;
-import weka.core.DenseInstance;
-import weka.core.Instances;
+import ch.hsr.mixtape.nid.NormalizedInformationDistance;
 import ch.hsr.mixtape.processing.FeatureExtractor;
 import ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType;
 import ch.hsr.mixtape.util.MathUtils;
 
 import com.google.common.collect.Lists;
+import com.google.common.math.DoubleMath;
 
-public class TemporalFeaturesExtractor implements
-		FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> {
+public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeaturesOfWindow, TemporalFeaturesOfSong> {
 
 	private static final SpectralDescriptionType[] SPECTRAL_DESCRIPTION_TYPES = {
-			ENERGY, SPECTRAL_DIFFERENCE, HIGH_FREQUENCY_CONTENT,
-			COMPLEX_DOMAIN, PHASE_FAST, KULLBACK_LIEBLER,
-			MODIFIED_KULLBACK_LIEBLER, SPECTRAL_FLUX };
-
-	private static final int BPM_INDEX = 0;
-	private static final int STANDARD_DEVIATION_INDEX = 1;
-	private static final int RATIO_INDEX = 2;
-
-	private static final double CLUSTER_STANDARD_DEVIATION_IN_BEATS = 5;
-
-	private static final double MIN_BPM = 20;
-	private static final double MAX_BPM = 170;
+			ENERGY,
+			SPECTRAL_DIFFERENCE,
+			HIGH_FREQUENCY_CONTENT,
+			COMPLEX_DOMAIN,
+			PHASE_FAST,
+			KULLBACK_LIEBLER,
+			MODIFIED_KULLBACK_LIEBLER,
+			SPECTRAL_FLUX
+	};
 
 	private static final int WINDOW_SIZE = 4096;
 	private static final int HOP_SIZE = 512;
@@ -51,23 +43,22 @@ public class TemporalFeaturesExtractor implements
 
 	private static final double SILENCE = -90.0;
 
-	private PhaseVocoder phaseVocoder = new PhaseVocoder(WINDOW_SIZE,
-			WINDOW_SIZE - WINDOW_OVERLAP);
+	private PhaseVocoder phaseVocoder = new PhaseVocoder(WINDOW_SIZE, WINDOW_SIZE - WINDOW_OVERLAP);
+	private NormalizedInformationDistance nid = new NormalizedInformationDistance();
 
 	public TemporalFeaturesOfWindow extractFrom(double[] windowOfSamples) {
 		TemporalFeaturesOfWindow temporalFeaturesOfWindow = new TemporalFeaturesOfWindow();
 
 		temporalFeaturesOfWindow.silent = detectSilence(windowOfSamples);
-		temporalFeaturesOfWindow.fftgrain = phaseVocoder
-				.computeSpectralFrame(windowOfSamples);
+		temporalFeaturesOfWindow.fftgrain = phaseVocoder.computeSpectralFrame(windowOfSamples);
 
 		return temporalFeaturesOfWindow;
 	}
 
 	private boolean detectSilence(double[] windowOfSamples) {
 		double energy = 0.;
-		for (int j = 0; j < windowOfSamples.length; j++)
-			energy += MathUtils.square(windowOfSamples[j]);
+		for (int i = 0; i < windowOfSamples.length; i++)
+			energy += MathUtils.square(windowOfSamples[i]);
 
 		return 10.0 * Math.log10(energy / (double) windowOfSamples.length) >= SILENCE;
 	}
@@ -79,6 +70,7 @@ public class TemporalFeaturesExtractor implements
 		List<Double[]> bpms = Lists.newArrayList();
 		List<Double[]> confidences = Lists.newArrayList();
 
+		double[] maxConfidences = new double[tempos.length];
 		while (featuresOfWindows.hasNext()) {
 			TemporalFeaturesOfWindow featureOfWindow = featuresOfWindows.next();
 
@@ -86,11 +78,13 @@ public class TemporalFeaturesExtractor implements
 			Double[] confidence = new Double[tempos.length];
 			for (int i = 0; i < tempos.length; i++) {
 				Tempo tempo = tempos[i];
-				tempo.extractTempo(featureOfWindow.silent,
-						featureOfWindow.fftgrain);
+				tempo.extractTempo(featureOfWindow.silent, featureOfWindow.fftgrain);
 
 				bpm[i] = tempo.getBPM();
 				confidence[i] = tempo.getConfidence();
+
+				if (maxConfidences[i] < confidence[i])
+					maxConfidences[i] = confidence[i];
 			}
 
 			bpms.add(bpm);
@@ -98,9 +92,35 @@ public class TemporalFeaturesExtractor implements
 		}
 
 		TemporalFeaturesOfSong featuresOfSong = new TemporalFeaturesOfSong();
-		featuresOfSong.beats = getClusteredResults(bpms, confidences);
+		featuresOfSong.beats = quantize(bpms, confidences, maxConfidences);
 
 		return featuresOfSong;
+	}
+
+	private int[] quantize(List<Double[]> bpms, List<Double[]> confidences, double[] maxConfidences) {
+		int[] beats = new int[bpms.size()];
+		int numberOfBeats = 0;
+
+		for (int i = 0; i < bpms.size(); i++) {
+			Double[] bpm = bpms.get(i);
+			Double[] confidence = confidences.get(i);
+
+			double beatSum = 0;
+			double confidenceSum = 0;
+			for (int j = 0; j < bpm.length; j++) {
+				if (maxConfidences[j] == 0)
+					continue;
+
+				double factor = confidence[j] / maxConfidences[j];
+
+				beatSum += bpm[j] * factor;
+				confidenceSum += factor;
+			}
+
+			beats[numberOfBeats++] = DoubleMath.roundToInt(beatSum / confidenceSum * 0.2, RoundingMode.HALF_UP) + 1;
+		}
+
+		return Arrays.copyOf(beats, numberOfBeats);
 	}
 
 	private Tempo[] initTempos() {
@@ -112,96 +132,8 @@ public class TemporalFeaturesExtractor implements
 		return tempos;
 	}
 
-	public double[][] getClusteredResults(List<Double[]> bpms,
-			List<Double[]> confidences) {
-		try {
-			return tryGetClusteredResults(bpms, confidences);
-		} catch (Exception exception) {
-			return new double[0][0];
-		}
-	}
-
-	public double[][] tryGetClusteredResults(List<Double[]> bpms,
-			List<Double[]> confidences) throws Exception {
-		Instances instances = setupClusterInstances(bpms, confidences);
-
-		double[][][] clusters = cluster(instances);
-		double[][] results = new double[clusters.length][3];
-
-		for (int i = 0; i < clusters.length; i++) {
-			double[] cluster = clusters[i][0];
-			double[] result = results[i];
-
-			result[BPM_INDEX] = limit(cluster[BPM_INDEX], MIN_BPM, MAX_BPM);
-			result[STANDARD_DEVIATION_INDEX] = cluster[STANDARD_DEVIATION_INDEX];
-			result[RATIO_INDEX] = cluster[RATIO_INDEX] / instances.size();
-		}
-
-		return results;
-	}
-
-	private Instances setupClusterInstances(List<Double[]> bpms,
-			List<Double[]> confidences) {
-		ArrayList<Attribute> attributes = Lists.newArrayList(new Attribute(
-				"BPM"));
-		Instances instances = new Instances("TempoDataset", attributes,
-				bpms.size());
-
-		double[] maxConfidences = getMaxConfidences(confidences);
-		for (int i = 0; i < bpms.size(); i++) {
-			for (int j = 0; j < SPECTRAL_DESCRIPTION_TYPES.length; j++) {
-				double bpm = bpms.get(i)[j];
-				double confidence = confidences.get(i)[j];
-
-				if (bpm > 0 && confidence > 0)
-					instances.add(new DenseInstance(confidence
-							/ maxConfidences[j], new double[] { bpm }));
-			}
-		}
-
-		return instances;
-	}
-
-	private double[] getMaxConfidences(List<Double[]> confidences) {
-		double[] maxConfidences = new double[SPECTRAL_DESCRIPTION_TYPES.length];
-		for (Double[] confidence : confidences)
-			for (int j = 0; j < confidence.length; j++)
-				if (maxConfidences[j] < confidence[j])
-					maxConfidences[j] = confidence[j];
-
-		return maxConfidences;
-	}
-
-	private double[][][] cluster(Instances instances) throws Exception {
-		EM em = new EM();
-
-		em.setNumExecutionSlots(Runtime.getRuntime().availableProcessors() - 1);
-		em.setMinStdDev(CLUSTER_STANDARD_DEVIATION_IN_BEATS);
-		em.buildClusterer(new Instances(instances));
-
-		evaluate(em, instances);
-
-		return em.getClusterModelsNumericAtts();
-	}
-
-	private void evaluate(EM em, Instances instances) throws Exception {
-		ClusterEvaluation evaluation = new ClusterEvaluation();
-
-		evaluation.setClusterer(em);
-		evaluation.evaluateClusterer(new Instances(instances));
-	}
-
-	public double distanceBetween(TemporalFeaturesOfSong x,
-			TemporalFeaturesOfSong y) {
-		return abs(bpm(x.beats) - bpm(y.beats)) / (MAX_BPM - MIN_BPM);
-	}
-
-	private double bpm(double[][] beats) {
-		double bpm = 0;
-		for (double[] beat : beats)
-			bpm += beat[RATIO_INDEX] * beat[BPM_INDEX];
-
-		return bpm;
+	public double distanceBetween(TemporalFeaturesOfSong x, TemporalFeaturesOfSong y) {
+		return nid.distanceBetween(x.beats, y.beats);
 	}
 
 	public int getWindowSize() {

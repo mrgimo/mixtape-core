@@ -16,6 +16,6 @@ public class TemporalFeaturesOfSong implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	public double[][] beats;
+	public int[] beats;
 
 }
