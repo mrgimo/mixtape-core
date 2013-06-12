@@ -226,24 +226,4 @@ public class Tempo {
 		return beatTracking.getConfidence();
 	}
 
-	/**
-	 * Check if buffer level in dB SPL is under a given threshold.
-	 * 
-	 * <p>
-	 * <b>Methodname in aubio:</b> aubio_silence_detection
-	 * </p>
-	 * 
-	 * @param v
-	 *            vector to get level from
-	 * @param threshold
-	 *            threshold in dB SPL
-	 * @return False if level is under the given threshold, true otherwise.
-	 */
-	private boolean detectSilence(double[] v, double threshold) {
-		double energy = 0.;
-		for (int j = 0; j < v.length; j++)
-			energy += v[j] * v[j];
-		return 10. * Math.log10(energy / (double) v.length) >= threshold;
-	}
-
 }

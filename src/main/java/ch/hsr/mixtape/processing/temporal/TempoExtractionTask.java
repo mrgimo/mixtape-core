@@ -31,8 +31,6 @@ public class TempoExtractionTask implements Callable<ExtractedTempo> {
 			ArrayList<double[]> dataSamples, int windowSize, int hopSize, int sampleRateInHz) {
 		this.type = type;
 		this.dataSamples = dataSamples;
-		// tempo = new Tempo(type, dataSamples.size(), hopSize, sampleRateInHz);
-		// // TODO: remove if results ok.
 		tempo = new Tempo(type, windowSize, hopSize, sampleRateInHz);
 		extractedBPMs = new double[dataSamples.size()];
 		extractedConfidences = new double[dataSamples.size()];

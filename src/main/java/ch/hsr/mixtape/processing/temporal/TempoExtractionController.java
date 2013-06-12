@@ -8,11 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import weka.clusterers.ClusterEvaluation;
-import weka.clusterers.EM;
-import weka.core.Attribute;
-import weka.core.DenseInstance;
-import weka.core.Instances;
 import ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType;
 
 /**
@@ -21,8 +16,6 @@ import ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptio
  * @author Stefan Derungs
  */
 public class TempoExtractionController {
-
-	private static final double CLUSTER_STANDARD_DEVIATION_IN_BEATS = 5;
 
 	private ExecutorService threadPool;
 
@@ -116,93 +109,4 @@ public class TempoExtractionController {
 		return results;
 	}
 
-	/**
-	 * TODO: Pretty much of a nonsense...?!
-	 * 
-	 * @return Returns a single averaged Tempo for the song.
-	 */
-	public int getSingleResult() {
-		try {
-			ArrayList<ExtractedTempo> results = getAllResults();
-			if (results.isEmpty())
-				return 0;
-
-			int[] array = new int[2 * results.size()];
-			int currentResult = 0;
-			for (int i = 0; i < 2 * results.size(); i += 2) {
-				array[i] = (int) Math.round(results.get(currentResult)
-						.getMedianBpm(true));
-				array[i + 1] = (int) Math.round(results.get(currentResult++)
-						.getMeanBpm(true));
-			}
-			Arrays.sort(array);
-
-			return (int) Math
-					.round(array.length % 2 == 0 ? (array[array.length / 2] + array[array.length / 2 - 1]) / 2.
-							: array[(array.length - 1) / 2]);
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
-		return 0;
-	}
-
-	/**
-	 * @return Each array contains [0] the bpms, [1] the standard deviation and
-	 *         [2] the percentage of that beats cluster over the song. If no
-	 *         beats were extracted, null is returned.
-	 * @throws Exception
-	 */
-	public int[][] getClusteredResults() throws Exception {
-		Instances data = setupClusterInstances();
-		if (data.isEmpty())
-			return null;
-
-		// Clustering
-		EM em = new EM();
-		em.setNumExecutionSlots(Runtime.getRuntime().availableProcessors() - 1);
-		em.setMinStdDev(CLUSTER_STANDARD_DEVIATION_IN_BEATS);
-		em.buildClusterer(new Instances(data));
-
-		// Evaluation
-		ClusterEvaluation eval = new ClusterEvaluation();
-		eval.setClusterer(em);
-		eval.evaluateClusterer(new Instances(data));
-
-		// Fetching results
-		double[][][] numericAttributes = em.getClusterModelsNumericAtts();
-		int[][] beats = new int[numericAttributes.length][3];
-
-		for (int i = 0; i < numericAttributes.length; i++) {
-			// BPM
-			beats[i][0] = (int) Math.round(numericAttributes[i][0][0]);
-			// Standard Deviation in BPM
-			beats[i][1] = (int) Math.round(numericAttributes[i][0][1]);
-			// Percentage of Instances in Cluster
-			beats[i][2] = (int) Math.round(numericAttributes[i][0][2] * 100
-					/ data.size());
-		}
-
-		return beats;
-	}
-
-	private Instances setupClusterInstances() throws InterruptedException,
-			ExecutionException {
-		ArrayList<Double> beats = new ArrayList<Double>();
-		ArrayList<Double> confidences = new ArrayList<Double>();
-		for (ExtractedTempo t : getAllResults()) {
-			beats.addAll(t.getRoundedBeatCollection(true));
-			confidences.addAll(t.getNormalizedConfidences());
-		}
-
-		ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-		attributes.add(new Attribute("BPM"));
-		Instances data = new Instances("TempoDataset", attributes, beats.size());
-
-		for (int i = 0; i < beats.size(); i++)
-			data.add(new DenseInstance(confidences.get(i), new double[] { beats
-					.get(i) }));
-		// data.add(new DenseInstance(1.0, new double[] { beats.get(i) }));
-
-		return data;
-	}
 }

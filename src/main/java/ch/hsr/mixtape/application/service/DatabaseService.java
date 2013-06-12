@@ -98,8 +98,8 @@ public class DatabaseService {
 		LOG.info("Shutting down database connection...");
 
 		synchronized (entityManagers) {
+			LOG.info("Terminating entity managers...");
 			for (EntityManager em : entityManagers) {
-				LOG.info("Terminating entity manager resource: "+em);
 				terminateEntityManager(em);
 			}
 			

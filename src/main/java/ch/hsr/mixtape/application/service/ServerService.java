@@ -39,8 +39,7 @@ public class ServerService {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(ServerService.class);
 
-	private EntityManager em = ApplicationFactory.getDatabaseService()
-			.getNewEntityManager();
+	private EntityManager em = getDatabaseService().getNewEntityManager();
 
 	private MusicDirectoryScanner directoryScanner;
 
