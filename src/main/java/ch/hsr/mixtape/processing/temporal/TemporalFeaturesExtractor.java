@@ -13,12 +13,12 @@ import static org.apache.commons.math3.util.FastMath.abs;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import weka.clusterers.ClusterEvaluation;
 import weka.clusterers.EM;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
-import weka.core.Instance;
 import weka.core.Instances;
 import ch.hsr.mixtape.processing.FeatureExtractor;
 import ch.hsr.mixtape.processing.temporal.SpectralDescription.SpectralDescriptionType;
@@ -39,8 +39,6 @@ public class TemporalFeaturesExtractor implements
 	private static final int RATIO_INDEX = 2;
 
 	private static final double CLUSTER_STANDARD_DEVIATION_IN_BEATS = 5;
-
-	private static final int CLUSTER_TEST_SET_SIZE_IN_PERCENT = 66;
 
 	private static final double MIN_BPM = 20;
 	private static final double MAX_BPM = 170;
@@ -78,36 +76,31 @@ public class TemporalFeaturesExtractor implements
 			Iterator<TemporalFeaturesOfWindow> featuresOfWindows) {
 		Tempo[] tempos = initTempos();
 
-		EM em = setupClusterer();
-		Instances instances = setupClusterInstances();
+		List<Double[]> bpms = Lists.newArrayList();
+		List<Double[]> confidences = Lists.newArrayList();
 
 		while (featuresOfWindows.hasNext()) {
 			TemporalFeaturesOfWindow featureOfWindow = featuresOfWindows.next();
 
+			Double[] bpm = new Double[tempos.length];
+			Double[] confidence = new Double[tempos.length];
 			for (int i = 0; i < tempos.length; i++) {
 				Tempo tempo = tempos[i];
 				tempo.extractTempo(featureOfWindow.silent,
 						featureOfWindow.fftgrain);
-				double bpm = tempo.getBPM();
-				double confidence = tempo.getConfidence();
-				Instance instance = setupClusterInstance(bpm, confidence);
-				instances.add(instance);
-				clusterInstance(em, instance);
+
+				bpm[i] = tempo.getBPM();
+				confidence[i] = tempo.getConfidence();
 			}
+
+			bpms.add(bpm);
+			confidences.add(confidence);
 		}
 
-		evaluate(em, getEvaluationInstances(instances));
-
 		TemporalFeaturesOfSong featuresOfSong = new TemporalFeaturesOfSong();
-		featuresOfSong.beats = getClusteredResults(em, instances);
+		featuresOfSong.beats = getClusteredResults(bpms, confidences);
 
 		return featuresOfSong;
-	}
-
-	private Instances getEvaluationInstances(Instances instances) {
-		int testSetSize = Math.round(instances.size()
-				* CLUSTER_TEST_SET_SIZE_IN_PERCENT / 100);
-		return new Instances(instances, 0, testSetSize);
 	}
 
 	private Tempo[] initTempos() {
@@ -119,57 +112,20 @@ public class TemporalFeaturesExtractor implements
 		return tempos;
 	}
 
-	private EM setupClusterer() {
-		EM em = new EM();
-
-		em.setNumExecutionSlots(Runtime.getRuntime().availableProcessors() - 1);
-		em.setMinStdDev(CLUSTER_STANDARD_DEVIATION_IN_BEATS);
-		return em;
-	}
-
-	private Instances setupClusterInstances() {
-		ArrayList<Attribute> attributes = Lists.newArrayList(new Attribute(
-				"BPM"));
-		return new Instances("TempoDataset", attributes, 0);
-	}
-
-	private Instance setupClusterInstance(double bpm, double confidence) {
-		confidence = confidence != 0 ? 1 - (1 / confidence) : 0;
-		return new DenseInstance(confidence, new double[] { bpm });
-	}
-
-	private void clusterInstance(EM em, Instance instance) {
+	public double[][] getClusteredResults(List<Double[]> bpms,
+			List<Double[]> confidences) {
 		try {
-			tryClusterInstance(em, instance);
-		} catch (Exception e) {
-			throw new RuntimeException("Error while clustering "
-					+ "instance during tempo extraction.", e);
+			return tryGetClusteredResults(bpms, confidences);
+		} catch (Exception exception) {
+			return new double[0][0];
 		}
 	}
 
-	private void tryClusterInstance(EM em, Instance instance) throws Exception {
-		em.clusterInstance(instance);
-	}
+	public double[][] tryGetClusteredResults(List<Double[]> bpms,
+			List<Double[]> confidences) throws Exception {
+		Instances instances = setupClusterInstances(bpms, confidences);
 
-	private void evaluate(EM em, Instances instances) {
-		try {
-			tryEvaluate(em, instances);
-		} catch (Exception e) {
-			throw new RuntimeException(
-					"Error while evaluating cluster during tempo extraction.",
-					e);
-		}
-	}
-
-	private void tryEvaluate(EM em, Instances instances) throws Exception {
-		ClusterEvaluation evaluation = new ClusterEvaluation();
-
-		evaluation.setClusterer(em);
-		evaluation.evaluateClusterer(new Instances(instances));
-	}
-
-	public double[][] getClusteredResults(EM em, Instances instances) {
-		double[][][] clusters = em.getClusterModelsNumericAtts();
+		double[][][] clusters = cluster(instances);
 		double[][] results = new double[clusters.length][3];
 
 		for (int i = 0; i < clusters.length; i++) {
@@ -182,6 +138,57 @@ public class TemporalFeaturesExtractor implements
 		}
 
 		return results;
+	}
+
+	private Instances setupClusterInstances(List<Double[]> bpms,
+			List<Double[]> confidences) {
+		ArrayList<Attribute> attributes = Lists.newArrayList(new Attribute(
+				"BPM"));
+		Instances instances = new Instances("TempoDataset", attributes,
+				bpms.size());
+
+		double[] maxConfidences = getMaxConfidences(confidences);
+		for (int i = 0; i < bpms.size(); i++) {
+			for (int j = 0; j < SPECTRAL_DESCRIPTION_TYPES.length; j++) {
+				double bpm = bpms.get(i)[j];
+				double confidence = confidences.get(i)[j];
+
+				if (bpm > 0 && confidence > 0)
+					instances.add(new DenseInstance(confidence
+							/ maxConfidences[j], new double[] { bpm }));
+			}
+		}
+
+		return instances;
+	}
+
+	private double[] getMaxConfidences(List<Double[]> confidences) {
+		double[] maxConfidences = new double[SPECTRAL_DESCRIPTION_TYPES.length];
+		for (Double[] confidence : confidences)
+			for (int j = 0; j < confidence.length; j++)
+				if (maxConfidences[j] < confidence[j])
+					maxConfidences[j] = confidence[j];
+
+		return maxConfidences;
+	}
+
+	private double[][][] cluster(Instances instances) throws Exception {
+		EM em = new EM();
+
+		em.setNumExecutionSlots(Runtime.getRuntime().availableProcessors() - 1);
+		em.setMinStdDev(CLUSTER_STANDARD_DEVIATION_IN_BEATS);
+		em.buildClusterer(new Instances(instances));
+
+		evaluate(em, instances);
+
+		return em.getClusterModelsNumericAtts();
+	}
+
+	private void evaluate(EM em, Instances instances) throws Exception {
+		ClusterEvaluation evaluation = new ClusterEvaluation();
+
+		evaluation.setClusterer(em);
+		evaluation.evaluateClusterer(new Instances(instances));
 	}
 
 	public double distanceBetween(TemporalFeaturesOfSong x,
