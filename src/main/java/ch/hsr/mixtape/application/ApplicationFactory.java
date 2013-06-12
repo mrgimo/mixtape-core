@@ -14,7 +14,6 @@ import ch.hsr.mixtape.application.service.PlaylistStreamService;
 import ch.hsr.mixtape.application.service.QueryService;
 import ch.hsr.mixtape.application.service.ServerService;
 import ch.hsr.mixtape.model.Distance;
-import ch.hsr.mixtape.model.SystemSettings;
 
 /**
  * @author Stefan Derungs
@@ -33,8 +32,6 @@ public class ApplicationFactory {
 	private static QueryService queryService;
 
 	private static ServerService serverService;
-
-	private static SystemSettings systemSettings;
 
 	private static AnalyzerService analyzerService;
 
@@ -84,41 +81,25 @@ public class ApplicationFactory {
 		return serverService;
 	}
 
-	public static SystemSettings getSystemSettings() /* throws FirstRunException */{
-		// TODO: implement for FirstRun
-		// if (systemSettings == null) {
-		// EntityManager em = getDatabaseManager().getEntityManager();
-		// TypedQuery<SystemSettings> query = em.createNamedQuery(
-		// "getAllSystemSettings", SystemSettings.class);
-		// try {
-		// systemSettings = query.getSingleResult();
-		// if (systemSettings == null)
-		// throw new FirstRunException();
-		// } catch (NoResultException | NonUniqueResultException e) {
-		// throw new FirstRunException();
-		// }
-		// }
-		return systemSettings;
-	}
-
 	public static AnalyzerService getAnalyzerService() {
 		if (analyzerService == null) {
 			LOG.debug("Initializing AnalyzerService");
 			analyzerService = new AnalyzerService();
 		}
-		
+
 		return analyzerService;
 	}
-	
+
 	public static Mixtape getMixtape() {
 		if (mixtapeService == null) {
 			LOG.debug("Initializing MixtapeService");
 			EntityManager em = getDatabaseService().getNewEntityManager();
-			TypedQuery<Distance> query = em.createNamedQuery("getAllDistances", Distance.class);
+			TypedQuery<Distance> query = em.createNamedQuery("getAllDistances",
+					Distance.class);
 			mixtapeService = new Mixtape(query.getResultList());
 		}
-		
+
 		return mixtapeService;
 	}
-	
+
 }
