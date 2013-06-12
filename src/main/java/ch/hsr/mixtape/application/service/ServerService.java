@@ -152,7 +152,11 @@ public class ServerService {
 	 */
 	private void setDatabaseSize(SystemStatus ss) {
 		try {
-			File file = new File(System.getenv("mixtapeData") + "mixtapeDB");
+			String pathname = System.getenv("mixtapeData");
+			if (!pathname.endsWith("/"))
+				pathname += "/";
+			
+			File file = new File(pathname + "mixtapeDB");
 			long size = FileUtils.sizeOfDirectory(file);
 			if (size > 1073741824)
 				ss.setDatabaseSize(df.format(size / 1073741824F) + " GB");
