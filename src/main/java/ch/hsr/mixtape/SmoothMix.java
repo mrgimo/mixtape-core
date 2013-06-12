@@ -101,21 +101,21 @@ public class SmoothMix implements MixStrategy {
 
 			double currentDistanceToLastSong = Double.POSITIVE_INFINITY;
 
-			for (Song song : availableSongs) {
+			for (int i = 0; i < availableSongs.size(); i++) {
 				double distanceToAddedSong = weightedVectorLength(
-						distancesAddedSong.get(song), playlistSettings);
+						distancesAddedSong.get(availableSongs.get(i)), playlistSettings);
 				double distanceToLastSong = weightedVectorLength(
-						mixtape.distanceBetween(song, mostSuitableSong),
+						mixtape.distanceBetween(availableSongs.get(i), mostSuitableSong),
 						playlistSettings);
 
 				if (distanceToAddedSong < currentDistanceToAddedSong)
 					if (distanceToLastSong < currentDistanceToLastSong) {
 
-						mostSuitableSong = song;
+						mostSuitableSong = availableSongs.get(i);
 						mostSuitableDistanceToAddedSong = distanceToAddedSong;
 						currentDistanceToLastSong = distanceToLastSong;
 					} else
-						availableSongs.remove(song);
+						availableSongs.remove(availableSongs.get(i));
 
 			}
 
