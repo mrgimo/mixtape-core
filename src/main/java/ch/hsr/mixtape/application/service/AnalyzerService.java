@@ -31,44 +31,46 @@ public class AnalyzerService {
 	ListeningExecutorService analyzingExecutor = MoreExecutors
 			.listeningDecorator(Executors.newSingleThreadExecutor());
 
-	public void analyze(final List<Song> songs) {
+	public void analyze(List<Song> songs) {
 		LOG.info("Submitted "+songs.size()+" song(s) for analysis.");
+		
+		for (final Song song : songs) {
+			ListenableFuture<Collection<Distance>> distances = analyzingExecutor
+					.submit(new Callable<Collection<Distance>>() {
 
-		ListenableFuture<Collection<Distance>> distances = analyzingExecutor
-				.submit(new Callable<Collection<Distance>>() {
+						@Override
+						public Collection<Distance> call() throws Exception {
+							return getMixtape().addSong(song);
+						}
+					});
 
-					@Override
-					public Collection<Distance> call() throws Exception {
-						return getMixtape().addSongs(songs);
-					}
-				});
+			Futures.addCallback(distances,
+					new FutureCallback<Collection<Distance>>() {
 
-		Futures.addCallback(distances,
-				new FutureCallback<Collection<Distance>>() {
+						@Override
+						public void onSuccess(Collection<Distance> distances) {
+							LOG.info("Analysing songs successful.");
+							persist(distances, song);
+						}
 
-					@Override
-					public void onSuccess(Collection<Distance> distances) {
-						LOG.info("Analysing songs successful.");
-						persist(distances, songs);
-					}
+						@Override
+						public void onFailure(Throwable throwable) {
+							LOG.error("Error during analysing songs.", throwable);
+						}
+					});
+		}
 
-					@Override
-					public void onFailure(Throwable throwable) {
-						LOG.error("Error during analysing songs.", throwable);
-					}
-				});
+	
 	}
 
-	private void persist(Collection<Distance> distances, List<Song> songs) {
+	private void persist(Collection<Distance> distances, Song song) {
 		LOG.info("Persisting now...");
 		EntityManager entityManager = getDatabaseService()
 				.getNewEntityManager();
 		entityManager.getTransaction().begin();
 
-		for (Song song : songs) {
 			song.setAnalyzeDate(new Date());
 			entityManager.merge(song);
-		}
 
 		entityManager.flush();
 		LOG.info("Flushed songs.");
