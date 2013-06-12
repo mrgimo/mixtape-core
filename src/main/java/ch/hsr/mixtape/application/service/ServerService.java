@@ -1,6 +1,7 @@
 package ch.hsr.mixtape.application.service;
 
 import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -9,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Map.Entry;
 
 import javax.persistence.EntityManager;
 
@@ -53,9 +53,6 @@ public class ServerService {
 	}
 
 	public void startUp() {
-		for (Entry<String, String> s : System.getenv().entrySet())
-			System.out.println(s.getKey() + ": " + s.getValue());
-
 		String musicDirPath = SongPathResolver.MUSIC_DIRECTORY_FILEPATH;
 		if (musicDirPath == null || musicDirPath.isEmpty())
 			throw new RuntimeException("No MusicData Filepath defined!");
