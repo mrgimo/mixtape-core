@@ -164,7 +164,8 @@ public class Tempo {
 				output[0] = out[i] - Math.floor(out[i]);
 				/* test for silence */
 				if (!silent)
-					lastBeat = totalFrames + (int) Math.floor(output[0] * hopSize + 0.5);
+					lastBeat = totalFrames
+							+ (int) Math.floor(output[0] * hopSize + 0.5);
 			}
 		}
 		totalFrames += hopSize;
