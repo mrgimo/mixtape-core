@@ -1,5 +1,6 @@
 package ch.hsr.mixtape.application.service;
 
+import static ch.hsr.mixtape.application.ApplicationFactory.getAnalyzerService;
 import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
 
 import java.io.File;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -21,6 +23,7 @@ import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.application.MusicDirectoryScanner;
 import ch.hsr.mixtape.application.SongPathResolver;
 import ch.hsr.mixtape.io.AudioChannel;
+import ch.hsr.mixtape.model.Song;
 import ch.hsr.mixtape.model.SystemStatus;
 
 /**
@@ -52,10 +55,15 @@ public class ServerService {
 		startUp();
 	}
 
-	public void startUp() {
+	private void startUp() {
 		String musicDirPath = SongPathResolver.MUSIC_DIRECTORY_FILEPATH;
 		if (musicDirPath == null || musicDirPath.isEmpty())
 			throw new RuntimeException("No MusicData Filepath defined!");
+
+		List<Song> pendingSongs = em.createNamedQuery("getPendingSongs",
+				Song.class).getResultList();
+		if (!pendingSongs.isEmpty())
+			getAnalyzerService().analyze(pendingSongs);
 	}
 
 	public void shutdown() {
@@ -68,7 +76,7 @@ public class ServerService {
 			LOG.error("Error during shutdown: Temporary extraction"
 					+ " file could not be deleted.", e);
 		}
-		
+
 		LOG.info("Shutting down database service...");
 		getDatabaseService().shutdown();
 		LOG.info("Database service shut down.");
@@ -155,7 +163,7 @@ public class ServerService {
 			String pathname = System.getenv("mixtapeData");
 			if (!pathname.endsWith("/"))
 				pathname += "/";
-			
+
 			File file = new File(pathname + "mixtapeDB");
 			long size = FileUtils.sizeOfDirectory(file);
 			if (size > 1073741824)
