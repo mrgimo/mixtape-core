@@ -93,6 +93,9 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 				bpm[i] = tempo.getBPM();
 				confidence[i] = tempo.getConfidence();
 			}
+
+			bpms.add(bpm);
+			confidences.add(confidence);
 		}
 
 		TemporalFeaturesOfSong featuresOfSong = new TemporalFeaturesOfSong();
@@ -141,7 +144,7 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 
 		double[] maxConfidences = getMaxConfidences(confidences);
 		for (int i = 0; i < bpms.size(); i++) {
-			for (int j = 0; j < SPECTRAL_DESCRIPTION_TYPES.length; i++) {
+			for (int j = 0; j < SPECTRAL_DESCRIPTION_TYPES.length; j++) {
 				double bpm = bpms.get(i)[j];
 				double confidence = confidences.get(i)[j];
 
