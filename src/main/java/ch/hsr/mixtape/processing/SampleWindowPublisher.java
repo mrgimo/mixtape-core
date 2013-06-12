@@ -62,7 +62,7 @@ public class SampleWindowPublisher {
 	public void publish(Song song) throws IOException {
 		init(song);
 
-		while (channel.read(byteBuffer) == -1) {
+		while (channel.read(byteBuffer) != -1) {
 			readSamples();
 			publishSamples();
 
