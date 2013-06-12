@@ -142,11 +142,10 @@ public class SmoothMix implements MixStrategy {
 
 		Distance distance = mixtape.distanceBetween(lastSong, mostSuitableSong);
 
-		int harmonicSimilarity = (int) (100 - distance.getHarmonicDistance() * playlistSettings.getHarmonicSimilarity());
-		int perceptualSimilarity = (int) (100 - distance.getPerceptualDistance()
-				* playlistSettings.getPerceptualSimilarity());
-		int spectralSimilarity = (int) (100 - distance.getSpectralDistance() * playlistSettings.getSpectralSimilarity());
-		int temporalSimilarity = (int) (100 - distance.getTemporalDistance() * playlistSettings.getTemporalSimilarity());
+		int harmonicSimilarity = (int) (100 - distance.getHarmonicDistance() * 100);
+		int perceptualSimilarity = (int) (100 - distance.getPerceptualDistance() * 100);
+		int spectralSimilarity = (int) (100 - distance.getSpectralDistance() * 100);
+		int temporalSimilarity = (int) (100 - distance.getTemporalDistance() * 100);
 
 		return new PlaylistItem(
 				mostSuitableSong,
