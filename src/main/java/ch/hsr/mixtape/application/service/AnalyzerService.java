@@ -2,12 +2,14 @@ package ch.hsr.mixtape.application.service;
 
 import static ch.hsr.mixtape.application.ApplicationFactory.getDatabaseService;
 import static ch.hsr.mixtape.application.ApplicationFactory.getMixtape;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException;
 
 import javax.persistence.EntityManager;
 
@@ -17,50 +19,32 @@ import org.slf4j.LoggerFactory;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.Song;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
 public class AnalyzerService {
 
-	private static final Logger LOG = LoggerFactory
-			.getLogger(AnalyzerService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AnalyzerService.class);
 
-	ListeningExecutorService analyzingExecutor = MoreExecutors
-			.listeningDecorator(Executors.newSingleThreadExecutor());
+	private final ListeningExecutorService analyzingExecutor = listeningDecorator(newSingleThreadExecutor());
 
-	public void analyze(List<Song> songs) {
-		LOG.info("Submitted "+songs.size()+" song(s) for analysis.");
-		
-		for (final Song song : songs) {
-			ListenableFuture<Collection<Distance>> distances = analyzingExecutor
-					.submit(new Callable<Collection<Distance>>() {
+	public void analyze(final List<Song> songs) {
+		LOG.info("Submitted " + songs.size() + " song(s) for analysis.");
 
-						@Override
-						public Collection<Distance> call() throws Exception {
-							return getMixtape().addSong(song);
-						}
-					});
+		analyzingExecutor.submit(new Runnable() {
 
-			Futures.addCallback(distances,
-					new FutureCallback<Collection<Distance>>() {
+			public void run() {
+				for (Song song : songs)
+					try {
+						Collection<Distance> distances = getMixtape().addSong(song);
 
-						@Override
-						public void onSuccess(Collection<Distance> distances) {
-							LOG.info("Analysing songs successful.");
-							persist(distances, song);
-						}
+						LOG.info("Analysing songs successful.");
+						persist(distances, song);
+					} catch (IOException | InterruptedException | ExecutionException exception) {
+						LOG.error("Error during analysing songs.", exception);
+					}
+			}
 
-						@Override
-						public void onFailure(Throwable throwable) {
-							LOG.error("Error during analysing songs.", throwable);
-						}
-					});
-		}
-
-	
+		});
 	}
 
 	private void persist(Collection<Distance> distances, Song song) {
@@ -69,8 +53,8 @@ public class AnalyzerService {
 				.getNewEntityManager();
 		entityManager.getTransaction().begin();
 
-			song.setAnalyzeDate(new Date());
-			entityManager.merge(song);
+		song.setAnalyzeDate(new Date());
+		entityManager.merge(song);
 
 		entityManager.flush();
 		LOG.info("Flushed songs.");
