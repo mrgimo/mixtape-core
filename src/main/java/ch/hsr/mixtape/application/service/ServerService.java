@@ -52,7 +52,6 @@ public class ServerService {
 	public ServerService() {
 		df = (DecimalFormat) NumberFormat.getInstance();
 		df.setMaximumFractionDigits(2);
-		System.err.println("ServerService initialized");
 	}
 
 	public void startUp() {
@@ -65,7 +64,6 @@ public class ServerService {
 
 		List<Song> pendingSongs = em.createNamedQuery("getPendingSongs",
 				Song.class).getResultList();
-		System.err.println("PENDING SONGS: " + pendingSongs.size());
 		if (!pendingSongs.isEmpty())
 			getAnalyzerService().analyze(pendingSongs);
 	}
