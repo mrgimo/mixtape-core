@@ -100,6 +100,7 @@ public class DatabaseService {
 
 		synchronized (entityManagers) {
 			for (EntityManager em : entityManagers) {
+				LOG.info("Terminating entity manager resource: "+em);
 				terminateEntityManager(em);
 			}
 

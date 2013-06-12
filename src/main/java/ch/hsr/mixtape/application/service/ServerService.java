@@ -48,20 +48,25 @@ public class ServerService {
 
 	private DecimalFormat df;
 
+	private boolean hasStartedUp;
+
 	public ServerService() {
 		df = (DecimalFormat) NumberFormat.getInstance();
 		df.setMaximumFractionDigits(2);
-		
-		startUp();
+		System.err.println("ServerService initialized");
 	}
 
-	private void startUp() {
+	public void startUp() {
+		if (hasStartedUp)
+			return;
+
 		String musicDirPath = SongPathResolver.MUSIC_DIRECTORY_FILEPATH;
 		if (musicDirPath == null || musicDirPath.isEmpty())
 			throw new RuntimeException("No MusicData Filepath defined!");
 
 		List<Song> pendingSongs = em.createNamedQuery("getPendingSongs",
 				Song.class).getResultList();
+		System.err.println("PENDING SONGS: " + pendingSongs.size());
 		if (!pendingSongs.isEmpty())
 			getAnalyzerService().analyze(pendingSongs);
 	}
