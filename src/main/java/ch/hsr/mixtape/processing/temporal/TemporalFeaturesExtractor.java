@@ -117,7 +117,8 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 				confidenceSum += factor;
 			}
 
-			beats[numberOfBeats++] = DoubleMath.roundToInt(beatSum / confidenceSum * 0.2, RoundingMode.HALF_UP) + 1;
+			if (confidenceSum > 0)
+				beats[numberOfBeats++] = DoubleMath.roundToInt(beatSum / confidenceSum * 0.2, RoundingMode.HALF_UP) + 1;
 		}
 
 		return Arrays.copyOf(beats, numberOfBeats);
