@@ -84,9 +84,13 @@ public class QueryService {
 		return em.createNamedQuery("getAllSongs", Song.class).getResultList();
 	}
 
-	public List<Song> getPendingSongs() {
-		return em.createNamedQuery("getPendingSongs", Song.class)
-				.getResultList();
+	public List<Song> getPendingSongs(int limit) {
+		if (limit > 0)
+			return em.createNamedQuery("getPendingSongs", Song.class)
+					.setMaxResults(limit).getResultList();
+		else
+			return em.createNamedQuery("getPendingSongs", Song.class)
+					.getResultList();
 	}
 
 	public List<Song> getAnalysedSongs() {

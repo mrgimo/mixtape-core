@@ -207,7 +207,7 @@ public class ServerService {
 
 	private void setPendingSongs(SystemStatus ss) {
 		ss.setPendingSongs(ApplicationFactory.getQueryService()
-				.getPendingSongs());
+				.getPendingSongs(50));
 	}
 
 }
