@@ -26,9 +26,9 @@ import ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong;
 import ch.hsr.mixtape.processing.temporal.TemporalFeaturesExtractor;
 import ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong;
 
-import com.google.common.base.Function;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
@@ -53,12 +53,12 @@ public class Mixtape {
 		addDistances(distances);
 	}
 
-	private void addDistances(Collection<Distance> distances) {
+	private synchronized void addDistances(Collection<Distance> distances) {
 		for (Distance distance : distances)
 			addDistance(distance);
 	}
 
-	private void addDistance(Distance distance) {
+	private synchronized void addDistance(Distance distance) {
 		Song songX = distance.getSongX();
 		Song songY = distance.getSongY();
 
@@ -119,18 +119,11 @@ public class Mixtape {
 	}
 
 	private List<Distance> evaluate(List<ListenableFuture<Distance>> distances) {
-		return Lists.transform(distances,
-				new Function<ListenableFuture<Distance>, Distance>() {
-
-					public Distance apply(ListenableFuture<Distance> distance) {
-						try {
-							return distance.get();
-						} catch (InterruptedException | ExecutionException exception) {
-							throw new RuntimeException(exception);
-						}
-					}
-
-				});
+		try {
+			return Futures.allAsList(distances).get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private ListenableFuture<Distance> calcDistanceBetween(final Song newSong, final Song oldSong) {
@@ -165,7 +158,7 @@ public class Mixtape {
 		return new Distance(song, song, 0, 0, 0, 0);
 	}
 
-	public List<Song> getSongs() {
+	public synchronized List<Song> getSongs() {
 		return Lists.newArrayList(distanceTable.rowKeySet());
 	}
 

@@ -70,6 +70,7 @@ public class SampleWindowPublisher {
 		}
 
 		publishRemainingSamples();
+		channel.close();
 	}
 
 	private void init(Song song) {
