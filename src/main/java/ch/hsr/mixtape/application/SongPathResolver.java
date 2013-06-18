@@ -17,6 +17,9 @@ public class SongPathResolver {
 	private static Path MIXTAPE_MUSIC_DATA_PATH;
 
 	public static Path getRelativeSongFilepath(Path absoluteSongFilepath) {
+		// Make sure MIXTAPE_MUSIC_DATA_PATH is initialized!
+		getMusicDataPath();
+
 		if (!absoluteSongFilepath.isAbsolute())
 			return absoluteSongFilepath;
 
@@ -24,18 +27,20 @@ public class SongPathResolver {
 	}
 
 	public static Path getAbsoluteSongFilepath(String relativeSongFilepath) {
+		// Make sure MIXTAPE_MUSIC_DATA_PATH is initialized!
+		getMusicDataPath();
+
 		final Path path = Paths.get(relativeSongFilepath);
 		if (path.isAbsolute())
 			return path;
-
+		
 		return MIXTAPE_MUSIC_DATA_PATH.resolve(path);
 	}
 
 	public static Path getMusicDataPath() {
 		if (MIXTAPE_MUSIC_DATA_PATH == null) {
 			try {
-				MIXTAPE_MUSIC_DATA_PATH = Paths
-						.get(MUSIC_DIRECTORY_FILEPATH);
+				MIXTAPE_MUSIC_DATA_PATH = Paths.get(MUSIC_DIRECTORY_FILEPATH);
 			} catch (Exception e) {
 				throw new RuntimeException(
 						"MusicDataFilepath could not be retrieved.", e);
