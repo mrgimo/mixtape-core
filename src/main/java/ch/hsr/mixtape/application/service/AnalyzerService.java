@@ -23,7 +23,8 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 
 public class AnalyzerService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AnalyzerService.class);
+	private static final Logger LOG = LoggerFactory
+			.getLogger(AnalyzerService.class);
 
 	private final ListeningExecutorService analyzingExecutor = listeningDecorator(newSingleThreadExecutor());
 
@@ -35,11 +36,18 @@ public class AnalyzerService {
 			public void run() {
 				for (Song song : songs)
 					try {
-						Collection<Distance> distances = getMixtape().addSong(song);
+						song.setAnalyzeStartDate();
+						Collection<Distance> distances = getMixtape().addSong(
+								song);
+						song.setAnalyzeDate(new Date());
 
-						LOG.info("Analysing songs successful.");
+						LOG.info("Analysing song successful.");
+						LOG.info("Analysis for `" + song.getTitle() + "` took "
+								+ song.getAnalysisDurationInSeconds()
+								+ " seconds.");
 						persist(distances, song);
-					} catch (IOException | InterruptedException | ExecutionException exception) {
+					} catch (IOException | InterruptedException
+							| ExecutionException exception) {
 						LOG.error("Error during analysing songs.", exception);
 					}
 			}
@@ -48,16 +56,14 @@ public class AnalyzerService {
 	}
 
 	private void persist(Collection<Distance> distances, Song song) {
-		LOG.info("Persisting now...");
+		LOG.info("Persisting song now...");
 		EntityManager entityManager = getDatabaseService()
 				.getNewEntityManager();
 		entityManager.getTransaction().begin();
 
-		song.setAnalyzeDate(new Date());
 		entityManager.merge(song);
-
 		entityManager.flush();
-		LOG.info("Flushed songs.");
+		LOG.info("Flushed song.");
 
 		for (Distance distance : distances)
 			entityManager.persist(distance);

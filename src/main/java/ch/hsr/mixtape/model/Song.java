@@ -52,6 +52,13 @@ public class Song {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = true)
+	private Date analyzeStartDate;
+	
+	/**
+	 * Only for statistics/testing.
+	 */
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(nullable = true)
 	private Date analyzeDate;
 
 	private int lengthInSeconds;
@@ -117,6 +124,22 @@ public class Song {
 
 	public Date getScanDate() {
 		return scanDate;
+	}
+	
+	/**
+	 * Only for statistics/testing.
+	 */
+	public long getAnalysisDurationInSeconds() {
+		if (analyzeStartDate == null || analyzeDate == null)
+			return 0;
+		return (analyzeDate.getTime() - analyzeStartDate.getTime()) / 1000;
+	}
+	
+	/**
+	 * Only for statistics/testing.
+	 */
+	public void setAnalyzeStartDate() {
+		this.analyzeStartDate = new Date();
 	}
 
 	public Date getAnalyzeDate() {
