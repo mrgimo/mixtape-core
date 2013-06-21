@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.application.ApplicationFactory;
 import ch.hsr.mixtape.application.MusicDirectoryScanner;
-import ch.hsr.mixtape.application.SongPathResolver;
+import ch.hsr.mixtape.application.PathResolver;
 import ch.hsr.mixtape.io.AudioChannel;
 import ch.hsr.mixtape.model.Song;
 import ch.hsr.mixtape.model.SystemStatus;
@@ -58,7 +58,11 @@ public class ServerService {
 		if (hasStartedUp)
 			return;
 
-		String musicDirPath = SongPathResolver.MUSIC_DIRECTORY_FILEPATH;
+		String mixtapeDirPath = PathResolver.getMixtapteDataPathname();
+		if (mixtapeDirPath == null || mixtapeDirPath.isEmpty())
+			throw new RuntimeException("No MixtapeData Filepath defined!");
+		
+		String musicDirPath = PathResolver.MUSIC_DIRECTORY_FILEPATH;
 		if (musicDirPath == null || musicDirPath.isEmpty())
 			throw new RuntimeException("No MusicData Filepath defined!");
 
@@ -162,11 +166,8 @@ public class ServerService {
 	 */
 	private void setDatabaseSize(SystemStatus ss) {
 		try {
-			String pathname = System.getenv("mixtapeData");
-			if (!pathname.endsWith("/"))
-				pathname += "/";
-
-			File file = new File(pathname + "mixtapeDB");
+			File file = new File(PathResolver.getMixtapteDataPathname()
+					+ "mixtapeDB");
 			long size = FileUtils.sizeOfDirectory(file);
 			if (size > 1073741824)
 				ss.setDatabaseSize(df.format(size / 1073741824F) + " GB");

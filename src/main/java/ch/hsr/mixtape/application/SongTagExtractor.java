@@ -33,7 +33,7 @@ public class SongTagExtractor {
 	 */
 	public void extractTagsFromSong(Song song) {
 		try {
-			Path absolutePath = SongPathResolver.getAbsoluteSongFilepath(song
+			Path absolutePath = PathResolver.getAbsoluteSongFilepath(song
 					.getFilepath());
 			
 			filename = FilepathExtractor.getBasename(song.getFilepath()); 

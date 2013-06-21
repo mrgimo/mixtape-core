@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
-import ch.hsr.mixtape.application.SongPathResolver;
+import ch.hsr.mixtape.application.PathResolver;
 import ch.hsr.mixtape.io.AudioChannel;
 import ch.hsr.mixtape.model.Song;
 
@@ -79,7 +79,7 @@ public class SampleWindowPublisher {
 		readPositions = new int[processors.size()];
 		writePosition = 0;
 
-		Path absoluteSongPath = SongPathResolver.getAbsoluteSongFilepath(song.getFilepath());
+		Path absoluteSongPath = PathResolver.getAbsoluteSongFilepath(song.getFilepath());
 		channel = AudioChannel.load(absoluteSongPath.toFile());
 		byteBuffer = ByteBuffer.allocate(calcByteBufferSize(channel, sampleBuffer.length));
 	}

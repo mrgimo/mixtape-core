@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.AudioConverter;
+import ch.hsr.mixtape.application.PathResolver;
 
 public class AudioChannel implements ReadableByteChannel {
 
@@ -55,8 +56,9 @@ public class AudioChannel implements ReadableByteChannel {
 			LOG.warn("File not supported for native decoding: "
 					+ file.getAbsolutePath());
 			LOG.warn("Trying to convert to supported format now.");
-			
-			File out = new File(TEMPORARY_FILE_NAME);
+
+			File out = new File(PathResolver.getMixtapteDataPathname()
+					+ TEMPORARY_FILE_NAME);
 			try {
 				converter.transcode(file, out, "ogg", 2);
 				return tryOpen(out);
