@@ -41,11 +41,15 @@ public class Mixtape {
 	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	private static final int NUMBER_OF_FEATURE_EXTRACTORS = 4;
 
-	private final ListeningExecutorService singlethreadedExecutor = exitingFixedExecutorService(1);
-	private final ListeningExecutorService multithreadedExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS);
+	private final ListeningExecutorService publishingExecutor = exitingFixedExecutorService(1);
+	private final ListeningExecutorService addingExecutor = exitingFixedExecutorService(1);
+
+	private final ListeningExecutorService distanceExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS);
+	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS);
 
 	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(NUMBER_OF_AVAILABLE_PROCESSORS);
 	private final ListeningExecutorService postprocessingExecutor = exitingFixedExecutorService(NUMBER_OF_FEATURE_EXTRACTORS);
+	private final ListeningExecutorService extractionAwaitingExecutor = exitingFixedExecutorService(1);
 
 	private final HarmonicFeaturesExtractor harmonicFeatureExtractor = new HarmonicFeaturesExtractor();
 	private final PerceptualFeaturesExtractor perceptualFeatureExtractor = new PerceptualFeaturesExtractor();
@@ -90,7 +94,7 @@ public class Mixtape {
 
 	private void addSong(final ListenableFuture<Song> song, final List<ListenableFuture<Distance>> distances,
 			final DistanceCallback callback) {
-		multithreadedExecutor.submit(new Runnable() {
+		addingExecutor.submit(new Runnable() {
 
 			public void run() {
 				try {
@@ -119,7 +123,7 @@ public class Mixtape {
 
 	private ListenableFuture<Song> extractFeaturesOf(final Song song) throws IOException, InterruptedException,
 			ExecutionException {
-		return dereference(singlethreadedExecutor.submit(new Callable<ListenableFuture<Song>>() {
+		return dereference(publishingExecutor.submit(new Callable<ListenableFuture<Song>>() {
 
 			public ListenableFuture<Song> call() throws Exception {
 				song.setAnalyzeStartDate();
@@ -127,18 +131,21 @@ public class Mixtape {
 				SampleWindowPublisher publisher = new SampleWindowPublisher(extractionExecutor, postprocessingExecutor);
 
 				final ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher.register(harmonicFeatureExtractor);
-				final ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher
-						.register(perceptualFeatureExtractor);
+				final ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher.register(perceptualFeatureExtractor);
 				final ListenableFuture<SpectralFeaturesOfSong> spectral = publisher.register(spectralFeatureExtractor);
 				final ListenableFuture<TemporalFeaturesOfSong> temporal = publisher.register(temporalFeatureExtractor);
 
 				publisher.publish(song);
 
-				return multithreadedExecutor.submit(new Callable<Song>() {
+				return extractionAwaitingExecutor.submit(new Callable<Song>() {
 
 					public Song call() throws Exception {
-						song.setFeatures(new FeaturesOfSong(harmonic.get(), perceptual.get(), spectral.get(), temporal
-								.get()));
+						song.setFeatures(new FeaturesOfSong(
+								harmonic.get(),
+								perceptual.get(),
+								spectral.get(),
+								temporal.get()));
+
 						return song;
 					}
 
@@ -159,7 +166,7 @@ public class Mixtape {
 
 	private ListenableFuture<Distance> calcDistanceBetween(final ListenableFuture<Song> songX,
 			final ListenableFuture<Song> songY) {
-		return multithreadedExecutor.submit(new Callable<Distance>() {
+		return distanceAwaitingExecutor.submit(new Callable<Distance>() {
 
 			public Distance call() throws Exception {
 				return calcDistanceBetween(songX.get(), songY.get());
@@ -185,7 +192,7 @@ public class Mixtape {
 	}
 
 	private ListenableFuture<Double> harmonicDistance(final FeaturesOfSong x, final FeaturesOfSong y) {
-		return multithreadedExecutor.submit(new Callable<Double>() {
+		return distanceExecutor.submit(new Callable<Double>() {
 
 			public Double call() throws Exception {
 				return harmonicFeatureExtractor.distanceBetween(x.harmonic, y.harmonic);
@@ -195,7 +202,7 @@ public class Mixtape {
 	}
 
 	private ListenableFuture<Double> perceptualDistance(final FeaturesOfSong x, final FeaturesOfSong y) {
-		return multithreadedExecutor.submit(new Callable<Double>() {
+		return distanceExecutor.submit(new Callable<Double>() {
 
 			public Double call() throws Exception {
 				return perceptualFeatureExtractor.distanceBetween(x.perceptual, y.perceptual);
@@ -205,7 +212,7 @@ public class Mixtape {
 	}
 
 	private ListenableFuture<Double> spectralDistance(final FeaturesOfSong x, final FeaturesOfSong y) {
-		return multithreadedExecutor.submit(new Callable<Double>() {
+		return distanceExecutor.submit(new Callable<Double>() {
 
 			public Double call() throws Exception {
 				return spectralFeatureExtractor.distanceBetween(x.spectral, y.spectral);
@@ -215,7 +222,7 @@ public class Mixtape {
 	}
 
 	private ListenableFuture<Double> temporalDistance(final FeaturesOfSong x, final FeaturesOfSong y) {
-		return multithreadedExecutor.submit(new Callable<Double>() {
+		return distanceExecutor.submit(new Callable<Double>() {
 
 			public Double call() throws Exception {
 				return temporalFeatureExtractor.distanceBetween(x.temporal, y.temporal);

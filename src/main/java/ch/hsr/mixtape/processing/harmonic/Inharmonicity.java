@@ -15,7 +15,6 @@ public class Inharmonicity {
 			weightedInharmony += deviationInBins * square(powerSpectrum[binOfHarmonic]);
 		}
 
-		// TODO: formula says 2 * weightedInharmony, why? :)?
 		return totalEnergy != 0.0 ? (2 * weightedInharmony) / (binOfFundamental * totalEnergy) : 0;
 	}
 

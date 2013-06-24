@@ -13,8 +13,7 @@ public class OddToEvenHarmonicEnergyRatio {
 			sumOfEvenHarmonics += square(powerSpectrum[harmonics[i + 1]]);
 		}
 
-		return sumOfEvenHarmonics != 0.0 ? sumOfOddHarmonics
-				/ sumOfEvenHarmonics : 0;
+		return sumOfEvenHarmonics != 0.0 ? sumOfOddHarmonics / sumOfEvenHarmonics : 0;
 	}
 
 }
