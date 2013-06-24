@@ -7,6 +7,8 @@ import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
+import org.eclipse.persistence.internal.dbws.SOAPAttachmentHandler;
+
 @Entity
 @NamedQuery(name = "getAllDistances", query = "SELECT d FROM Distance d")
 public class Distance {
@@ -39,6 +41,10 @@ public class Distance {
 		this.perceptualDistance = perceptualDistance;
 		this.spectralDistance = spectralDistance;
 		this.temporalDistance = temporalDistance;
+	}
+	
+	public static Distance toItself(Song song) {
+		return new Distance(song, song, 0, 0, 0, 0);
 	}
 
 	public int gedId() {

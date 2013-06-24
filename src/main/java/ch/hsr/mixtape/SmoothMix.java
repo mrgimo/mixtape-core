@@ -88,7 +88,7 @@ public class SmoothMix implements MixStrategy {
 
 		PlaylistSettings playlistSettings = currentPlaylist.getSettings();
 
-		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
+		Map<Song, Distance> distancesAddedSong = mixtape.distancesTo(addedSong);
 
 		double currentDistanceToAddedSong = weightedVectorLength(
 				distancesAddedSong.get(firstSong), playlistSettings);
@@ -177,9 +177,9 @@ public class SmoothMix implements MixStrategy {
 		List<Song> candidates = Lists.<Song>newArrayList();
 		Song lastPlaylistSong = playlist.getLastItem().getCurrent();
 
-		Map<Song, Distance> distancesAddedSong = mixtape.distances(addedSong);
+		Map<Song, Distance> distancesAddedSong = mixtape.distancesTo(addedSong);
 		Map<Song, Distance> distancesLastPlaylistSong = mixtape
-				.distances(lastPlaylistSong);
+				.distancesTo(lastPlaylistSong);
 
 		double distanceFirstToAddedSong = weightedVectorLength(
 				distancesLastPlaylistSong.get(addedSong),
@@ -220,7 +220,7 @@ public class SmoothMix implements MixStrategy {
 
 			while (!unsortedSongs.isEmpty()) {
 				Song mostSuitableCandidate = unsortedSongs.get(0);
-				Map<Song, Distance> distancesLast = mixtape.distances(lastSongInList);
+				Map<Song, Distance> distancesLast = mixtape.distancesTo(lastSongInList);
 				double distanceMostSuitabletoLast = Double.POSITIVE_INFINITY;
 				for (int y = 0; y < unsortedSongs.size(); y++) {
 					double distanceToLast = weightedVectorLength(distancesLast.get(unsortedSongs.get(y)),
