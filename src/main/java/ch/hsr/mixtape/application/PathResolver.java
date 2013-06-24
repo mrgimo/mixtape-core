@@ -9,8 +9,10 @@ import java.nio.file.Paths;
  * 
  * @author Stefan Derungs
  */
-public class SongPathResolver {
+public class PathResolver {
 
+	private static final String MIXTAPE_DATA_DIRECTORY = System.getenv("mixtapeData");
+	
 	public static final String MUSIC_DIRECTORY_FILEPATH = System
 			.getenv("mixtapeMusicDir");
 
@@ -48,6 +50,14 @@ public class SongPathResolver {
 		}
 
 		return MIXTAPE_MUSIC_DATA_PATH;
+	}
+	
+	public static String getMixtapteDataPathname() {
+		String pathname = MIXTAPE_DATA_DIRECTORY;
+		if (!pathname.isEmpty() && !pathname.endsWith("/"))
+			pathname += "/";
+		
+		return pathname;
 	}
 
 }

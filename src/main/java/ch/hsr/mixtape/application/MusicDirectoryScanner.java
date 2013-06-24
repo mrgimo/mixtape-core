@@ -52,7 +52,7 @@ public class MusicDirectoryScanner implements Runnable {
 	@Override
 	public void run() {
 		try {
-			File directory = SongPathResolver.getMusicDataPath().toFile();
+			File directory = PathResolver.getMusicDataPath().toFile();
 
 			try {
 				scanDirectory(directory);
@@ -89,7 +89,7 @@ public class MusicDirectoryScanner implements Runnable {
 				continue;
 			}
 
-			Path relativePath = SongPathResolver.getRelativeSongFilepath(file
+			Path relativePath = PathResolver.getRelativeSongFilepath(file
 					.toPath());
 			Song song = new Song(relativePath.toString(), new Date());
 			extractor.extractTagsFromSong(song);

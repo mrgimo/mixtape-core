@@ -10,6 +10,7 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -93,10 +94,13 @@ public class Mixtape {
 
 			public void run() {
 				try {
+					Song newSong = song.get();
 					List<Distance> newDistances = Futures.allAsList(distances).get();
 
 					addDistances(newDistances);
-					callback.distanceAdded(song.get(), newDistances);
+					newSong.setAnalyzeDate(new Date());
+
+					callback.distanceAdded(newSong, newDistances);
 				} catch (InterruptedException | ExecutionException exception) {
 					throw new RuntimeException(exception);
 				}
@@ -118,6 +122,8 @@ public class Mixtape {
 		return dereference(singlethreadedExecutor.submit(new Callable<ListenableFuture<Song>>() {
 
 			public ListenableFuture<Song> call() throws Exception {
+				song.setAnalyzeStartDate();
+
 				SampleWindowPublisher publisher = new SampleWindowPublisher(extractionExecutor, postprocessingExecutor);
 
 				final ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher.register(harmonicFeatureExtractor);

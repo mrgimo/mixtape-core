@@ -5,7 +5,6 @@ import static ch.hsr.mixtape.application.ApplicationFactory.getMixtape;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -20,7 +19,8 @@ import ch.hsr.mixtape.model.Song;
 
 public class AnalyzerService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AnalyzerService.class);
+	private static final Logger LOG = LoggerFactory
+			.getLogger(AnalyzerService.class);
 
 	public void analyze(final List<Song> songs) {
 		LOG.info("Submitted " + songs.size() + " song(s) for analysis.");
@@ -28,28 +28,27 @@ public class AnalyzerService {
 			getMixtape().addSongs(songs, new DistanceCallback() {
 
 				public void distanceAdded(Song song, Collection<Distance> distances) {
+					LOG.info("Analysing song successful.");
+					LOG.info("Analysis for `" + song.getTitle() + "` took "
+							+ song.getAnalysisDurationInSeconds()
+							+ " seconds.");
 					persist(distances, song);
 				}
 
 			});
-
-			LOG.info("Analysing songs successful.");
 		} catch (IOException | InterruptedException | ExecutionException exception) {
 			LOG.error("Error during analysing songs.", exception);
 		}
-
 	}
 
-	private synchronized void persist(Collection<Distance> distances, Song song) {
-		LOG.info("Persisting now...");
+	private void persist(Collection<Distance> distances, Song song) {
+		LOG.info("Persisting song now...");
 		EntityManager entityManager = getDatabaseService().getNewEntityManager();
 		entityManager.getTransaction().begin();
 
-		song.setAnalyzeDate(new Date());
 		entityManager.merge(song);
-
 		entityManager.flush();
-		LOG.info("Flushed songs.");
+		LOG.info("Flushed song.");
 
 		for (Distance distance : distances)
 			entityManager.persist(distance);
