@@ -46,7 +46,7 @@ public class Mixtape {
 
 	private final ListeningExecutorService distanceExecutor = exitingFixedExecutorService(
 			NUMBER_OF_AVAILABLE_PROCESSORS, "distance");
-	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(1,
+	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS,
 			"distance-awaiting");
 
 	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(
