@@ -41,15 +41,20 @@ public class Mixtape {
 	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	private static final int NUMBER_OF_FEATURE_EXTRACTORS = 4;
 
-	private final ListeningExecutorService publishingExecutor = exitingFixedExecutorService(1);
-	private final ListeningExecutorService addingExecutor = exitingFixedExecutorService(1);
+	private final ListeningExecutorService publishingExecutor = exitingFixedExecutorService(1, "publishing");
+	private final ListeningExecutorService addingExecutor = exitingFixedExecutorService(1, "adding");
 
-	private final ListeningExecutorService distanceExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS);
-	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS);
+	private final ListeningExecutorService distanceExecutor = exitingFixedExecutorService(
+			NUMBER_OF_AVAILABLE_PROCESSORS, "distance");
+	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(1,
+			"distance-awaiting");
 
-	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(NUMBER_OF_AVAILABLE_PROCESSORS);
-	private final ListeningExecutorService postprocessingExecutor = exitingFixedExecutorService(NUMBER_OF_FEATURE_EXTRACTORS);
-	private final ListeningExecutorService extractionAwaitingExecutor = exitingFixedExecutorService(1);
+	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(
+			NUMBER_OF_AVAILABLE_PROCESSORS, "extraction");
+	private final ListeningExecutorService postprocessingExecutor = exitingFixedExecutorService(
+			NUMBER_OF_FEATURE_EXTRACTORS, "postprocessing");
+	private final ListeningExecutorService extractionAwaitingExecutor = exitingFixedExecutorService(1,
+			"extraction-awating");
 
 	private final HarmonicFeaturesExtractor harmonicFeatureExtractor = new HarmonicFeaturesExtractor();
 	private final PerceptualFeaturesExtractor perceptualFeatureExtractor = new PerceptualFeaturesExtractor();
@@ -131,7 +136,8 @@ public class Mixtape {
 				SampleWindowPublisher publisher = new SampleWindowPublisher(extractionExecutor, postprocessingExecutor);
 
 				final ListenableFuture<HarmonicFeaturesOfSong> harmonic = publisher.register(harmonicFeatureExtractor);
-				final ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher.register(perceptualFeatureExtractor);
+				final ListenableFuture<PerceptualFeaturesOfSong> perceptual = publisher
+						.register(perceptualFeatureExtractor);
 				final ListenableFuture<SpectralFeaturesOfSong> spectral = publisher.register(spectralFeatureExtractor);
 				final ListenableFuture<TemporalFeaturesOfSong> temporal = publisher.register(temporalFeatureExtractor);
 
