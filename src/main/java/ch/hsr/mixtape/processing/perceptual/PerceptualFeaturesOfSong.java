@@ -2,10 +2,15 @@ package ch.hsr.mixtape.processing.perceptual;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
+import ch.hsr.mixtape.processing.Feature;
 
 @Entity
 public class PerceptualFeaturesOfSong implements Serializable {
@@ -16,17 +21,29 @@ public class PerceptualFeaturesOfSong implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	public int[] mfcc1;
-	public int[] mfcc2;
-	public int[] mfcc3;
-	public int[] mfcc4;
-	public int[] mfcc5;
-	public int[] mfcc6;
-	public int[] mfcc7;
-	public int[] mfcc8;
-	public int[] mfcc9;
-	public int[] mfcc10;
-	public int[] mfcc11;
-	public int[] mfcc12;
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc1 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc2 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc3 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc4 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc5 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc6 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc7 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc8 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc9 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc10 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc11 = new Feature();
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	public Feature mfcc12 = new Feature();
 
 }
