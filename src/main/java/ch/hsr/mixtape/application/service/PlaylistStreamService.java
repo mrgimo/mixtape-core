@@ -25,6 +25,9 @@ import ch.hsr.mixtape.application.StreamSubscriber;
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Song;
 
+/**
+ * This class doesn't contain a working example.
+ */
 public class PlaylistStreamService {
 
 	static final Logger LOG = LoggerFactory
