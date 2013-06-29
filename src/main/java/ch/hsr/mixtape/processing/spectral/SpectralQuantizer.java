@@ -27,11 +27,11 @@ public class SpectralQuantizer {
 
 		SpectralFeaturesOfSong spectralFeaturesOfSong = new SpectralFeaturesOfSong();
 
-		spectralFeaturesOfSong.spectralCentroid = Ints.toArray(spectralCentroid);
-		spectralFeaturesOfSong.spectralKurtosis = Ints.toArray(spectralKurtosis);
-		spectralFeaturesOfSong.spectralSkewness = Ints.toArray(spectralSkewness);
-		spectralFeaturesOfSong.spectralSpread = Ints.toArray(spectralSpread);
-		spectralFeaturesOfSong.spectralOddToEvenRatio = Ints.toArray(spectralOddToEvenRatio);
+		spectralFeaturesOfSong.spectralCentroid.values = Ints.toArray(spectralCentroid);
+		spectralFeaturesOfSong.spectralKurtosis.values = Ints.toArray(spectralKurtosis);
+		spectralFeaturesOfSong.spectralSkewness.values = Ints.toArray(spectralSkewness);
+		spectralFeaturesOfSong.spectralSpread.values = Ints.toArray(spectralSpread);
+		spectralFeaturesOfSong.spectralOddToEvenRatio.values = Ints.toArray(spectralOddToEvenRatio);
 
 		return spectralFeaturesOfSong;
 	}

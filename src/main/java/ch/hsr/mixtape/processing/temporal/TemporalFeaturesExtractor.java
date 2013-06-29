@@ -92,7 +92,7 @@ public class TemporalFeaturesExtractor implements FeatureExtractor<TemporalFeatu
 		}
 
 		TemporalFeaturesOfSong featuresOfSong = new TemporalFeaturesOfSong();
-		featuresOfSong.beats = quantize(bpms, confidences, maxConfidences);
+		featuresOfSong.beats.values = quantize(bpms, confidences, maxConfidences);
 
 		return featuresOfSong;
 	}

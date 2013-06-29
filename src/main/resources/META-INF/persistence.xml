@@ -15,6 +15,7 @@
 		<class>ch.hsr.mixtape.processing.perceptual.PerceptualFeaturesOfSong</class>
 		<class>ch.hsr.mixtape.processing.spectral.SpectralFeaturesOfSong</class>
 		<class>ch.hsr.mixtape.processing.temporal.TemporalFeaturesOfSong</class>
+		<class>ch.hsr.mixtape.processing.Feature</class>
 
 		<!-- shouldn't be valid for java SE per specification, but it works for 
 			EclipseLink ... -->

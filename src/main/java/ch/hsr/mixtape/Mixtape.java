@@ -91,7 +91,6 @@ public class Mixtape {
 		for (Song song : songs) {
 			ListenableFuture<Song> newSong = extractFeaturesOf(song);
 			List<ListenableFuture<Distance>> distances = calcDistancesBetween(newSong, otherSongs);
-
 			addSong(newSong, distances, callback);
 			otherSongs.add(newSong);
 		}

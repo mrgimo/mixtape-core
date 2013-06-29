@@ -41,18 +41,18 @@ public class PerceptualQuantizer {
 
 		PerceptualFeaturesOfSong perceptualFeaturesOfSong = new PerceptualFeaturesOfSong();
 
-		perceptualFeaturesOfSong.mfcc1 = Ints.toArray(mfcc1);
-		perceptualFeaturesOfSong.mfcc2 = Ints.toArray(mfcc2);
-		perceptualFeaturesOfSong.mfcc3 = Ints.toArray(mfcc3);
-		perceptualFeaturesOfSong.mfcc4 = Ints.toArray(mfcc4);
-		perceptualFeaturesOfSong.mfcc5 = Ints.toArray(mfcc5);
-		perceptualFeaturesOfSong.mfcc6 = Ints.toArray(mfcc6);
-		perceptualFeaturesOfSong.mfcc7 = Ints.toArray(mfcc7);
-		perceptualFeaturesOfSong.mfcc8 = Ints.toArray(mfcc8);
-		perceptualFeaturesOfSong.mfcc9 = Ints.toArray(mfcc9);
-		perceptualFeaturesOfSong.mfcc10 = Ints.toArray(mfcc10);
-		perceptualFeaturesOfSong.mfcc11 = Ints.toArray(mfcc11);
-		perceptualFeaturesOfSong.mfcc12 = Ints.toArray(mfcc12);
+		perceptualFeaturesOfSong.mfcc1.values = Ints.toArray(mfcc1);
+		perceptualFeaturesOfSong.mfcc2.values = Ints.toArray(mfcc2);
+		perceptualFeaturesOfSong.mfcc3.values = Ints.toArray(mfcc3);
+		perceptualFeaturesOfSong.mfcc4.values = Ints.toArray(mfcc4);
+		perceptualFeaturesOfSong.mfcc5.values = Ints.toArray(mfcc5);
+		perceptualFeaturesOfSong.mfcc6.values = Ints.toArray(mfcc6);
+		perceptualFeaturesOfSong.mfcc7.values = Ints.toArray(mfcc7);
+		perceptualFeaturesOfSong.mfcc8.values = Ints.toArray(mfcc8);
+		perceptualFeaturesOfSong.mfcc9.values = Ints.toArray(mfcc9);
+		perceptualFeaturesOfSong.mfcc10.values = Ints.toArray(mfcc10);
+		perceptualFeaturesOfSong.mfcc11.values = Ints.toArray(mfcc11);
+		perceptualFeaturesOfSong.mfcc12.values = Ints.toArray(mfcc12);
 
 		return perceptualFeaturesOfSong;
 	}
