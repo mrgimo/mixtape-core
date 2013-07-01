@@ -82,6 +82,12 @@ public class ServerService {
 			LOG.error("Error during shutdown: Temporary extraction"
 					+ " file could not be deleted.", e);
 		}
+		
+		try {
+			Files.deleteIfExists(Paths.get(PlaylistPlaybackService.TEMP_DIR));
+		} catch (IOException e) {
+			LOG.error("Temp directory could not be deleted.", e);
+		}
 
 		LOG.info("Shutting down database service...");
 		getDatabaseService().shutdown();

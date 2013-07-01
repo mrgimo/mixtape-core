@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import ch.hsr.mixtape.Mixtape;
 import ch.hsr.mixtape.application.service.AnalyzerService;
 import ch.hsr.mixtape.application.service.DatabaseService;
+import ch.hsr.mixtape.application.service.PlaylistPlaybackService;
 import ch.hsr.mixtape.application.service.PlaylistService;
 import ch.hsr.mixtape.application.service.PlaylistStreamService;
 import ch.hsr.mixtape.application.service.QueryService;
@@ -28,7 +29,9 @@ public class ApplicationFactory {
 	private static PlaylistService playlistService;
 
 	private static PlaylistStreamService playlistStreamService;
-
+	
+	private static PlaylistPlaybackService playlistPlaybackService;
+	
 	private static QueryService queryService;
 
 	private static ServerService serverService;
@@ -61,6 +64,15 @@ public class ApplicationFactory {
 		}
 
 		return playlistStreamService;
+	}
+
+	public static PlaylistPlaybackService getPlaylistPlaybackService() {
+		if (playlistPlaybackService == null) {
+			LOG.debug("Initializing PlaylistPlaybackService");
+			playlistPlaybackService = new PlaylistPlaybackService();
+		}
+
+		return playlistPlaybackService;
 	}
 
 	public static QueryService getQueryService() {

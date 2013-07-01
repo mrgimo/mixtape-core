@@ -48,7 +48,7 @@ public class PlaylistService {
 					"Uninitialized playlist. You have to create a playlist first.");
 	}
 
-	public void createPlaylist(PlaylistSettings settings)
+	public void createPlaylist(PlaylistSettings settings, PlaylistSubscriber playlistSubscriber)
 			throws InvalidPlaylistException {
 		try {
 			playlistLock.writeLock().lock();
@@ -61,6 +61,7 @@ public class PlaylistService {
 			getMixtape().initialMix(playlist);
 		} finally {
 			playlistLock.writeLock().unlock();
+			playlistSubscriber.notifyPlaylistReady();
 			LOG.debug("Released Write-Lock in `createNewPlaylist`.");
 		}
 	}
@@ -122,6 +123,7 @@ public class PlaylistService {
 	 *            check the playlist has not changed since the last request.
 	 * @param newPosition
 	 *            The songs new position.
+	 * @param playlistSubscriber 
 	 * @return True if oldPosition equals newPosition and no sorting is needed
 	 *         or if sorting successful.
 	 * @throws InvalidPlaylistException
@@ -129,7 +131,7 @@ public class PlaylistService {
 	 *             Is thrown if the given oldPosition does not match with the
 	 *             songs current position.
 	 */
-	public void alterSorting(int songId, int oldPosition, int newPosition)
+	public void alterSorting(int songId, int oldPosition, int newPosition, PlaylistSubscriber playlistSubscriber)
 			throws InvalidPlaylistException, PlaylistChangedException {
 		try {
 			playlistLock.writeLock().lock();
@@ -153,6 +155,7 @@ public class PlaylistService {
 			LOG.debug("Resorted song with id " + songId + ".");
 		} finally {
 			playlistLock.writeLock().unlock();
+			playlistSubscriber.notifyPlaylistReady();
 			LOG.debug("Released Write-Lock in `alterSorting`.");
 		}
 	}
@@ -218,12 +221,13 @@ public class PlaylistService {
 	 * 
 	 * @param songId
 	 *            The song to be added.
+	 * @param playlistSubscriber 
 	 * @return True if adding succeeds. False else.
 	 * @throws InvalidPlaylistException
 	 * @throws EntityNotFoundException
 	 *             If song could not be found in database.
 	 */
-	public void addWish(int songId) throws InvalidPlaylistException,
+	public void addWish(int songId, PlaylistSubscriber playlistSubscriber) throws InvalidPlaylistException,
 			EntityNotFoundException {
 		try {
 			playlistLock.writeLock().lock();
@@ -237,6 +241,7 @@ public class PlaylistService {
 			LOG.debug("Added wish:" + song.getTitle() + ".");
 		} finally {
 			playlistLock.writeLock().unlock();
+			playlistSubscriber.notifyPlaylistReady();
 			LOG.debug("Released Write-Lock in `addWish`.");
 		}
 	}
@@ -247,13 +252,14 @@ public class PlaylistService {
 	 * @param expectedSongPosition
 	 *            This position is provided to double check the playlist has not
 	 *            changed since the last request.
+	 * @param playlistSubscriber 
 	 * @return True if removing succeeds.
 	 * @throws InvalidPlaylistException
 	 * @throws PlaylistChangedException
 	 *             Is thrown if either the given songPosition does not match
 	 *             with the songId or the songPosition does not exist at all.
 	 */
-	public void removeSong(int songId, int expectedSongPosition)
+	public void removeSong(int songId, int expectedSongPosition, PlaylistSubscriber playlistSubscriber)
 			throws InvalidPlaylistException, PlaylistChangedException {
 		try {
 			playlistLock.writeLock().lock();
@@ -285,6 +291,7 @@ public class PlaylistService {
 			throw ex;
 		} finally {
 			playlistLock.writeLock().unlock();
+			playlistSubscriber.notifyPlaylistReady();
 			LOG.debug("Released Write-Lock in `removeSong`.");
 		}
 	}
