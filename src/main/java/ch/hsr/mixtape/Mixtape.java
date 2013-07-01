@@ -5,7 +5,6 @@ import static ch.hsr.mixtape.concurrency.CustomExecutors.exitingFixedExecutorSer
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.util.concurrent.Futures.dereference;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import java.io.IOException;
@@ -19,7 +18,6 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.hsr.mixtape.application.service.AnalyzerService;
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Distance;
 import ch.hsr.mixtape.model.FeaturesOfSong;
@@ -101,34 +99,24 @@ public class Mixtape {
 		List<ListenableFuture<Song>> otherSongs = asFutures(getSongs());
 		for (Song song : songs) {
 			LOGGER.info("Preparing processing for '" + song.getTitle() + "'.");
-			ListenableFuture<Song> newSong = extractFeaturesOf(song);
-			List<ListenableFuture<Distance>> distances = calcDistancesBetween(newSong, otherSongs);
-			addSong(newSong, distances, callback);
-			otherSongs.add(newSong);
+			otherSongs.add(extractFeaturesOf(song, newArrayList(otherSongs), callback));
 		}
 	}
 
-	private void addSong(final ListenableFuture<Song> song, final List<ListenableFuture<Distance>> distances,
+	private void addSong(final Song song, final List<Distance> distances,
 			final DistanceCallback callback) {
-		addingExecutor.submit(new Runnable() {
+		//addingExecutor.submit(new Runnable() {
 
-			public void run() {
-				try {
-					Song newSong = song.get();
-					LOGGER.info("Adding new song '" + newSong.getTitle()+ "'.");
-					List<Distance> newDistances = Futures.allAsList(distances).get();
+		//public void run() {
+				LOGGER.info("Adding new song '" + song.getTitle() + "'.");
+				addDistances(distances);
+				song.setAnalyzeDate(new Date());
 
-					addDistances(newDistances);
-					newSong.setAnalyzeDate(new Date());
+				LOGGER.info("Song '" + song.getTitle() + "' added.");
+				callback.distanceAdded(song, distances);
+				//}
 
-					LOGGER.info("Song '" + newSong.getTitle()+ "' added.");
-					callback.distanceAdded(newSong, newDistances);
-				} catch (InterruptedException | ExecutionException exception) {
-					throw new RuntimeException(exception);
-				}
-			}
-
-		});
+				//		});
 	}
 
 	private List<ListenableFuture<Song>> asFutures(List<Song> songs) {
@@ -139,11 +127,12 @@ public class Mixtape {
 		return futures;
 	}
 
-	private ListenableFuture<Song> extractFeaturesOf(final Song song) throws IOException, InterruptedException,
+	private ListenableFuture<Song> extractFeaturesOf(final Song song, final List<ListenableFuture<Song>> otherSongs,
+			final DistanceCallback callback) throws IOException, InterruptedException,
 			ExecutionException {
-		return dereference(publishingExecutor.submit(new Callable<ListenableFuture<Song>>() {
+		return publishingExecutor.submit(new Callable<Song>() {
 
-			public ListenableFuture<Song> call() throws Exception {
+			public Song call() throws Exception {
 				song.setAnalyzeStartDate();
 
 				LOGGER.info("Started extraction for '" + song.getTitle() + "'.");
@@ -159,29 +148,26 @@ public class Mixtape {
 
 				publisher.publish(song);
 
-				return extractionAwaitingExecutor.submit(new Callable<Song>() {
+				song.setFeatures(new FeaturesOfSong(
+						harmonic.get(),
+						perceptual.get(),
+						spectral.get(),
+						temporal.get()));
 
-					public Song call() throws Exception {
-						song.setFeatures(new FeaturesOfSong(
-								harmonic.get(),
-								perceptual.get(),
-								spectral.get(),
-								temporal.get()));
+				final long extractionFinished = System.currentTimeMillis();
+				LOGGER.info("Finished extraction for '" + song.getTitle() + "'. Extraction took "
+						+ (extractionFinished - extractionStarted) / 1000 + " seconds.");
 
-						final long extractionFinished = System.currentTimeMillis();
-						LOGGER.info("Finished extraction for '" + song.getTitle() + "'. Extraction took "
-								+ (extractionFinished - extractionStarted) / 1000 + " seconds.");
+				List<ListenableFuture<Distance>> distances = calcDistancesBetween(song, otherSongs);
+				addSong(song, Futures.allAsList(distances).get(), callback);
 
-						return song;
-					}
-
-				});
+				return song;
 			}
 
-		}));
+		});
 	}
 
-	private List<ListenableFuture<Distance>> calcDistancesBetween(ListenableFuture<Song> song,
+	private List<ListenableFuture<Distance>> calcDistancesBetween(Song song,
 			List<ListenableFuture<Song>> otherSongs) {
 		List<ListenableFuture<Distance>> distances = newArrayListWithCapacity(otherSongs.size());
 		for (ListenableFuture<Song> otherSong : otherSongs)
@@ -190,12 +176,12 @@ public class Mixtape {
 		return distances;
 	}
 
-	private ListenableFuture<Distance> calcDistanceBetween(final ListenableFuture<Song> songX,
+	private ListenableFuture<Distance> calcDistanceBetween(final Song songX,
 			final ListenableFuture<Song> songY) {
 		return distanceAwaitingExecutor.submit(new Callable<Distance>() {
 
 			public Distance call() throws Exception {
-				Song x = songX.get();
+				Song x = songX;
 				Song y = songY.get();
 				LOGGER.info("Calculating distance between '" + x.getTitle() + "' and '" + y.getTitle() + "'.");
 				Distance distance = calcDistanceBetween(x, y);
