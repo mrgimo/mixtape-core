@@ -4,7 +4,12 @@ import org.apache.commons.math3.util.FastMath;
 
 import ch.hsr.mixtape.processing.Feature;
 
+import com.google.common.primitives.Ints;
+
 public class NormalizedInformationDistance {
+	
+	private SuffixArrayBuilder suffixArrayBuilder = new SuffixArrayBuilder();
+	private LongestCommonPrefixBuilder longestCommonPrefixBuilder = new LongestCommonPrefixBuilder();
 
 	public double distanceBetween(Feature x, Feature y) {
 		if(x.values.length == 0 || y.values.length == 0)
@@ -23,10 +28,11 @@ public class NormalizedInformationDistance {
 	}
 
 	private int compressedSize(Feature feature) {
-		int[] sA = feature.getSuffixArray();
-		int[] lcp = feature.getLcpOfSuffixArray();
 
 		int[] values = feature.values;
+
+		int[] sA = suffixArrayBuilder.buildSuffixArray(values, Ints.max(values));
+		int[] lcp = longestCommonPrefixBuilder.longestCommonPrefixes(values, sA);
 		
 		int lz77Triples = 0;
 		for (int pos = 0; pos < values.length;) {
@@ -43,14 +49,14 @@ public class NormalizedInformationDistance {
 	}
 
 	private int compressedCombindedSize(Feature featureX, Feature featureY) {
-		int[] saX = featureX.getSuffixArray();
-		int[] saY = featureY.getSuffixArray();
-
-		int[] lcpX = featureX.getLcpOfSuffixArray();
-		int[] lcpY = featureY.getLcpOfSuffixArray();
-		
 		int[] valuesX = featureX.values;
 		int[] valuesY = featureY.values;
+		
+		 int[] saX = suffixArrayBuilder.buildSuffixArray(valuesX, Ints.max(valuesX));
+		 int[] saY = suffixArrayBuilder.buildSuffixArray(valuesY, Ints.max(valuesY));
+
+		 int[] lcpX = longestCommonPrefixBuilder.longestCommonPrefixes(valuesX, saX);
+		 int[] lcpY = longestCommonPrefixBuilder.longestCommonPrefixes(valuesY, saY);
 
 		int lz77Triples = 0;
 		for (int posX = 0; posX < valuesX.length;) {
