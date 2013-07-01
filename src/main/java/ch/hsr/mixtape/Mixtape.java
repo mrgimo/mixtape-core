@@ -96,7 +96,7 @@ public class Mixtape {
 			ExecutionException {
 		LOGGER.info(songs.size() + " added to Mixtape.");
 
-		List<ListenableFuture<Song>> otherSongs = asFutures(getSongs());
+		List<Song> otherSongs = getSongs();
 		for (Song song : songs) {
 			LOGGER.info("Preparing processing for '" + song.getTitle() + "'.");
 			otherSongs.add(extractFeaturesOf(song, newArrayList(otherSongs), callback));
@@ -105,18 +105,12 @@ public class Mixtape {
 
 	private void addSong(final Song song, final List<Distance> distances,
 			final DistanceCallback callback) {
-		//addingExecutor.submit(new Runnable() {
+		LOGGER.info("Adding new song '" + song.getTitle() + "'.");
+		addDistances(distances);
+		song.setAnalyzeDate(new Date());
 
-		//public void run() {
-				LOGGER.info("Adding new song '" + song.getTitle() + "'.");
-				addDistances(distances);
-				song.setAnalyzeDate(new Date());
-
-				LOGGER.info("Song '" + song.getTitle() + "' added.");
-				callback.distanceAdded(song, distances);
-				//}
-
-				//		});
+		LOGGER.info("Song '" + song.getTitle() + "' added.");
+		callback.distanceAdded(song, distances);
 	}
 
 	private List<ListenableFuture<Song>> asFutures(List<Song> songs) {
@@ -127,12 +121,9 @@ public class Mixtape {
 		return futures;
 	}
 
-	private ListenableFuture<Song> extractFeaturesOf(final Song song, final List<ListenableFuture<Song>> otherSongs,
+	private Song extractFeaturesOf(final Song song, final List<Song> otherSongs,
 			final DistanceCallback callback) throws IOException, InterruptedException,
 			ExecutionException {
-		return publishingExecutor.submit(new Callable<Song>() {
-
-			public Song call() throws Exception {
 				song.setAnalyzeStartDate();
 
 				LOGGER.info("Started extraction for '" + song.getTitle() + "'.");
@@ -162,27 +153,22 @@ public class Mixtape {
 				addSong(song, Futures.allAsList(distances).get(), callback);
 
 				return song;
-			}
-
-		});
 	}
 
 	private List<ListenableFuture<Distance>> calcDistancesBetween(Song song,
-			List<ListenableFuture<Song>> otherSongs) {
+			List<Song> otherSongs) {
 		List<ListenableFuture<Distance>> distances = newArrayListWithCapacity(otherSongs.size());
-		for (ListenableFuture<Song> otherSong : otherSongs)
-			distances.add(calcDistanceBetween(song, otherSong));
+		for (Song otherSong : otherSongs)
+			distances.add(asyncCalcDistanceBetween(song, otherSong));
 
 		return distances;
 	}
 
-	private ListenableFuture<Distance> calcDistanceBetween(final Song songX,
-			final ListenableFuture<Song> songY) {
+	private ListenableFuture<Distance> asyncCalcDistanceBetween(final Song x,
+			final Song y) {
 		return distanceAwaitingExecutor.submit(new Callable<Distance>() {
 
 			public Distance call() throws Exception {
-				Song x = songX;
-				Song y = songY.get();
 				LOGGER.info("Calculating distance between '" + x.getTitle() + "' and '" + y.getTitle() + "'.");
 				Distance distance = calcDistanceBetween(x, y);
 				LOGGER.info("Distance between '" + x.getTitle() + "' and '" + y.getTitle() + "' calculated.");
