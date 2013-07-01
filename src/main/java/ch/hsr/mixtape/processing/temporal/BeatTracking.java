@@ -117,7 +117,7 @@ public class BeatTracking {
 		int laglen = hopSize / 4;
 
 		this.rayparam = (int) rayparam;
-		
+
 		/*
 		 * step increment - both in detection function samples -i.e. 11.6ms or 1
 		 * onset frame [128]
@@ -278,19 +278,23 @@ public class BeatTracking {
 		double four_energy = 0.;
 		if (acflen > 6 * gp + 2) {
 			for (int k = -2; k < 2; k++) {
-				three_energy += acf[(int) (3 * gp + k)];
-				four_energy += acf[(int) (4 * gp + k)];
+				three_energy += checked(acf, (int) (3 * gp + k));
+				four_energy += checked(acf, (int) (4 * gp + k));
 			}
 		} else {
 			/* Expanded to be more accurate in time sig estimation */
 			for (int k = -2; k < 2; k++) {
-				three_energy += acf[(int) (3 * gp + k)]
-						+ acf[(int) (6 * gp + k)];
-				four_energy += acf[(int) (4 * gp + k)]
-						+ acf[(int) (2 * gp + k)];
+				three_energy += checked(acf, (int) (3 * gp + k))
+						+ checked(acf, (int) (6 * gp + k));
+				four_energy += checked(acf, (int) (4 * gp + k))
+						+ checked(acf, (int) (2 * gp + k));
 			}
 		}
 		return (three_energy > four_energy) ? 3 : 4;
+	}
+
+	private double checked(double[] array, int index) {
+		return index >= 0 && index < array.length ? array[index] : 0;
 	}
 
 	private void checkState() {
