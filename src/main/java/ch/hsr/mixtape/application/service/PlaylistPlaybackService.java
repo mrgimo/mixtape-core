@@ -42,7 +42,7 @@ public class PlaylistPlaybackService {
 		LOG.debug("Initializing current Song done...");
 	}
 
-	public void advanceToNextSong() throws InvalidPlaylistException,
+	public void advanceToNextSong(PlaylistSubscriber playlistSubscriber) throws InvalidPlaylistException,
 			IOException {
 		LOG.debug("Advancing to next song...");
 		if (tempCurrentSong != null)
@@ -52,6 +52,8 @@ public class PlaylistPlaybackService {
 
 		initCurrentSong();
 		LOG.debug("Next song is set up...");
+		
+		playlistSubscriber.notifyPlaylistReady();
 	}
 
 	public String getCurrentSong() throws InvalidPlaylistException, IOException {
