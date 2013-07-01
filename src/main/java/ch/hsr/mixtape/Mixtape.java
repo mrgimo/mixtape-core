@@ -5,6 +5,7 @@ import static ch.hsr.mixtape.concurrency.CustomExecutors.exitingFixedExecutorSer
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.util.concurrent.Futures.dereference;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import java.io.IOException;
@@ -14,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ch.hsr.mixtape.exception.InvalidPlaylistException;
 import ch.hsr.mixtape.model.Distance;
@@ -40,8 +38,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 
 public class Mixtape {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Mixtape.class);
-
 	private static final int NUMBER_OF_AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	private static final int NUMBER_OF_FEATURE_EXTRACTORS = 4;
 
@@ -50,8 +46,7 @@ public class Mixtape {
 
 	private final ListeningExecutorService distanceExecutor = exitingFixedExecutorService(
 			NUMBER_OF_AVAILABLE_PROCESSORS, "distance");
-	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(
-			NUMBER_OF_AVAILABLE_PROCESSORS,
+	private final ListeningExecutorService distanceAwaitingExecutor = exitingFixedExecutorService(NUMBER_OF_AVAILABLE_PROCESSORS,
 			"distance-awaiting");
 
 	private final ListeningExecutorService extractionExecutor = exitingFixedExecutorServiceWithBlockingTaskQueue(
@@ -82,8 +77,6 @@ public class Mixtape {
 		Song songX = distance.getSongX();
 		Song songY = distance.getSongY();
 
-		LOGGER.info("Adding distance between '" + songX.getTitle() + "' and '" + songY.getTitle() + "'.");
-
 		if (!songX.equals(songY)) {
 			distanceTable.put(songX, songY, distance);
 			distanceTable.put(songY, songX, distance);
@@ -94,23 +87,39 @@ public class Mixtape {
 
 	public void addSongs(Collection<Song> songs, DistanceCallback callback) throws IOException, InterruptedException,
 			ExecutionException {
-		LOGGER.info(songs.size() + " added to Mixtape.");
-
-		List<Song> otherSongs = getSongs();
+		List<ListenableFuture<Song>> otherSongs = asFutures(getSongs());
 		for (Song song : songs) {
-			LOGGER.info("Preparing processing for '" + song.getTitle() + "'.");
-			otherSongs.add(extractFeaturesOf(song, newArrayList(otherSongs), callback));
+			ListenableFuture<Song> newSong = extractFeaturesOf(song);
+			List<ListenableFuture<Distance>> distances = calcDistancesBetween(newSong, otherSongs);
+			addSong(newSong, distances, callback);
+			otherSongs.add(newSong);
 		}
 	}
 
-	private void addSong(final Song song, final List<Distance> distances,
+	private void addSong(final ListenableFuture<Song> song, final List<ListenableFuture<Distance>> distances,
 			final DistanceCallback callback) {
-		LOGGER.info("Adding new song '" + song.getTitle() + "'.");
-		addDistances(distances);
-		song.setAnalyzeDate(new Date());
+		addingExecutor.submit(new Runnable() {
 
-		LOGGER.info("Song '" + song.getTitle() + "' added.");
-		callback.distanceAdded(song, distances);
+			public void run() {
+				try {
+					long startTime = System.currentTimeMillis();
+					Song newSong = song.get();
+					List<Distance> newDistances = Futures.allAsList(distances).get();
+					
+
+					long endTime = System.currentTimeMillis();
+					System.out.println("\n\n calculation Time: " + ((endTime - startTime) / 1000) + " sec\n\n");
+					
+					addDistances(newDistances);
+					newSong.setAnalyzeDate(new Date());
+
+					callback.distanceAdded(newSong, newDistances);
+				} catch (InterruptedException | ExecutionException exception) {
+					throw new RuntimeException(exception);
+				}
+			}
+
+		});
 	}
 
 	private List<ListenableFuture<Song>> asFutures(List<Song> songs) {
@@ -121,13 +130,12 @@ public class Mixtape {
 		return futures;
 	}
 
-	private Song extractFeaturesOf(final Song song, final List<Song> otherSongs,
-			final DistanceCallback callback) throws IOException, InterruptedException,
+	private ListenableFuture<Song> extractFeaturesOf(final Song song) throws IOException, InterruptedException,
 			ExecutionException {
-				song.setAnalyzeStartDate();
+		return dereference(publishingExecutor.submit(new Callable<ListenableFuture<Song>>() {
 
-				LOGGER.info("Started extraction for '" + song.getTitle() + "'.");
-				final long extractionStarted = System.currentTimeMillis();
+			public ListenableFuture<Song> call() throws Exception {
+				song.setAnalyzeStartDate();
 
 				SampleWindowPublisher publisher = new SampleWindowPublisher(extractionExecutor, postprocessingExecutor);
 
@@ -139,40 +147,41 @@ public class Mixtape {
 
 				publisher.publish(song);
 
-				song.setFeatures(new FeaturesOfSong(
-						harmonic.get(),
-						perceptual.get(),
-						spectral.get(),
-						temporal.get()));
+				return extractionAwaitingExecutor.submit(new Callable<Song>() {
 
-				final long extractionFinished = System.currentTimeMillis();
-				LOGGER.info("Finished extraction for '" + song.getTitle() + "'. Extraction took "
-						+ (extractionFinished - extractionStarted) / 1000 + " seconds.");
+					public Song call() throws Exception {
+						song.setFeatures(new FeaturesOfSong(
+								harmonic.get(),
+								perceptual.get(),
+								spectral.get(),
+								temporal.get()));
 
-				List<ListenableFuture<Distance>> distances = calcDistancesBetween(song, otherSongs);
-				addSong(song, Futures.allAsList(distances).get(), callback);
+						return song;
+					}
 
-				return song;
+				});
+			}
+
+		}));
 	}
 
-	private List<ListenableFuture<Distance>> calcDistancesBetween(Song song,
-			List<Song> otherSongs) {
+	private List<ListenableFuture<Distance>> calcDistancesBetween(ListenableFuture<Song> song,
+			List<ListenableFuture<Song>> otherSongs) {
 		List<ListenableFuture<Distance>> distances = newArrayListWithCapacity(otherSongs.size());
-		for (Song otherSong : otherSongs)
-			distances.add(asyncCalcDistanceBetween(song, otherSong));
-
+		
+		
+		for (ListenableFuture<Song> otherSong : otherSongs)
+			distances.add(calcDistanceBetween(song, otherSong));
+		
 		return distances;
 	}
 
-	private ListenableFuture<Distance> asyncCalcDistanceBetween(final Song x,
-			final Song y) {
+	private ListenableFuture<Distance> calcDistanceBetween(final ListenableFuture<Song> songX,
+			final ListenableFuture<Song> songY) {
 		return distanceAwaitingExecutor.submit(new Callable<Distance>() {
 
 			public Distance call() throws Exception {
-				LOGGER.info("Calculating distance between '" + x.getTitle() + "' and '" + y.getTitle() + "'.");
-				Distance distance = calcDistanceBetween(x, y);
-				LOGGER.info("Distance between '" + x.getTitle() + "' and '" + y.getTitle() + "' calculated.");
-				return distance;
+				return calcDistanceBetween(songX.get(), songY.get());
 			}
 
 		});
@@ -234,37 +243,30 @@ public class Mixtape {
 	}
 
 	public Distance distanceBetween(Song songX, Song songY) {
-		LOGGER.info("Returning distance between '" + songX.getTitle() + "' and '" + songY.getTitle() + "'.");
 		return distanceTable.get(songX, songY);
 	}
 
 	public Map<Song, Distance> distancesTo(Song song) {
-		LOGGER.info("Returning distances to '" + song.getTitle() + "'.");
 		return newHashMap(distanceTable.row(song));
 	}
 
 	public synchronized List<Song> getSongs() {
-		LOGGER.info("Returning all songs.");
 		return newArrayList(distanceTable.rowKeySet());
 	}
 
 	public List<Distance> getDistances() {
-		LOGGER.info("Returning all distances.");
 		return newArrayList(distanceTable.values());
 	}
 
 	public void initialMix(Playlist playList) throws InvalidPlaylistException {
-		LOGGER.info("Returning initial mix.");
 		mixStrategy.initialMix(playList);
 	}
 
 	public void mixMultipleSongs(Playlist playlist, List<Song> addedSongs) throws InvalidPlaylistException {
-		LOGGER.info("Returning mix of multiple songs.");
 		mixStrategy.mixMultipleSongs(playlist, addedSongs);
 	}
 
 	public void mixAnotherSong(Playlist playlist, Song addedSong) throws InvalidPlaylistException {
-		LOGGER.info("Returning mix of another songs.");
 		mixStrategy.mixAnotherSong(playlist, addedSong);
 
 	}

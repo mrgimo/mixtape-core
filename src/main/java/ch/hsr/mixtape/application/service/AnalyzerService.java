@@ -23,45 +23,35 @@ public class AnalyzerService {
 			.getLogger(AnalyzerService.class);
 
 	public void analyze(final List<Song> songs) {
-		new Thread(new Runnable() {
-			
-			public void run() {
-				LOG.info("Submitted " + songs.size() + " song(s) for analysis.");
-				try {
-					getMixtape().addSongs(songs, new DistanceCallback() {
+		LOG.info("Submitted " + songs.size() + " song(s) for analysis.");
+		try {
+			getMixtape().addSongs(songs, new DistanceCallback() {
 
-						public void distanceAdded(Song song, Collection<Distance> distances) {
-							LOG.info("Analysing song successful.");
-							LOG.info("Analysis for `" + song.getTitle() + "` took "
-									+ song.getAnalysisDurationInSeconds()
-									+ " seconds.");
-							persist(distances, song);
-						}
+				public void distanceAdded(Song song, Collection<Distance> distances) {
+					LOG.info("Analysing song successful.");
+					LOG.info("Analysis for `" + song.getTitle() + "` took "
+							+ song.getAnalysisDurationInSeconds()
+							+ " seconds.");
+					persist(distances, song);
+				}
 
-					});
-				} catch (IOException | InterruptedException | ExecutionException exception) {
-					LOG.error("Error during analysing songs.", exception);
-				}				
-			}
-		}).start();
+			});
+		} catch (IOException | InterruptedException | ExecutionException exception) {
+			LOG.error("Error during analysing songs.", exception);
+		}
 	}
 
 	private void persist(Collection<Distance> distances, Song song) {
-		LOG.info("Persisting song '" + song.getTitle() + "' now...");
+		LOG.info("Persisting song now...");
 		EntityManager entityManager = getDatabaseService().getNewEntityManager();
 		entityManager.getTransaction().begin();
 
 		entityManager.merge(song);
 		entityManager.flush();
-		LOG.info("Flushed song '" + song.getTitle() + "'.");
+		LOG.info("Flushed song.");
 
-		for (Distance distance : distances) {
-			LOG.info("Persisting distance between '" + distance.getSongX().getTitle() + "' and '"
-					+ distance.getSongX().getTitle() + "'.");
+		for (Distance distance : distances)
 			entityManager.persist(distance);
-		}
-
-		LOG.info("Persisted song '" + song.getTitle() + "' successfully.");
 
 		entityManager.getTransaction().commit();
 		getDatabaseService().closeEntityManager(entityManager);
