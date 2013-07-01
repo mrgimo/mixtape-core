@@ -42,16 +42,21 @@ public class AnalyzerService {
 	}
 
 	private void persist(Collection<Distance> distances, Song song) {
-		LOG.info("Persisting song now...");
+		LOG.info("Persisting song '" + song.getTitle() + "' now...");
 		EntityManager entityManager = getDatabaseService().getNewEntityManager();
 		entityManager.getTransaction().begin();
 
 		entityManager.merge(song);
 		entityManager.flush();
-		LOG.info("Flushed song.");
+		LOG.info("Flushed song '" + song.getTitle() + "'.");
 
-		for (Distance distance : distances)
+		for (Distance distance : distances) {
+			LOG.info("Persisting distance between '" + distance.getSongX().getTitle() + "' and '"
+					+ distance.getSongX().getTitle() + "'.");
 			entityManager.persist(distance);
+		}
+
+		LOG.info("Persisted song '" + song.getTitle() + "' successfully.");
 
 		entityManager.getTransaction().commit();
 		getDatabaseService().closeEntityManager(entityManager);
